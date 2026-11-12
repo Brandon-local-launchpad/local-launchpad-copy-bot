@@ -9,6 +9,7 @@
 //   node tools/leadsnap-autopost-run.js kestrel-thin   no USPs, no brand photos, few photos
 //   node tools/leadsnap-autopost-run.js --live-record "<client>"   the intake saved in a live client's config: READ ONLY,
 //     one read only transaction on the .env database, and the results stay on this machine
+//   add --county "<name>" to set the county posts name (a live record from before 12 Nov has none)
 //   add --preview to run Preview posts on the result: up to about 40p more, saved as previews.json
 //
 // Needs ANTHROPIC_API_KEY in the environment or .env. A run costs a few pence.
@@ -90,6 +91,9 @@ async function liveRecord(name) {
     if (!live.record) throw new Error('No saved Lead Snap config found for that client.');
     const R0 = live.record.data.intake;
     intake = { ...R0, warnings: [], missing: [], ok: true, mainTown: R0.mainTown || R0.areas[0], nearby: R0.areas.slice(1), allAreas: R0.allAreas || R0.areas, offerSource: R0.offerSource || '' };
+    const countyAt = process.argv.indexOf('--county');
+    if (countyAt >= 0) Object.assign(intake, { county: process.argv[countyAt + 1], counties: [process.argv[countyAt + 1]], countySource: 'typed', countyWhy: 'given with --county' });
+    if (!intake.county) throw new Error('This live record is from before the county (12 Nov): add --county "<name>".');
     livePreviews = live.previews ? { ...live.previews.data, record: live.record.data } : null;
     console.log(`Live config read for "${live.record.client}", generated ${live.record.data.generated_at}. Nothing written.`);
     if (livePreviews) {
@@ -100,12 +104,16 @@ async function liveRecord(name) {
     }
   } else {
     const { I, trade, answers, hand } = client(name);
+    // No database here, so the county the live loader would work out is given (gbp/county.js)
+    const countyAt = process.argv.indexOf('--county');
+    const county = countyAt >= 0 ? process.argv[countyAt + 1] : { plumber: 'Essex', 'edens-edge': 'Hampshire', 'dog-walker': 'Somerset', 'kestrel-thin': 'Hampshire' }[name];
+    if (county) I.postCounties = { counties: [county], why: `${county}: the local run` };
     intake = buildIntake({ I, trade, answers, hand });
   }
   const D = decide(intake);
   console.log(`${intake.groups.length} whole services`);
   console.log(intake.groups.map(g => `  ${g.key}: ${g.label} (${g.photos} photos): ${g.services.join(', ')}`).join('\n'));
-  console.log(`USPs: ${intake.usps.join('; ')}\nAreas: ${intake.areasWhy}\n${intake.areas.join(', ')}\nCTA: ${intake.cta.line}\nWarnings: ${intake.warnings.join(' | ') || 'none'}\nNotes: ${D.notes.join(' | ') || 'none'}`);
+  console.log(`USPs: ${intake.usps.join('; ')}\nCounty: ${intake.county} (${intake.countyWhy})\nAreas (for the town check): ${intake.areasWhy}\n${intake.areas.join(', ')}\nCTA: ${intake.cta.line}\nWarnings: ${intake.warnings.join(' | ') || 'none'}\nNotes: ${D.notes.join(' | ') || 'none'}`);
   console.log(D.prompts.map(p => `  ${p.n}. ${p.label} | ${p.folder} (${p.photos}) | ${p.why}`).join('\n'));
   const callModel = makeCallModel(new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }), G.MODEL, {});
   const rec = await G.runAutopost({ intake, callModel, log: m => console.log(m) });
@@ -124,9 +132,11 @@ async function liveRecord(name) {
       console.log(`\n## ${p.n}. ${p.label}`);
       for (const s of p.samples) console.log(`  sample ${s.n}: ${s.words} words | ${s.error || s.checks.filter(c => c.level === 'warn').map(c => `${c.id}: ${c.detail}`).join(' | ') || 'clean'} | opens: ${s.text.split(/\s+/).slice(0, 9).join(' ')}`);
     }
-    console.log(`\nAREAS: ${pv.areas.on_area} of ${pv.areas.samples} samples name their own area`);
-    for (const [t, n] of Object.entries(pv.areas.assigned)) console.log(`  ${t}: ${n} prompts, named in ${pv.areas.named[t] || 0} samples`);
-    console.log(`  Other towns named: ${Object.entries(pv.areas.named).filter(([t, n]) => n && !(t in pv.areas.assigned)).map(([t, n]) => `${t} ${n}`).join(', ') || 'none'}`);
+    const townFails = pv.prompts.flatMap(p => p.samples.filter(x => !x.error).map(x => ({ p: p.n, n: x.n, c: x.checks.find(k => k.id === 'town') })).filter(x => x.c && x.c.level !== 'pass'));
+    const countyNamed = pv.prompts.reduce((k, p) => k + p.samples.filter(x => !x.error && x.text.toLowerCase().includes(String(intake.county).toLowerCase())).length, 0);
+    console.log(`\nPLACES: ${townFails.length} of ${pv.areas.samples} samples fail the town check; ${countyNamed} name ${intake.county}`);
+    townFails.forEach(x => console.log(`  P${x.p}.${x.n}: ${x.c.detail}`));
+    console.log(`  Towns named: ${Object.entries(pv.areas.named).filter(([, n]) => n).map(([t, n]) => `${t} ${n}`).join(', ') || 'none'}`);
     const claimFails = pv.prompts.flatMap(p => p.samples.filter(s => s.fails).map(s => `  P${p.n}.${s.n}: ${s.checks.find(k => k.id === 'claims').detail}`));
     console.log(`\nCLAIM FAILS: ${claimFails.length}`);
     claimFails.forEach(l => console.log(l.slice(0, 200)));

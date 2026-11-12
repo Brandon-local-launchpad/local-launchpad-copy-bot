@@ -3019,6 +3019,8 @@ const CLIENT_VALUES_TEMPLATE = {
   // The client's live domain (3 Nov): the website on every listing and the NAP; the WordPress
   // connection is a fallback for the NAP only, never for a submission pack (it may be a staging host)
   live_domain: '',
+  // The county GBP posts name (12 Nov): blank works it out from the base and approved towns (gbp/county.js)
+  county: '',
   primary_category: '', year_founded: '', jobs_completed: '',
   rating: '', review_count: '',
   guarantee_years: '', manufacturer_warranty: '', insurance_cover: '',
@@ -4122,8 +4124,15 @@ if (pool && pageMapStore) {
   } else console.log(`[rank] rank scans: ${rankProvider === 'leadsnap' ? 'LeadSnap (RANK_SCAN_PROVIDER=leadsnap)' : 'Local Falcon, but LOCALFALCON_API_KEY is not set: nothing runs'}`);
   // The Lead Snap tab (5 Nov): the autopost config, from the GBP inputs and the Fillout voice answers
   const gbpPostsCallModel = args => makeCallModel(new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }), require('./gbp-posts/write').MODEL, { onUsage: modelLog.tagged('GBP Posts') })(args);
+  const postPlaces = require('./locations/places').createPlacesStore(pool);
   const leadSnapInputs = async clientId => {
     const I = await gbpInputsFor(clientId);
+    // The county posts name (gbp/county.js): worked out here, a typed Record value wins in the intake.
+    // A failed lookup is no county, and the prompts then wait: they never fall back to a town.
+    try {
+      const approved = await require('./locations/approved').approvedTiers(pool, clientId).catch(() => null);
+      I.postCounties = await require('./gbp/county').deriveCounties({ baseTown: I.town, approved, placesStore: postPlaces, citationStore });
+    } catch (e) { console.error('[gbp posts] county:', e.message); I.postCounties = { counties: [], why: '' }; }
     const { rows } = await pool.query(`SELECT trade FROM clients WHERE id=$1`, [clientId]);
     const rec = filloutService ? await filloutService.record(clientId).catch(() => null) : null;
     const fields = rec ? rec.sections.flatMap(s => s.fields) : [];

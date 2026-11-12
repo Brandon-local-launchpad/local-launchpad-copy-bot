@@ -86,6 +86,10 @@ function mountGbpPostsApi(app, { pool, callModel, loadInputs = null, beforeUnapp
     return changed ? store.posts(batch.id) : posts;
   }
 
+  // Prompts written before the county (12 Nov) give each post a town, so no new batch comes from them
+  const OLD_PROMPTS = 'These prompts name one town per post. Write the prompts again (under Photos & prompts) so posts name the county instead.';
+  const beforeCounty = record => !!(record && record.sheet && !(record.intake && record.intake.county));
+
   async function view(clientId) {
     const { rows } = await pool.query(`SELECT id FROM clients WHERE id=$1`, [clientId]);
     if (!rows.length) throw bad('Client not found.', 404);
@@ -93,6 +97,7 @@ function mountGbpPostsApi(app, { pool, callModel, loadInputs = null, beforeUnapp
     const photos = await photosFor(clientId);
     const needs = [];
     if (!record || !record.sheet) needs.push('Write the prompts (under Photos & prompts): posts are written from them.');
+    else if (beforeCounty(record)) needs.push(OLD_PROMPTS);
     if (!photos) needs.push('Save and read the Drive photo folder (under Photos & prompts): every post needs a photo from it.');
     const batches = await store.batches(clientId);
     const fileIds = photos ? new Set(photos.map(f => f.file_id)) : null;
@@ -171,6 +176,7 @@ function mountGbpPostsApi(app, { pool, callModel, loadInputs = null, beforeUnapp
     const record = await autopost.latest(clientId);
     const photos = await photosFor(clientId);
     if (!photos) throw bad('Save and read the Drive photo folder (Photos, on the GBP Posts & Photos tab) first.');
+    if (beforeCounty(record)) throw bad(OLD_PROMPTS);
     const plan = P.planBatch({ size: Number(req.body && req.body.size), record, photos, history: await store.history(clientId), clientId, start: (req.body && req.body.start) || null, today: today(), site: liveDomain(await valuesFor(clientId)) });
     const config = { generated_at: record.generated_at, intake: record.intake, output: { prompts: record.output.prompts } };
     const id = await store.createBatch(clientId, { size: plan.posts.length, start: plan.start, config, notes: plan.notes, posts: plan.posts });

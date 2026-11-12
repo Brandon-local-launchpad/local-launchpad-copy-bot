@@ -11,10 +11,10 @@
 
 const { buildNap, liveDomain } = require('../../gbp/profile');
 const { nicheKeyFor } = require('../../fillout/niches');
+const { parseCounties, countyPhrase } = require('../../gbp/county');
 const CTA_NICHES = require('./cta-niches.json');
 
 const AREA_OTHERS = 7;                // main town + 7, as the spec's worked example
-const MIN_NEARBY = 6;
 const MIN_USPS = 4;
 const FREE_QUOTE_OFFER = 'free, no-obligation quote';
 const NOT_A_TOWN = /\b(district|council|borough|county)\b/i;
@@ -139,6 +139,18 @@ function pickAreas(I) {
   return { main, nearby, all: [main, ...nearby].filter(Boolean), every: [main, ...towns].filter(Boolean), why };
 }
 
+// ── The county (Brandon, 12 Nov) ──
+// A post names no town: when it names a place, that is the county. Typed on the Record tab wins;
+// otherwise the one worked out from the base town and the approved towns (gbp/county.js), which
+// the inputs loader puts on I.postCounties.
+function pickCounty(cv, I) {
+  const typed = parseCounties(cv.county);
+  if (typed.length) return { county: countyPhrase(typed), counties: typed, source: 'typed', why: 'typed on the Record tab' };
+  const got = I.postCounties || {};
+  const list = Array.isArray(got.counties) ? got.counties.filter(Boolean) : [];
+  return list.length ? { county: countyPhrase(list), counties: list, source: 'towns', why: `worked out from the towns (${got.why || list.join(', ')}); type it on the Record tab to change it` } : { county: '', counties: [], source: '', why: '' };
+}
+
 // ── What the client can be said to offer ──
 // Prompts run for years unrefreshed, so anything that goes out of date is left out: review
 // counts, jobs completed and how soon work starts. Payment terms and materials are not selling
@@ -184,6 +196,7 @@ function buildIntake({ I, trade = '', answers = {}, hand = {}, locked = null }) 
   const brand = Number.isFinite(Number(hand.brand)) ? Number(hand.brand) : 0;
   const photosEntered = !!counts;
   const areas = pickAreas(I);
+  const county = pickCounty(cv, I);
   const usps = pickUsps(I);
   const toneAnswer = Array.isArray(answers.tone) ? answers.tone.map(str).filter(Boolean).join(', ') : str(answers.tone);
   const tone = str(hand.tone) || toneAnswer.toLowerCase() || 'friendly and professional';
@@ -204,12 +217,11 @@ function buildIntake({ I, trade = '', answers = {}, hand = {}, locked = null }) 
   const missing = [];
   if (!str(cv.company_name) && !str(I.name)) missing.push('Business name (Client Values)');
   if (!niche) missing.push('Niche (the primary category on the client record)');
-  if (!areas.main) missing.push('Main town (the set-up on the client record)');
+  if (!county.county) missing.push(`County: type it on the Record tab (Client Values), or approve the towns on the Locations tab so Copybot can work it out. Posts name the county, never a town.`);
   if (!groups.length) missing.push('Services (generate the page map first)');
   if (!photosEntered) missing.push('Photo counts: read the Drive folder under Photos, or type the counts and save');
 
   const warnings = [];
-  if (areas.nearby.length < MIN_NEARBY) warnings.push(`Only ${areas.nearby.length} nearby areas beside ${areas.main || 'the main town'}; the spec asks for 6 to 10. Approve more on the Locations tab if the client covers them.`);
   if (usps.length < MIN_USPS) warnings.push('Few USPs. Posts will repeat the same facts; confirm more with the client.');
   if (cta.type === 'Call Now' && !str(nap.phone)) warnings.push('Call Now uses the GBP phone number, and no phone is saved on Client Values.');
   if (cta.type === 'Book' && !cta.url) warnings.push('Book needs a booking URL: type it in under Post settings.');
@@ -229,10 +241,12 @@ function buildIntake({ I, trade = '', answers = {}, hand = {}, locked = null }) 
 
   return {
     business: str(cv.company_name) || str(I.name), phone: str(nap.phone), niche, nicheKey,
+    // The towns stay on the intake for the checks: a post that names one of them is caught
     mainTown: areas.main, areas: areas.all, allAreas: areas.every, nearby: areas.nearby, areasWhy: areas.why,
+    county: county.county, counties: county.counties, countySource: county.source, countyWhy: county.why,
     groups, labelsLocked: !!locked, pending, brand, photosEntered, usps, offer, offerSource, tone, avoid, cta,
     missing, warnings, ok: missing.length === 0,
   };
 }
 
-module.exports = { buildIntake, groupServices, lockedFrom, labelChanges, carryCounts, shortName, pickAreas, pickUsps, pickCta, AREA_OTHERS, FREE_QUOTE_OFFER };
+module.exports = { buildIntake, groupServices, lockedFrom, labelChanges, carryCounts, shortName, pickAreas, pickCounty, pickUsps, pickCta, AREA_OTHERS, FREE_QUOTE_OFFER };

@@ -29,7 +29,8 @@ const chk = (label, ok, got, want) => {
 console.log('\n=== FIXTURE: Lead Snap autopost config ===\n');
 
 // ── The clients: GBP inputs in the shape gbp/inputs.js returns ──
-const inputs = ({ name, primary, town, areas, services, cv = {}, site = '' }) => ({
+const inputs = ({ name, primary, town, areas, services, cv = {}, site = '', county = 'Essex' }) => ({
+  postCounties: { counties: county ? [county] : [], why: `${county}: the fixture` },
   name, primary, town, areas: [town, ...areas], serviceAreasPageMap: [town, ...areas], serviceAreasFrom: 'the page map', siteUrl: site, primarySlug: '/' + primary.toLowerCase().replace(/\s+/g, '-'),
   locked: services.map(([service, copyPriority = 0]) => ({ service, copyPriority })),
   years: 'none', accreditations: cv.accreditations || 'none', proofPoints: cv.proofPoints || [],
@@ -133,7 +134,29 @@ chk('a client who runs out of angles says so rather than repeating one', (() => 
 chk('Edens Edge: areas are the main town and 7, and a council area is left out and explained', eIntake.areas.length === 8 && eIntake.areas[0] === 'Southampton' && /nearest first/.test(eIntake.areasWhy), eIntake.areas, '');
 const withCouncil = buildIntake({ I: inputs({ name: 'X', primary: 'Roofer', town: 'Lymington', areas: ['New Forest District', 'Brockenhurst'], services: [['Roof repair']] }), trade: 'Roofers', hand: { counts: {} } });
 chk('a council area is never offered as a place, and is explained', !withCouncil.areas.includes('New Forest District') && /New Forest District/.test(withCouncil.areasWhy), withCouncil.areasWhy, '');
-chk('too few areas warns', withCouncil.warnings.some(w => /Only 1 nearby areas/.test(w)), withCouncil.warnings, '');
+chk('few areas no longer warns: posts name the county', !withCouncil.warnings.some(w => /nearby areas/.test(w)), withCouncil.warnings, '');
+// ── The county (Brandon, 12 Nov) ──
+const noCounty = buildIntake({ I: inputs({ name: 'X', primary: 'Roofer', town: 'Lymington', areas: [], services: [['Roof repair']], county: '' }), trade: 'Roofers', hand: { counts: {} } });
+chk('county: none worked out and none typed stops the run, and says where to fix it', !noCounty.ok && noCounty.missing.some(m => /^County: type it on the Record tab/.test(m)), noCounty.missing, '');
+chk('county: worked out from the towns', plumber.county === 'Essex' && plumber.countySource === 'towns' && /the fixture/.test(plumber.countyWhy), plumber.county, 'Essex');
+const typedCounty = buildIntake({ I: { ...plumberI, validatorCtx: { cv: { ...plumberI.validatorCtx.cv, county: 'Greater London' } } }, trade: 'Plumbing & Heating', hand: plumberHand });
+chk('county: a typed Record value wins', typedCounty.county === 'Greater London' && typedCounty.countySource === 'typed', typedCounty.county, 'Greater London');
+const twoCounties = buildIntake({ I: { ...plumberI, validatorCtx: { cv: { ...plumberI.validatorCtx.cv, county: 'Hampshire; West Sussex' } } }, trade: 'Plumbing & Heating', hand: plumberHand });
+chk('county: two typed read as "Hampshire and West Sussex"', twoCounties.county === 'Hampshire and West Sussex' && twoCounties.counties.length === 2, twoCounties.county, 'Hampshire and West Sussex');
+{
+  const C = require(path.join(root, 'gbp/county.js'));
+  chk('county: never split on "and"', C.parseCounties('Tyne and Wear').length === 1, C.parseCounties('Tyne and Wear'), ['Tyne and Wear']);
+  const HANTS = { name: 'Hampshire', councils: ['Southampton', 'Eastleigh', 'Fareham', 'Portsmouth', 'Winchester'] };
+  const WSX = { name: 'West Sussex', councils: ['Chichester'] };
+  const base = { name: 'Southampton', main: true, councils: ['Southampton'] };
+  const t = (name, council) => ({ name, main: false, councils: [council] });
+  const one = C.pickCounties([base, t('Eastleigh', 'Eastleigh'), t('Fareham', 'Fareham'), t('Bosham', 'Chichester')], [HANTS, WSX]);
+  chk('county: the base town\'s first; one border town does not add a county', one.counties.join() === 'Hampshire', one, 'Hampshire');
+  const two = C.pickCounties([base, t('Eastleigh', 'Eastleigh'), t('Bosham', 'Chichester'), t('Emsworth', 'Chichester'), t('Selsey', 'Chichester')], [HANTS, WSX]);
+  chk('county: three approved towns in a second county add it', two.counties.join() === 'Hampshire,West Sussex', two, 'Hampshire,West Sussex');
+  chk('county: Southampton is in Hampshire (a unitary council the county still holds)', C.pickCounties([base], [HANTS]).counties.join() === 'Hampshire', '', 'Hampshire');
+  chk('county: no councils known, no county', C.pickCounties([{ name: 'X', main: true, councils: [] }], [HANTS]).counties.length === 0, '', 0);
+}
 const noPhone = buildIntake({ I: inputs({ name: 'X', primary: 'Roofer', town: 'Lymington', areas: [], services: [['Roof repair']] }), trade: 'Roofers', hand: { counts: {} } });
 chk('Call Now with no phone warns; no USPs warns', noPhone.warnings.some(w => /no phone is saved/.test(w)) && noPhone.warnings.includes('Few USPs. Posts will repeat the same facts; confirm more with the client.'), noPhone.warnings, '');
 chk('3 USPs warns, word for word; 4 does not', buildIntake({ I: { ...plumberI, proofPoints: ['same day visits available'] }, trade: 'Plumbing & Heating', hand: plumberHand }).warnings.includes('Few USPs. Posts will repeat the same facts; confirm more with the client.') && !plumber.warnings.some(w => /Few USPs/.test(w)), plumber.warnings, '');
@@ -206,7 +229,7 @@ function goodSheet(intake, D) {
     L.push(`PROMPT ${p.n} - ${p.label}`, `Tone: ${intake.tone}`, `Images: Choose specific images from GBP or upload -> select from folder: ${p.folder}`, 'Prompt:');
     const about = p.service || (p.kind === 'offer' ? intake.offer : p.label);
 
-    L.push(`Write a Google Business Profile post for ${intake.business}, a ${intake.niche} based in ${intake.mainTown}, about ${about}.`, '', `Facts you may use (no more than two, chosen to fit the angle): ${intake.usps.join(', ')}. Do not use any other facts.`, '', `Mention ${p.area} once or twice and no other towns.`, '', `Build the whole post around this ${p.kind === 'tips' ? 'tip' : 'angle'}: ${p.angle}.`, '', `Write 150-250 words in plain UK English, no headings, no hashtags, no emoji. Don't start with "If". Use the business name once, written exactly like this: ${intake.business}. Use the service name naturally once or twice. Never invent specific jobs, customers, reviews, prices, timescales, discounts or accreditations; use only the facts given here. Do not describe customers, what they say, how many there are or how often you work for them. Do not mention warranties, guarantees or accreditations unless they are in the facts. Do not give measurements, sizes or figures unless they are in the facts. Do not mention seasons, weather, holidays, dates or time words such as "today", "this week", "right now" or "at the moment". No generic filler. Tone: ${intake.tone}. End with one sentence that leads into the button: ${intake.cta.sentence}.`, '');
+    L.push(`Write a Google Business Profile post for ${intake.business}, a ${intake.niche}, about ${about}.`, '', `Facts you may use (no more than two, chosen to fit the angle): ${intake.usps.join(', ')}. Do not use any other facts.`, '', `${G.placeRule(p, intake.county)}`, '', `Build the whole post around this ${p.kind === 'tips' ? 'tip' : 'angle'}: ${p.angle}.`, '', `Write 150-250 words in plain UK English, no headings, no hashtags, no emoji. Don't start with "If". Use the business name once, written exactly like this: ${intake.business}. Use the service name naturally once or twice. Never invent specific jobs, customers, reviews, prices, timescales, discounts or accreditations; use only the facts given here. Do not describe customers, what they say, how many there are or how often you work for them. Do not mention warranties, guarantees or accreditations unless they are in the facts. Do not give measurements, sizes or figures unless they are in the facts. Do not mention seasons, weather, holidays, dates or time words such as "today", "this week", "right now" or "at the moment". No generic filler. Tone: ${intake.tone}. End with one sentence that leads into the button: ${intake.cta.sentence}.`, '');
   }
   L.push('PHOTO GAPS', ...D.gaps.map(g => `- ${g.label}: ${g.photos} photos. Ask the client for 3-4 photos of finished ${g.label.toLowerCase()} from the customer's side.`), '', 'VA CHECKLIST', '[ ] Settings set');
   return L.join('\n');
@@ -228,7 +251,9 @@ const canned = text => async () => ({ text, usage: { input_tokens: 10, output_to
   const failsFor = text => G.validateSheet(G.parseSheet(text), plumber, P).fails.map(f => f.message).join(' | ');
   const good = goodSheet(plumber, P);
   chk('check: a missing prompt', /has 19 prompts/.test(failsFor(good.replace(/PROMPT 20 - [\s\S]*?(?=PHOTO GAPS)/, ''))), failsFor(good.replace(/PROMPT 20 - [\s\S]*?(?=PHOTO GAPS)/, '')), '');
-  chk('check: a prompt without its area', /must say "Mention Romford once or twice/.test(failsFor(good.replace('Mention Romford once or twice and no other towns.', 'Mention Dagenham once or twice and no other towns.'))), '', '');
+  chk('check: a prompt without its place rule', /must say "If you name a place, name Essex only/.test(failsFor(good.replace('If you name a place, name Essex only. Never name a town, city or village.', 'Mention Dagenham once or twice and no other towns.'))), '', '');
+  chk('check: a town in the model\'s angle is refused', /names Dagenham in its angle/.test(failsFor(good.replace(ANGLE, ANGLE + ' for homes in Dagenham'))), failsFor(good.replace(ANGLE, ANGLE + ' for homes in Dagenham')), '');
+  chk('check: the county in the angle is fine', !/in its angle/.test(failsFor(good.replace(ANGLE, ANGLE + ' across Essex'))), '', '');
   chk('check: the no social proof rule on every prompt', /Do not describe customers/.test(failsFor(good.replace(/Do not describe customers, what they say, how many there are or how often you work for them\. /g, ''))), '', '');
   chk('check: a rule dropped', /Do not mention seasons/.test(failsFor(good.replace(/Do not mention seasons, weather, holidays, dates or time words such as [^.]*\. /g, ''))), '', '');
   chk('check: a fact dropped', /missing the fact "Gas Safe registered"/.test(failsFor(good.replace(/Gas Safe registered, /g, ''))), '', '');
@@ -281,7 +306,7 @@ const canned = text => async () => ({ text, usage: { input_tokens: 10, output_to
   const bareRec = await G.runAutopost({ intake: plumber, callModel: canned(bare) });
   chk('code writes the fixed text: a reply with only its angles passes every check, first time', !bareRec.failure && bareRec.attempts === 1, JSON.stringify(bareRec.failure && bareRec.failure.fails.slice(0, 2)), '');
   const firstP = bareRec.output.prompts[0].text;
-  for (const want of ['Do not give measurements, sizes or figures unless they are in the facts.', 'Do not describe customers, what they say, how many there are or how often you work for them.', 'Mention Romford once or twice and no other towns.', 'Use the business name once, written exactly like this: Hartley Plumbing & Heating.', 'Do not mention warranties, guarantees or accreditations unless they are in the facts.', 'Do not mention seasons, weather, holidays, dates or time words such as "today", "this week", "right now" or "at the moment".', 'Facts you may use (no more than two, chosen to fit the angle): over 15 years trading; Gas Safe registered;', 'about boiler repair.', 'Use "boiler repair" naturally once or twice.']) chk(`every prompt carries, word for word: ${want.slice(0, 50)}`, firstP.includes(want), firstP.slice(0, 200), want);
+  for (const want of ['Do not give measurements, sizes or figures unless they are in the facts.', 'Do not describe customers, what they say, how many there are or how often you work for them.', 'If you name a place, name Essex only. Never name a town, city or village.', 'Use the business name once, written exactly like this: Hartley Plumbing & Heating.', 'Do not mention warranties, guarantees or accreditations unless they are in the facts.', 'Do not mention seasons, weather, holidays, dates or time words such as "today", "this week", "right now" or "at the moment".', 'Facts you may use (no more than two, chosen to fit the angle): over 15 years trading; Gas Safe registered;', 'about boiler repair.', 'Use "boiler repair" naturally once or twice.']) chk(`every prompt carries, word for word: ${want.slice(0, 50)}`, firstP.includes(want), firstP.slice(0, 200), want);
   chk('all 20 carry the claims rule', bareRec.output.prompts.every(p => p.text.includes('unless they are in the facts')), '', '');
   chk('the fixed text does not say the name twice over as an instruction', !firstP.includes('write the name exactly like that'), '', '');
   const { QUESTION_ANGLE, QUESTION_RULE } = require(path.join(root, 'leadsnap/autopost/decide.js'));
@@ -301,7 +326,7 @@ const canned = text => async () => ({ text, usage: { input_tokens: 10, output_to
   chk('a claim in the model\'s angle is still refused', inventing.failure && inventing.failure.fails.some(f => /claims a guarantee/.test(f.message)), JSON.stringify(inventing.failure && inventing.failure.fails.slice(0, 2)), '');
   chk('check: the old 150-300 words', /150-250 words/.test(failsFor(good.replace(/150-250 words/, '150-300 words'))), '', '');
   chk('check: no "Don\'t start with If"', /start with/.test(failsFor(good.replace(/Don't start with "If"\. /, ''))), '', '');
-  chk('check: the old area rule', /Mention \[area\]/.test(failsFor(good.replace(/Mention Romford once or twice and no other towns\./, 'Pick ONE area from the list.'))), '', '');
+  chk('check: the place rule dropped', /Never name a town, city or village/.test(failsFor(good.replace(/If you name a place, name Essex only\. Never name a town, city or village\./, 'Pick ONE area from the list.'))), '', '');
   { const listed = good.replace(ANGLE, ANGLE + ' We do Leak repair, Bathroom fitting and Drain unblocking.'); chk('check: a list of other services', /Prompt 1: lists other services/.test(failsFor(listed)), failsFor(listed), ''); }
   const longP = G.validateSheet(G.parseSheet(good.replace(ANGLE, ANGLE + ' ' + 'x'.repeat(1400))), plumber, P);
   const longRec = await G.runAutopost({ intake: plumber, callModel: canned(good.replace(ANGLE, ANGLE + ' ' + 'x'.repeat(1400))) });
@@ -312,7 +337,7 @@ const canned = text => async () => ({ text, usage: { input_tokens: 10, output_to
   const pvRec = await G.runAutopost({ intake: plumber, callModel: canned(good) });
   const boilerP = pvRec.output.prompts[0], otherP = pvRec.output.prompts.find(p => p.kind === 'other');
   const words = n => Array.from({ length: n }, (_, i) => `word${'abcdefghij'[i % 10]}`).join(' ');
-  const clean = `Hartley Plumbing & Heating looks after homes in Romford. A boiler repair starts with a proper look at what went wrong. ${words(170)} Give us a call.`;
+  const clean = `Hartley Plumbing & Heating looks after homes across Essex. A boiler repair starts with a proper look at what went wrong. ${words(170)} Give us a call.`;
   const levelOf = (text, id, p = boilerP) => Pv.checkSample(text, p, pvRec.intake).checks.find(c => c.id === id);
   chk('a clean sample passes all nine checks', Pv.checkSample(clean, boilerP, pvRec.intake).warnings === 0 && Pv.checkSample(clean, boilerP, pvRec.intake).fails === 0 && Pv.checkSample(clean, boilerP, pvRec.intake).checks.length === 9, JSON.stringify(Pv.checkSample(clean, boilerP, pvRec.intake).checks.filter(c => c.level === 'warn')), '');
   chk('preview: a short post does not warn: only a long overrun does', levelOf('Hartley Plumbing & Heating in Hornchurch.', 'words').level === 'pass', '', 'pass');
@@ -324,13 +349,19 @@ const canned = text => async () => ({ text, usage: { input_tokens: 10, output_to
   chk('preview: a missing name warns, and says it is missing', Pv.checkName('A local firm.', 'Edens Edge Landscaping').level === 'warn' && /is missing/.test(Pv.checkName('A local firm.', 'Edens Edge Landscaping').detail), '', 'warn');
   chk('preview: a misspelled name says how it was written', /written as "Edens edge landscaping/.test(Pv.checkName('Edens edge landscaping LTD did this.', 'Edens Edge Landscaping').detail), Pv.checkName('Edens edge landscaping LTD did this.', 'Edens Edge Landscaping').detail, '');
   chk('preview: the exact name passes', Pv.checkName('Edens Edge Landscaping is local. Edens Edge Landscaping can help.', 'Edens Edge Landscaping').level === 'pass', '', 'pass');
-  const atDag = { ...boilerP, area: 'Dagenham' };
-  const townOf = (t, p = atDag) => levelOf(t, 'town', p).level;
-  chk('preview: its own area passes, with or without the main town', townOf(clean.replace('Romford', 'Dagenham')) === 'pass' && townOf(clean + ' Also Dagenham.') === 'pass', JSON.stringify(levelOf(clean + ' Also Dagenham.', 'town', atDag)), 'pass');
-  chk('preview: any other town warns', townOf(clean + ' Also Dagenham and Hornchurch.') === 'warn', '', 'warn');
-  chk('preview: not naming its area warns, and says which', townOf(clean) === 'warn' && /should name Dagenham/.test(levelOf(clean, 'town', atDag).detail), levelOf(clean, 'town', atDag).detail, '');
-
-  chk('preview: a town off the short list still counts', Pv.checkSample(clean + ' Also Dagenham and Basildon.', atDag, { ...pvRec.intake, allAreas: [...pvRec.intake.areas, 'Basildon'] }).checks.find(c => c.id === 'town').level === 'warn', '', 'warn');
+  // The county, never a town (Brandon, 12 Nov): a town is a FAIL; an offer post must name the county
+  const offerPv = pvRec.output.prompts.find(p => p.kind === 'offer');
+  const townOf = (t, p = boilerP) => levelOf(t, 'town', p).level;
+  chk('preview: the county passes', townOf(clean) === 'pass', JSON.stringify(levelOf(clean, 'town')), 'pass');
+  chk('preview: no place at all passes', townOf(clean.replace(' across Essex', '')) === 'pass', '', 'pass');
+  chk('preview: the main town is a FAIL', townOf(clean + ' Also in Romford.') === 'fail' && /names Romford/.test(levelOf(clean + ' Also in Romford.', 'town').detail), levelOf(clean + ' Also in Romford.', 'town').detail, 'fail');
+  chk('preview: any other town is a FAIL', townOf(clean + ' Also Dagenham and Hornchurch.') === 'fail', '', 'fail');
+  chk('preview: a town off the short list still counts', Pv.checkSample(clean + ' Also Basildon.', boilerP, { ...pvRec.intake, allAreas: [...pvRec.intake.areas, 'Basildon'] }).checks.find(c => c.id === 'town').level === 'fail', '', 'fail');
+  chk('preview: a word that is also a place name in lower case is not a town', Pv.checkSample(clean + ' Hang it on a hook.', boilerP, { ...pvRec.intake, allAreas: [...pvRec.intake.areas, 'Hook'] }).checks.find(c => c.id === 'town').level === 'pass', '', 'pass');
+  chk('preview: an offer post that names the county passes', townOf(clean, offerPv) === 'pass', '', 'pass');
+  chk('preview: an offer post without the county is a FAIL', townOf(clean.replace(' across Essex', ''), offerPv) === 'fail' && /must name Essex/.test(levelOf(clean.replace(' across Essex', ''), 'town', offerPv).detail), levelOf(clean.replace(' across Essex', ''), 'town', offerPv).detail, 'fail');
+  const oldIntake = { ...pvRec.intake, county: '', counties: [] };
+  chk('preview: a config written before the county keeps the old town rule', Pv.checkSample(clean.replace('across Essex', 'in Dagenham'), { ...boilerP, area: 'Dagenham' }, oldIntake).checks.find(c => c.id === 'town').level === 'pass' && Pv.checkSample(clean + ' Also Hornchurch and Dagenham.', { ...boilerP, area: 'Dagenham' }, oldIntake).checks.find(c => c.id === 'town').level === 'warn', '', '');
   chk('preview: a second service of a group warns', levelOf(clean + ' We also do boiler installation.', 'group').level === 'warn', '', 'warn');
   chk('preview: the other services prompt warns on a second service', levelOf(clean.replace('A boiler repair starts', 'Bathroom fitting starts') + ' Drain unblocking too.', 'group', otherP).level === 'warn', '', 'warn');
   chk('preview: one service from other services passes', levelOf(clean.replace('A boiler repair starts', 'Bathroom fitting starts'), 'group', otherP).level === 'pass', '', 'pass');
@@ -356,13 +387,12 @@ const canned = text => async () => ({ text, usage: { input_tokens: 10, output_to
   for (const q of ['So many local people ask for us again and recommend us.', 'Most of our customers tell us it was worth it.', 'That is why so many homeowners get in touch.', 'We regularly help people in Hedge End.', 'Our customers often say the same.', 'People tell us it was quick.', 'We often hear this from neighbours.', 'A question we often get is this.', 'People in Gosport often ask what to expect.', 'People in Hedge End often ask what it is like.', 'Customers often say the same.', 'Homeowners around West End tend to ask this.', 'Our customers come back to us.', 'It is one of the questions we hear most.', 'The question we get asked most.', 'We are often asked this.', 'Plenty of happy customers.', 'We work by word of mouth.', 'Most of our work is repeat business.']) chk(`social proof is a FAIL: "${q}"`, claimOf(q) === 'fail', q, 'fail');
   for (const q of ['Most homeowners ignore a dripping tap.', 'Many people put this off.', 'We work with customers to agree the job.', 'How we work with our customers matters.', 'A common question is whether to repair or replace.', 'We recommend a yearly check.', 'If you ask us, it is worth doing.', 'You can tell us what you need.', 'We always leave the site tidy.', 'Cutting height is the first thing we get right.', 'Take your time, compare it and come back to us with questions.', 'That is how we have always worked.', 'It is the sort of thing most homeowners spot first.', 'People often ignore a blocked gutter.']) chk(`not social proof: "${q}"`, claimOf(q) === 'pass', JSON.stringify(Pv.checkSample(clean + ' ' + q, boilerP, pvRec.intake).checks.find(c => c.id === 'claims')), 'pass');
   chk('a social proof line in the model\'s angle is refused at Generate', /claims what customers do|claims how many customers/.test(failsFor(good.replace(ANGLE, ANGLE + ' why so many homeowners get in touch'))), failsFor(good.replace(ANGLE, ANGLE + ' why so many homeowners get in touch')), '');
-  // One fixed area per prompt
-  const rot = P.prompts.map(p => p.area);
-  chk('each prompt has one fixed area, rotating, and every area is used across the 20', new Set(rot).size === plumber.areas.length && rot[0] === 'Romford' && rot[1] === 'Hornchurch' && rot[8] === 'Romford', rot.join(), '');
-  const spread = plumber.areas.map(a => rot.filter(x => x === a).length);
-  chk('the areas are spread evenly: no area has more than one extra', Math.max(...spread) - Math.min(...spread) <= 1, spread.join(), '');
-  chk('a client with more prompts than areas, and fewer, both work', decide(buildIntake({ I: inputs({ name: 'X', primary: 'Roofer', town: 'Lymington', areas: [], services: [['Roof repair']] }), trade: 'Roofers', hand: { counts: { 'roof-repair': 5 } } })).prompts.every(p => p.area === 'Lymington'), '', '');
-  chk('the prompt names its area and no list, and does not say where the firm is based', pvRec.output.prompts[1].text.includes('Mention Hornchurch once or twice and no other towns.') && !pvRec.output.prompts[1].text.includes('Areas:') && !pvRec.output.prompts[1].text.includes('based in'), pvRec.output.prompts[1].text.slice(0, 260), '');
+  // No town per prompt any more: the county, or no place (Brandon, 12 Nov)
+  chk('no prompt is given a town', P.prompts.every(p => p.area === ''), P.prompts.map(p => p.area).join(), '');
+  chk('every prompt but the offer: the county or no place, never a town', pvRec.output.prompts.filter(p => p.kind !== 'offer').every(p => p.text.includes('If you name a place, name Essex only. Never name a town, city or village.')) && !pvRec.output.prompts.some(p => /Romford|Hornchurch|Dagenham/.test(p.text)), pvRec.output.prompts[1].text.slice(0, 260), '');
+  chk('the offer prompt names the county as the area it covers', offerPv.text.includes('Name Essex once, as the area the offer covers. Never name a town, city or village.'), offerPv.text.slice(0, 300), '');
+  chk('the prompt has no area list and does not say where the firm is based', !pvRec.output.prompts[1].text.includes('Areas:') && !pvRec.output.prompts[1].text.includes('based in'), pvRec.output.prompts[1].text.slice(0, 260), '');
+  chk('the saved intake keeps the county for the post checks', pvRec.intake.county === 'Essex' && pvRec.intake.counties.join() === 'Essex', pvRec.intake.county, 'Essex');
   const spr = Pv.areaSpread([{ n: 1, samples: [{ n: 1, text: 'In Romford we do this.' }, { n: 2, text: 'In Dagenham we do this.' }] }, { n: 2, samples: [{ n: 1, text: 'In Hornchurch and Romford.' }] }], { intake: { areas: ['Romford', 'Hornchurch', 'Dagenham'] }, output: { prompts: [{ n: 1, area: 'Romford' }, { n: 2, area: 'Hornchurch' }] } });
   chk('the area spread counts prompts given and samples naming', spr.assigned.Romford === 1 && spr.assigned.Dagenham === 0 && spr.named.Romford === 2 && spr.named.Dagenham === 1 && spr.on_area === 2 && spr.samples === 3, JSON.stringify(spr), '');
   for (const q of ['Most fences stand at 1.8 metres.', 'A pergola needs about 2.4m of height.', 'Lay it 50mm deep.', 'A 30cm gap works.', 'Allow a 2-metre path.', 'Six feet is usual.', 'Around 2.4 of height.', 'Cover 20 square metres.', 'Half a metre back.', 'Within 15 miles.']) chk(`an invented measurement is a FAIL: "${q}"`, claimOf(q) === 'fail', JSON.stringify(Pv.checkSample(clean + ' ' + q, boilerP, pvRec.intake).checks.find(c => c.id === 'claims')), 'fail');
@@ -438,6 +468,7 @@ const canned = text => async () => ({ text, usage: { input_tokens: 10, output_to
   rec = await G.runAutopost({ intake: plumber, callModel: async a => { calls.push(a); return { text: calls.length === 1 ? 'nonsense' : good, usage: {} }; } });
   chk('a failing reply runs once more, with its failures in the message', !rec.failure && rec.attempts === 2 && /FAILED THESE CHECKS/.test(calls[1].message) && /has 0 prompts/.test(calls[1].message), calls.length, 2);
   chk('the message carries the intake and decisions', /CTA sentence for the end of every prompt: invite them to give us a call/.test(calls[0].message) && /PROMPT \d+ - Other services: bathroom fitting .*the one service, in lower case as in running text: bathroom fitting .*the one angle: .*GBP Photos – Posts \/ Brand/.test(calls[0].message), calls[0].message.slice(0, 300), '');
+  chk('the message gives the county, not the towns', /County \(the only place a post may name; never a town\): Essex/.test(calls[0].message) && !/Main town:|Nearby areas:|the one area:/.test(calls[0].message), calls[0].message.slice(0, 400), '');
   const goodRec = rec;
   rec = await G.runAutopost({ intake: plumber, previous: goodRec, callModel: canned('still nonsense') });
   chk('failing twice keeps the last good config and says so', rec.failure && rec.sheet === goodRec.sheet && /last good config is kept/.test(rec.failure.error), rec.failure && rec.failure.error, '');

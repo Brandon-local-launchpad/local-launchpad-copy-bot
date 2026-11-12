@@ -31,8 +31,7 @@ function buildMessage(intake, D) {
     `Business name: ${intake.business}`,
     `Niche: ${intake.niche}`,
     `Services, ranked by value (each is a short name; the pages it covers follow in brackets): ${intake.groups.map(withPages).join('; ')}`,
-    `Main town: ${intake.mainTown}`,
-    `Nearby areas: ${list(intake.nearby)}`,
+    `County (the only place a post may name; never a town): ${intake.county}`,
     `USPs (the facts, as given): ${list(intake.usps)}`,
     `Standing offer: ${intake.offer || 'none confirmed'}`,
     `CTA: ${intake.cta.line}`,
@@ -43,7 +42,7 @@ function buildMessage(intake, D) {
     'DECISIONS (already made by code; follow them exactly)',
     `CTA sentence for the end of every prompt: ${intake.cta.sentence}`,
         `Write exactly ${D.prompts.length} prompts, in this order:`,
-    ...D.prompts.map(p => `PROMPT ${p.n} - ${p.label} | type: ${p.kind}${p.service ? ` | the one service, in lower case as in running text: ${p.service.toLowerCase()}` : ''} | the one angle: ${p.angle} | the one area: ${p.area} | Images folder: ${p.folder}`),
+    ...D.prompts.map(p => `PROMPT ${p.n} - ${p.label} | type: ${p.kind}${p.service ? ` | the one service, in lower case as in running text: ${p.service.toLowerCase()}` : ''} | the one angle: ${p.angle} | Images folder: ${p.folder}`),
     '',
     D.gaps.length ? `PHOTO GAPS to write, one line each, in this order: ${D.gaps.map(g => `${g.label} (${g.photos} photos)`).join('; ')}` : 'PHOTO GAPS: none.',
   ].join('\n');
@@ -80,6 +79,14 @@ const angleFrom = text => {
   return next ? next.replace(/^\s*[-*\u2022]\s*/, '').trim() : '';
 };
 
+// Where a post may say it works (Brandon, 12 Nov). A post names the county or no place at all, never
+// a town: Copybot cannot know which town a photo's job was in, and an offer is for everyone covered.
+// The offer post always names the county, so no one reads it as one town's offer.
+const NO_TOWN = 'Never name a town, city or village.';
+const placeRule = (d, county) => (d.kind === 'offer'
+  ? `Name ${county} once, as the area the offer covers. ${NO_TOWN}`
+  : `If you name a place, name ${county} only. ${NO_TOWN}`);
+
 function promptText(d, intake, angle) {
   const niche = String(intake.niche || '').toLowerCase();
   const article = /^[aeiou]/.test(niche) ? 'an' : 'a';
@@ -91,7 +98,7 @@ function promptText(d, intake, angle) {
   return [
     `Write a Google Business Profile post for ${intake.business}, ${article} ${niche}, about ${about}.`,
     `Facts you may use (no more than two, chosen to fit the angle): ${facts.length ? facts.join('; ') : 'none'}. Do not use any other facts.`,
-    `Mention ${d.area} once or twice and no other towns.`,
+    placeRule(d, intake.county),
     `Build the whole post around this ${tip ? 'tip' : 'angle'}: ${angle}${d.angle === QUESTION_ANGLE ? ` ${QUESTION_RULE}` : ''}`,
     `${tip ? `Explain the tip clearly, then say when it's time to call ${article} ${niche}. ` : ''}Write 150-250 words in plain UK English, no headings, no hashtags, no emoji. Don't start with "If". Use the business name once, written exactly like this: ${intake.business}. Use "${keyword}" naturally once or twice. Never invent specific jobs, customers, reviews, prices, timescales, discounts or accreditations; use only the facts given here. Do not describe customers, what they say, how many there are or how often you work for them. Do not mention warranties, guarantees or accreditations unless they are in the facts. Do not give measurements, sizes or figures unless they are in the facts. Do not mention seasons, weather, holidays, dates or time words such as "today", "this week", "right now" or "at the moment". No generic filler. Tone: ${intake.tone}. End with one sentence that leads into the button: ${intake.cta.sentence}.`,
   ].join('\n\n');
@@ -110,7 +117,7 @@ function rebuildPrompts(parsed, intake, D) {
 // ── The checks ──
 const has = (t, s) => String(t).toLowerCase().includes(String(s).toLowerCase());
 const RULES = [
-  [/Mention [^.\n]+ once or twice and no other towns/, '"Mention [area] once or twice and no other towns."'],
+  [/Never name a town, city or village\./, '"Never name a town, city or village."'],
   [/no more than two, chosen to fit the angle/i, '"Facts you may use (no more than two, chosen to fit the angle):"'],
   [/Build the whole post around this (angle|tip):/i, '"Build the whole post around this angle:" (for tips, "... this tip:")'],
   [/Write 150-250 words in plain UK English, no headings, no hashtags, no emoji/i, '"Write 150-250 words in plain UK English, no headings, no hashtags, no emoji."'],
@@ -170,6 +177,21 @@ const DATED = /\b(today|tomorrow|this week|this month|this year|right now|at the
 const WEATHER = /\b(storms?|frost|snow|heatwave|freezing)\b/i;
 const strip = t => { let s = String(t); for (const [re] of RULES) s = s.replace(re, ''); return s; };
 
+// The client's towns a text names, the county left out (a county may share a town's name: Durham).
+// Case as written, so "hook" the word is not Hook the village.
+const escRe = s => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+function townsIn(text, intake) {
+  const counties = new Set((intake.counties || []).map(c => String(c).toLowerCase()));
+  const names = [...new Set([...(intake.areas || []), ...(intake.allAreas || [])].filter(n => n && !counties.has(String(n).toLowerCase())))].sort((a, b) => b.length - a.length);
+  let rest = String(text);
+  const hits = [];
+  for (const n of names) {
+    const re = new RegExp(`(?<![\\w'-])${escRe(n)}(?![\\w-])`, 'g');
+    if (re.test(rest)) { hits.push(n); rest = rest.replace(re, ' '); }
+  }
+  return hits;
+}
+
 function validateSheet(parsed, intake, D) {
   const fails = [], flags = [];
   const fail = (n, message) => fails.push({ field: n ? `Prompt ${n}` : 'sheet', message: n ? `Prompt ${n}: ${message}` : message });
@@ -183,7 +205,8 @@ function validateSheet(parsed, intake, D) {
     if (!p || !p.text) { fail(d.n, 'has no text under "Prompt:".'); continue; }
     const t = p.text;
     if (!t.includes(`Use the business name once, written exactly like this: ${intake.business}`)) fail(d.n, `must say "Use the business name once, written exactly like this: ${intake.business}."`);
-    if (d.area && !t.includes(`Mention ${d.area} once or twice and no other towns.`)) fail(d.n, `must say "Mention ${d.area} once or twice and no other towns."`);
+    const place = placeRule(d, intake.county);
+    if (!t.includes(place)) fail(d.n, `must say "${place}"`);
     for (const [re, want] of RULES) if (!re.test(t)) fail(d.n, `is missing the rule ${want}`);
     if (!has(t, intake.cta.sentence)) fail(d.n, `must end the rules with the CTA sentence: "${intake.cta.sentence}".`);
     // One fixed angle, no lists (Brandon, 6 Nov): the model does not rotate through a list
@@ -192,6 +215,9 @@ function validateSheet(parsed, intake, D) {
     const angleLine = (t.match(/around this (?:angle|tip):\s*([^\n]+)/i) || [])[1] || '';
     // Only the dropped angle itself: a trust prompt may well talk about serving local people
     if (d.kind !== 'trust' && /\bserving\b[^.]*\b(area|homes in|customers in|people in|town)\b|\blocal area\b|\bchosen area\b/i.test(angleLine)) fail(d.n, `drop the local area angle: "${angleLine}".`);
+    // The angle is the model's own words, so a town could come in there
+    const town = townsIn(angleLine, intake)[0];
+    if (town) fail(d.n, `names ${town} in its angle; posts never name a town: "${angleLine}".`);
     const angleKey = `${d.service}|${angleLine.toLowerCase()}`;
     if (angleLine && seenAngles.has(angleKey)) fail(d.n, `has the same angle as prompt ${seenAngles.get(angleKey)}: "${angleLine}".`);
     seenAngles.set(angleKey, d.n);
@@ -272,7 +298,7 @@ async function runAutopost({ intake, callModel, previous = null, log = null }) {
   const output = assemble(parsed, intake, D);
   return {
     version: 1, model: MODEL, generated_at: at, attempts, usage, output, sheet: sheetText(output), flags: validation.flags, failure: null,
-    intake: { offerSource: intake.offerSource, business: intake.business, niche: intake.niche, mainTown: intake.mainTown, areas: intake.areas, allAreas: intake.allAreas, areasWhy: intake.areasWhy, usps: intake.usps, groups: intake.groups, brand: intake.brand, offer: intake.offer, cta: intake.cta, tone: intake.tone, avoid: intake.avoid },
+    intake: { offerSource: intake.offerSource, business: intake.business, niche: intake.niche, mainTown: intake.mainTown, areas: intake.areas, allAreas: intake.allAreas, areasWhy: intake.areasWhy, county: intake.county, counties: intake.counties, countySource: intake.countySource, countyWhy: intake.countyWhy, usps: intake.usps, groups: intake.groups, brand: intake.brand, offer: intake.offer, cta: intake.cta, tone: intake.tone, avoid: intake.avoid },
   };
 }
 
@@ -281,4 +307,4 @@ function filesFor(rec) {
   return { 'autopost-config.txt': rec.sheet, 'validation.json': JSON.stringify({ generated_at: rec.generated_at, model: rec.model, attempts: rec.attempts, flags: rec.flags, intake: rec.intake, notes: rec.output.notes, too_few: rec.output.tooFew || null, folders_renamed: rec.renames || [] }, null, 2) };
 }
 
-module.exports = { unconfirmedClaims, promptText, angleFrom, rebuildPrompts, CLAIMS, MODEL, MAX_TOKENS, CHECKLIST, loadSystem, buildMessage, parseSheet, validateSheet, assemble, sheetText, runAutopost, filesFor };
+module.exports = { townsIn, placeRule, NO_TOWN, unconfirmedClaims, promptText, angleFrom, rebuildPrompts, CLAIMS, MODEL, MAX_TOKENS, CHECKLIST, loadSystem, buildMessage, parseSheet, validateSheet, assemble, sheetText, runAutopost, filesFor };

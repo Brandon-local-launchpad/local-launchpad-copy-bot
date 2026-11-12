@@ -31,6 +31,7 @@ console.log('\n=== FIXTURE: GBP Posts ===\n');
 const CLIENT = '11111111-1111-4111-8111-111111111111';
 const TODAY = '2026-11-09';  // a Monday
 const I = {
+  postCounties: { counties: ['Essex'], why: 'Essex: the fixture' },
   name: 'Hartley Plumbing & Heating', primary: 'Plumber', town: 'Romford', areas: ['Romford', 'Hornchurch', 'Upminster', 'Gidea Park', 'Harold Wood', 'Collier Row', 'Dagenham', 'Brentwood'],
   serviceAreasPageMap: ['Romford', 'Hornchurch', 'Upminster', 'Gidea Park', 'Harold Wood', 'Collier Row', 'Dagenham', 'Brentwood'], serviceAreasFrom: 'the page map', siteUrl: 'https://hartley.example', primarySlug: '/plumber',
   locked: [['Boiler repair', 900], ['Boiler installation', 800], ['Leak repair', 300], ['Bathroom fitting', 200], ['Drain unblocking', 100]].map(([service, copyPriority]) => ({ service, copyPriority })),
@@ -121,7 +122,7 @@ chk('Call Now maps to CALL, with no link', callPost.cta_type === 'CALL' && callP
 
 // ── The checks: Lead Snap's, plus this build's ──
 const prompt = withOffer.output.prompts.find(p => p.kind === 'service');
-const good = `Hartley Plumbing & Heating looks after boilers across ${prompt.area}. A boiler repair starts with finding the fault, then fixing it properly. Give the team a look on the website for more.`;
+const good = `Hartley Plumbing & Heating looks after boilers across Essex. A boiler repair starts with finding the fault, then fixing it properly. Give the team a look on the website for more.`;
 const lvl = (text, key, earlier = []) => (W.checkPost(text, prompt, withOffer.intake, earlier).checks.find(c => c.id === key) || {}).level;
 chk('a clean post passes', W.checkPost(good, prompt, withOffer.intake).fails === 0, JSON.stringify(W.checkPost(good, prompt, withOffer.intake).checks.filter(c => c.level === 'fail')), 0);
 for (const n of ['01708 123456', '(01708) 123456', '07580 412717', '+44 7580 412717', '0044 7580 412717', '023-8012-3456', '02380123456', '023.8012.3456']) chk(`a phone number fails: ${n}`, lvl(`Call us on ${n} for a quote.`, 'phone') === 'fail', lvl(`Call us on ${n} for a quote.`, 'phone'), 'fail');
@@ -133,6 +134,14 @@ chk('Lead Snap\'s claims check still fails a post', W.checkPost(`${good} We offe
 chk('Lead Snap\'s warnings still warn', W.checkPost(`${good} Book before winter.`, prompt, withOffer.intake).checks.find(c => c.id === 'dated').level === 'warn', '', '');
 chk('a visit the facts do not confirm warns', lvl('We come and look at the garden, then price it.', 'visit') === 'warn', lvl('We come and look at the garden, then price it.', 'visit'), 'warn');
 chk('it does not stop the batch', W.checkPost('We come and look at the garden.', prompt, withOffer.intake).checks.find(c => c.id === 'visit').level !== 'fail', '', '');
+// The county, never a town (Brandon, 12 Nov): a FAIL, so a batch with one cannot be approved
+chk('a post naming a town fails', lvl(`${good} We cover Hornchurch too.`, 'town') === 'fail', lvl(`${good} We cover Hornchurch too.`, 'town'), 'fail');
+chk('a post naming the main town fails', lvl(good.replace('across Essex', 'in Romford'), 'town') === 'fail', '', 'fail');
+chk('a post naming no place passes', lvl(good.replace(' across Essex', ''), 'town') === 'pass', '', 'pass');
+const offerPrompt = withOffer.output.prompts.find(p => p.kind === 'offer');
+chk('an offer post without the county fails', (W.checkPost(good.replace(' across Essex', ''), offerPrompt, withOffer.intake).checks.find(c => c.id === 'town') || {}).level === 'fail', '', 'fail');
+chk('an offer post that names the county passes', (W.checkPost(good, offerPrompt, withOffer.intake).checks.find(c => c.id === 'town') || {}).level === 'pass', '', 'pass');
+chk('the offer prompt names the county as the area it covers', offerPrompt.text.includes('Name Essex once, as the area the offer covers.'), offerPrompt.text.slice(0, 300), '');
 const visitIntake = { ...withOffer.intake, practices: ['site_visit_before_quote'] };
 chk('a visit confirmed in the practices passes', W.checkPost('We come and look at the garden.', prompt, visitIntake).checks.find(c => c.id === 'visit').level === 'pass', '', '');
 chk('fixing a boiler is not a visit', lvl('We repair boilers and look after the heating.', 'visit') === 'pass', lvl('We repair boilers and look after the heating.', 'visit'), 'pass');
@@ -164,7 +173,7 @@ chk('an opening already used warns', lvl(good, 'opening', ['hartley plumbing hea
   const { rows: [c] } = await pool.query(`INSERT INTO clients (name, trade) VALUES ('Hartley Plumbing', 'Plumbing & Heating') RETURNING id`);
   const quiet = { log() {}, error() {} };
   let calls = 0, count = 0, failNext = 0, driveCalls = 0;
-  const body = () => { count++; return `Hartley Plumbing & Heating post number${count} covers the boiler work in Romford with care. Have a read on the website.`; };
+  const body = () => { count++; return `Hartley Plumbing & Heating post number${count} covers the boiler work across Essex with care. Have a read on the website.`; };
   const model = async () => { calls++; if (failNext > 0) { failNext--; throw new Error('the model is busy'); } return { text: body(), usage: { input_tokens: 1000, output_tokens: 400 } }; };
   const drive = { download: async id => { driveCalls++; return Buffer.from(`bytes-of-${id}`); } };
   const app = express();
@@ -194,6 +203,14 @@ chk('an opening already used warns', lvl(good, 'opening', ['hartley plumbing hea
   v = await get();
   chk('set up: ready, with the costs', v.ok === true && v.sizes.map(z => z.size).join() === '13,26,52' && v.sizes.every(z => z.pence > 0) && v.offer === 'Free boiler quote', JSON.stringify(v.sizes), '');
   chk('a bad size is refused', (await req('POST', `${api}/batches`, { size: 7 })).status === 400 && calls === 0, calls, 0);
+  // Prompts written before the county (12 Nov) give each post a town: no new batch from them
+  const beforeCounty = JSON.parse(JSON.stringify(withOffer)); delete beforeCounty.intake.county; delete beforeCounty.intake.counties;
+  await autopost.save(c.id, beforeCounty);
+  v = await get();
+  chk('prompts from before the county: asks for them to be written again', v.ok === false && v.needs.some(n => /name one town per post. Write the prompts again/.test(n)), v.needs.join(), '');
+  const refused = await req('POST', `${api}/batches`, { size: 13 });
+  chk('prompts from before the county: a new batch is refused, nothing spent', refused.status === 400 && /Write the prompts again/.test(refused.text) && calls === 0, refused.text, 400);
+  await autopost.save(c.id, withOffer);
 
   let res = await req('POST', `${api}/batches`, { size: 13 });
   chk('a batch starts in the background', res.status === 202 && res.json().batches.length === 1, res.status, 202);

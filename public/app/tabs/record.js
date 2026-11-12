@@ -19,6 +19,7 @@ const GROUPS = [
     { key: 'business_type', label: 'Business type', type: 'select', options: ['A', 'B', 'C', 'D', 'split'] },
     { key: 'year_founded', label: 'Year founded', placeholder: '4 digits only' },
     { key: 'team_size', label: 'Team size', placeholder: 'Number only' },
+    { key: 'county', label: 'County', placeholder: 'Blank: worked out from the approved towns. Two as "Hampshire; West Sussex"', hint: 'The place GBP posts name. Posts never name a town.' },
     { key: 'live_domain', label: 'Live domain', placeholder: 'https://example.co.uk (the site the public sees; the listings and the NAP use it)' },
     { key: 'hours', label: 'Hours', placeholder: 'e.g. Mon to Sat, 8am to 6pm' },
     { key: 'emergency_primary', label: 'Emergency primary', type: 'select', options: ['', 'yes', 'no'] },

@@ -9,7 +9,7 @@
 // every 10 weeks or so with a different photo, so samples of one prompt are not compared.
 
 const { wordsDetect } = require('../../gbp/inputs');
-const { MODEL, CLAIMS, unconfirmedClaims } = require('./generate');
+const { MODEL, CLAIMS, unconfirmedClaims, townsIn } = require('./generate');
 const { SYSTEM } = require('./openings');
 const { USD_TO_GBP, priceFor } = require('../../ui/model-log');
 
@@ -74,8 +74,19 @@ function mentioned(text, names) {
   return hits;
 }
 
-// A prompt has its one area. It should name it, and the main town is fine beside it. Any other is the catch.
+// A post names the county or no place at all, never a town, and an Offer post names the county
+// (Brandon, 12 Nov). Both are a FAIL: a town on an offer tells everyone else it is not for them.
+// A config written before the county (no intake.county) keeps the old town rule below.
 function checkTown(text, intake, prompt) {
+  if (intake.county) {
+    const label = 'Names no town, only the county';
+    const towns = townsIn(text, intake);
+    if (towns.length) return fail('town', label, `names ${towns.join(', ')}; name ${intake.county} or no place`);
+    const offer = prompt && prompt.kind === 'offer';
+    const named = (intake.counties || [intake.county]).some(c => new RegExp(`\\b${esc(c)}\\b`, 'i').test(String(text)));
+    if (offer && !named) return fail('town', label, `an Offer post must name ${intake.county}, so everyone covered knows it is for them`);
+    return pass('town', label, named ? intake.county : 'names no place');
+  }
   const label = 'Names its area, and no other town but the main one';
   const towns = mentioned(text, [...(intake.areas || []), ...(intake.allAreas || [])]);
   const area = prompt && prompt.area;

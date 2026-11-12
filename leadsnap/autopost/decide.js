@@ -104,10 +104,9 @@ function decide(intake) {
   const firstAt = new Map();
   prompts.forEach((p, i) => { if (!firstAt.has(p.folder)) firstAt.set(p.folder, i); });
   const ordered = prompts.map((p, i) => ({ p, i })).sort((a, b) => (firstAt.get(a.p.folder) - firstAt.get(b.p.folder)) || (a.i - b.i)).map(x => x.p);
-  // One fixed area per prompt, rotating through the list so every area is used (Brandon, 6 Nov):
-  // left to choose, the model picks the same town every time
-  const areas = intake.areas || [];
-  ordered.forEach((p, i) => { p.n = i + 1; p.area = areas.length ? areas[i % areas.length] : ''; });
+  // No town per prompt any more (Brandon, 12 Nov): a post names the county or no place at all, and
+  // the offer always names the county (generate.js placeRule). The town rotation of 6 Nov is gone.
+  ordered.forEach((p, i) => { p.n = i + 1; p.area = ''; });
 
   // A service under the threshold is a gap whether or not it is folded in: with photos it can
   // get prompts of its own. One with enough photos that only lost out on a slot is not a gap.

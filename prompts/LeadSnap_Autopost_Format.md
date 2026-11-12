@@ -29,7 +29,7 @@ Write a Google Business Profile post for [business name], a [niche], about [the 
 
 Facts you may use (no more than two, chosen to fit the angle): [the USPs, each exactly as given; on the offer prompt also the offer]. Do not use any other facts.
 
-Mention [the one area from DECISIONS] once or twice and no other towns.
+If you name a place, name [the county from the intake] only. Never name a town, city or village.
 
 Build the whole post around this angle: [the one angle from DECISIONS, written to fit this niche, in one sentence].
 
