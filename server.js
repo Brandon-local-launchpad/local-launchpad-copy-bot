@@ -4014,6 +4014,12 @@ const siteAudit = (pool && citationStore) ? require('./site-audit/service').crea
   logCost: entry => citationStore.logCost(entry),
 }) : null;
 if (siteAudit) require('./site-audit/routes').mountSiteAuditApi(app, { pool, siteAudit });
+// After a site move (site-audit/launch.js): the day 7 check, then the rankings at 30, 60 and 90 days. Hourly.
+if (siteAudit) {
+  const launchTick = () => siteAudit.launchTick().then(d => { if (d.length) console.log(`[site-audit] after launch: ${d.map(x => x.did).join(', ')}`); }).catch(e => console.error('[site-audit] after launch job:', e.message));
+  setTimeout(launchTick, 90000);
+  setInterval(launchTick, 3600000);
+}
 // Citations, the client side (citations/client.js, client-routes.js, 3 Nov): the Citations tab, the scan, the gaps
 if (filloutService && citationStore) {
   const CL = require('./citations/client');

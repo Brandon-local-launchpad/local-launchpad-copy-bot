@@ -30,6 +30,7 @@ const SD = require('./dfs');
 const { createDecisions, effective } = require('./decisions');
 const { auditCsv, urlMapCsv } = require('./export');
 const { createRedirects } = require('./redirects');
+const { createLaunch } = require('./launch');
 const { liveDomain } = require('../gbp/profile');
 
 const j = v => JSON.stringify(v);
@@ -58,7 +59,7 @@ const pageMapLoader = pool => async clientId => {
   return { rows: rows.map(r => ({ ...r, info: typeof r.info === 'string' ? JSON.parse(r.info) : (r.info || {}) })), baseTown: (typeof inputs === 'string' ? JSON.parse(inputs) : inputs || {}).baseTown || '' };
 };
 
-function createSiteAudit({ pool, loadValues, getConnection = async () => null, logCost = async () => {}, env = process.env, fetchImpl = (...a) => fetch(...a), sleep = ms => new Promise(r => setTimeout(r, ms)), log = console, lookup = host => dns.promises.lookup(host), dfs = SD, retryDelays = undefined, loadPages = null, pageMap = null, getSite = null, createLog = null }) {
+function createSiteAudit({ resolver = null, pool, loadValues, getConnection = async () => null, logCost = async () => {}, env = process.env, fetchImpl = (...a) => fetch(...a), sleep = ms => new Promise(r => setTimeout(r, ms)), log = console, lookup = host => dns.promises.lookup(host), dfs = SD, retryDelays = undefined, loadPages = null, pageMap = null, getSite = null, createLog = null }) {
   const running = new Map(); // clientId → the promise of the run under way
   const pagesOf = loadPages || pageMapLoader(pool);
   const decisions = createDecisions({ pool, getSettings: id => getSettings(id), loadPages: pagesOf, pageMap, rework: id => analyse(id) });
@@ -666,11 +667,14 @@ function createSiteAudit({ pool, loadValues, getConnection = async () => null, l
     let last = 0;
     return { fetchImpl, wait: async () => { const gap = last ? DEFAULTS.request_delay_ms - (Date.now() - last) : 0; if (gap > 0) await sleep(gap); last = Date.now(); } };
   };
-  const redirectsView = async clientId => ({ log: await redirects.log(clientId), latest_snapshot: await redirects.latestSnapshot(clientId), checks: await redirects.latestChecks(clientId) });
+  // Launch and after (launch.js): the DNS snapshot, the launch day and day 7 checks, the monthly rankings
+  const saveCheck = async (clientId, kind, site, result) => { await pool.query(`INSERT INTO site_redirect_checks (client_id, kind, site, block, warn, result) VALUES ($1, $2, $3, $4, $5, $6)`, [clientId, kind, site, result.block.length, result.warn.length, j(result)]); return result; };
+  const launchSteps = createLaunch({ pool, view, loadValues, getSettings, saveCheck, dfs, env, logCost, polite: () => politeOpts(), resolver, log });
+  const redirectsView = async clientId => ({ log: await redirects.log(clientId), latest_snapshot: await redirects.latestSnapshot(clientId), checks: await redirects.latestChecks(clientId), launch: await launchSteps.launchView(clientId) });
 
   return { start, resume, wait, recover, run, analyse, view, urlDetail, setOverride, saveSettings, getSettings, uploadSearchConsole, setDecision, approve, proposalYes, proposalNo, proposalUndo, pageContent, exportCsv,
     redirectsView, redirectsDryRun: id => redirects.dryRun(id), redirectsPush: (id, o) => redirects.push(id, o), redirectsRollback: (id, o) => redirects.rollback(id, o),
-    validate: id => redirects.validate(id, politeOpts()), checkAfterLaunch: id => redirects.afterLaunch(id, politeOpts()), testOnStaging: (id, o = {}) => redirects.testOnStaging(id, { ...o, ...politeOpts() }) };
+    validate: id => redirects.validate(id, politeOpts()), checkAfterLaunch: id => launchSteps.launchCheck(id, { kind: 'after_launch' }), snapshotDns: id => launchSteps.snapshotDns(id), undoLaunch: id => launchSteps.undoLaunch(id), launchTick: () => launchSteps.tick(), launchSteps, testOnStaging: (id, o = {}) => redirects.testOnStaging(id, { ...o, ...politeOpts() }) };
 }
 
 module.exports = { createSiteAudit, domainCheck, DEFAULTS };

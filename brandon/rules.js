@@ -55,7 +55,7 @@ function askMessage({ client, reason, note = '', context = [], by = '', link = '
 // facts: one per client: { id, name, connection: { status, problem, publishing_on }, failed: [items failed
 // after a Retry], low_reviews: [1 to 3 star reviews waiting], capacity: n|null, month: 'YYYY-MM',
 // drip: { found, left, ran_out } | null, offer_no_link: n, setup: { connected, publishing_on, approved_batch,
-// drip_approved, reviews_live } }
+// drip_approved, reviews_live }, migration: [{ key, urgent, text }] from site-audit/launch.js }
 // An alert: { client_id, kind, key, urgent, sticky, text, tab }. The key makes it once per event: the same
 // key is never told twice while it lasts. sticky: told once ever (set-up done), never cleared.
 function detectAlerts(facts) {
@@ -73,6 +73,7 @@ function detectAlerts(facts) {
       else if (Number(d.left) < DRIP_LOW) add(f, 'drip_low', 'low', false, `Photo Drip has ${plural(Number(d.left) || 0, 'new photo')} left (about ${Math.max(0, Math.round((Number(d.left) || 0) / 2))} weeks): ask the client for more.`, 'gbp-posts?s=publishing');
     }
     if (Number(f.offer_no_link) > 0) add(f, 'offer_link', 'offer', false, `${plural(Number(f.offer_no_link), 'Offer post')} with nowhere to claim it: save the live domain on the Record tab (or a booking page under Post settings).`, 'record');
+    for (const m of f.migration || []) add(f, 'migration', m.key, m.urgent !== false, m.text, 'site-audit');
     const s = f.setup;
     if (s && s.connected && s.publishing_on && s.approved_batch && s.drip_approved && s.reviews_live) add(f, 'setup_done', 'done', false, 'Fully set up: connected, a post batch approved, publishing on, Photo Drip approved and review replies live.', 'gbp-posts', true);
   }
@@ -86,7 +87,7 @@ function urgentEmail({ to, alerts, env }) {
   for (const a of alerts) { lines.push(`${a.client}: ${a.text}`); const l = linkFor({ env, clientId: a.client_id, tab: a.tab }); if (l) lines.push(l); lines.push(''); }
   return { to, subject: n === 1 ? `Copybot: ${alerts[0].client}: ${KIND_TITLE[alerts[0].kind] || 'needs you'}` : `Copybot: ${plural(n, 'thing')} for you now`, text: lines.join('\n').trim() };
 }
-const KIND_TITLE = { connection: 'nothing will go out', failed: 'a post failed again', low_review: 'a 1 to 3 star review', imports_low: 'review imports running low', drip_out: 'Photo Drip has run out', drip_low: 'Photo Drip running low', offer_link: 'an Offer post has no link', setup_done: 'fully set up' };
+const KIND_TITLE = { connection: 'nothing will go out', failed: 'a post failed again', low_review: 'a 1 to 3 star review', imports_low: 'review imports running low', drip_out: 'Photo Drip has run out', drip_low: 'Photo Drip running low', migration: 'the website move needs you', offer_link: 'an Offer post has no link', setup_done: 'fully set up' };
 
 // The morning email: what came up since the last one, and the asks still waiting on Brandon
 function digestEmail({ to, alerts = [], asks = [], env }) {

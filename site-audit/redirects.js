@@ -195,8 +195,10 @@ function createRedirects({ view, getSite, loadValues, createLog, pool }) {
     const site = await getSite(clientId);
     const guard = site ? stagingGuard(site, cv.live_domain) : ['This client has no WordPress site connected.'];
     const onStaging = guard.length ? { block: guard.map(t => issue('BLOCK', t)), warn: [], results: [] } : await siteCheck(v, site, { fetchImpl, wait });
+    // The top list pages' top searches on their new pages (slice 2): WARNs only, staging only
+    const content = guard.length ? { block: [], warn: [], results: [] } : await require('./launch').contentCheck(v, site.url, { fetchImpl, wait });
     const forms = cv.live_domain ? await domainForms(cv.live_domain, { fetchImpl, wait, level: 'WARN', label: 'the live domain' }) : { block: [], warn: [], forms: [] };
-    const result = { ...merge(map, onStaging, forms), staging: onStaging.results, forms: forms.forms, final: forms.final || '', at: new Date().toISOString() };
+    const result = { ...merge(map, onStaging, content, forms), staging: onStaging.results, content: content.results, forms: forms.forms, final: forms.final || '', at: new Date().toISOString() };
     await saveCheck(clientId, 'pre_launch', site && site.url, result);
     // The launch day switch on the site shows this result. Staging only, and a failure here isn't the check's failure.
     if (site && !guard.length) {

@@ -65,6 +65,7 @@ async function loadFacts(pool, { dripState = null, today, month } = {}) {
   const offers = new Map((await q(`SELECT p.client_id, count(*)::int AS n FROM gbp_posts p JOIN gbp_post_batches b ON b.id = p.batch_id WHERE p.topic = 'OFFER' AND COALESCE(p.offer_redeem_url, '') = '' AND b.status IN ('draft', 'approved') AND p.post_date >= $1 GROUP BY p.client_id`, [today])).map(r => [r.client_id, Number(r.n)]));
   const approved = new Set((await q(`SELECT DISTINCT client_id FROM gbp_post_batches WHERE status = 'approved'`)).map(r => r.client_id));
   const dripOk = new Set((await q(`SELECT DISTINCT client_id FROM gbp_publish_items WHERE kind = 'photo' AND status IN ('queued', 'sending', 'scheduled', 'posted')`)).map(r => r.client_id));
+  const migration = await require('../site-audit/launch').loadMigrationFlags(pool);
   const live = new Set((await q(`SELECT client_id FROM review_settings WHERE COALESCE(live_from, '') <> ''`)).map(r => r.client_id));
   const out = [];
   for (const c of clients) {
@@ -74,7 +75,7 @@ async function loadFacts(pool, { dripState = null, today, month } = {}) {
     out.push({
       id: c.id, name: c.name, month,
       connection: conn ? { status: conn.status, problem: conn.problem, publishing_on: !!conn.publishing_on } : null,
-      failed: failed.get(c.id) || [], low_reviews: low.get(c.id) || [],
+      failed: failed.get(c.id) || [], low_reviews: low.get(c.id) || [], migration: migration.get(c.id) || [],
       capacity: capacity.has(c.id) ? capacity.get(c.id) : null, drip, offer_no_link: offers.get(c.id) || 0,
       setup: { connected: !!(conn && conn.status === 'connected'), publishing_on: !!(conn && conn.publishing_on), approved_batch: approved.has(c.id), drip_approved: dripOk.has(c.id), reviews_live: live.has(c.id) },
     });

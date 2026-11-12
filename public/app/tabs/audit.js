@@ -194,10 +194,51 @@ export async function render(el, ctx) {
     const saved = (S.redirects && S.redirects.checks) || {};
     const pre = S.check || (saved.pre_launch && { ...saved.pre_launch.result, at: saved.pre_launch.at });
     const test = S.test || (saved.staging_test && { ...saved.staging_test.result, at: saved.staging_test.at });
-    const after = S.after || (saved.after_launch && { ...saved.after_launch.result, at: saved.after_launch.at });
     const results = test && (test.results || []).length ? `<div class="tbl-wrap" style="margin-top:8px;max-height:240px;overflow:auto"><table class="tbl"><thead><tr><th>Old URL</th><th>Should be</th><th>Answered</th></tr></thead><tbody>${test.results.map(r => `<tr><td style="overflow-wrap:anywhere">${h(r.source)}</td><td>${h(r.expected)}</td><td style="overflow-wrap:anywhere">${h(String(r.error || r.status || ''))}${r.location ? ` to ${h(r.location)}` : ''}</td></tr>`).join('')}</tbody></table></div><div class="small muted" style="margin-top:6px">${test.turned_off ? 'All switched back off, and read back to prove it.' : ''}</div>` : '';
     const forms = pre && (pre.forms || []).length ? `<details style="margin-top:8px"><summary class="small muted">The domain's versions today</summary><ul class="small muted" style="margin:6px 0 0;padding-left:18px">${pre.forms.map(f => `<li>${h(f.url)}: ${f.error ? h(f.error) : `${f.hops} ${f.hops === 1 ? 'hop' : 'hops'} to ${h(f.final)}`}</li>`).join('')}</ul></details>` : '';
-    return card({ title: 'Pre launch check', sub: 'BLOCK stops a launch, and WARN is for a person to read. Before launch the live domain is still the old site, so its versions only warn.', body: `<div class="btn-row" style="flex-wrap:wrap"><button class="btn btn-primary btn-sm" id="vRun" ${S.busy ? 'disabled' : ''}>Run the check</button><button class="btn btn-ghost btn-sm" id="vTest" ${S.busy ? 'disabled' : ''}>Test on staging</button><button class="btn btn-ghost btn-sm" id="vAfter" ${S.busy ? 'disabled' : ''}>Check the live domain after launch</button></div>${S.busy ? `<div class="muted small" style="margin-top:8px">${h(S.busy)}</div>` : ''}${checkLine(pre, 'The check')}${forms}${checkLine(test, 'The staging test')}${results}${checkLine(after, 'The live domain after launch')}` });
+    return card({ title: 'Pre launch check', sub: 'BLOCK stops a launch, and WARN is for a person to read. Before launch the live domain is still the old site, so its versions only warn.', body: `<div class="btn-row" style="flex-wrap:wrap"><button class="btn btn-primary btn-sm" id="vRun" ${S.busy ? 'disabled' : ''}>Run the check</button><button class="btn btn-ghost btn-sm" id="vTest" ${S.busy ? 'disabled' : ''}>Test on staging</button></div>${S.busy ? `<div class="muted small" style="margin-top:8px">${h(S.busy)}</div>` : ''}${checkLine(pre, 'The check')}${forms}${checkLine(test, 'The staging test')}${results}${contentLine(pre)}` });
+  }
+
+  // The top searches on the new pages: part of the check, shown on their own so a miss is easy to find
+  function contentLine(pre) {
+    const rows = (pre && pre.content) || [];
+    if (!rows.length) return '';
+    const searched = rows.filter(r => r.search);
+    const missed = searched.filter(r => !r.where).length;
+    const where = { title: 'Title', h1: 'H1', text: 'Text' };
+    const row = r => (r.skipped
+      ? `<tr><td colspan="3" style="overflow-wrap:anywhere">${h(r.home)}</td><td class="muted">Not checked: ${h(r.skipped)}</td></tr>`
+      : `<tr><td>${h(r.search)}</td><td style="overflow-wrap:anywhere">${h(r.old)}</td><td style="overflow-wrap:anywhere">${h(r.home)}</td><td>${r.where ? h(where[r.where]) : pill('wait', 'Missing')}</td></tr>`);
+    return `<details style="margin-top:8px"><summary class="small muted">Top searches on the new pages: ${searched.length - missed} found, ${missed} missing</summary><div class="tbl-wrap" style="margin-top:6px;max-height:240px;overflow:auto"><table class="tbl"><thead><tr><th>Search</th><th>Old URL</th><th>New page</th><th>Found in</th></tr></thead><tbody>${rows.map(row).join('')}</tbody></table></div></details>`;
+  }
+
+  // Launch and after (slice 2): the DNS snapshot, the launch day check, day 7, the rankings at 30, 60 and 90 days
+  function launchCard() {
+    if (!d.page_map_ready) return '';
+    const saved = (S.redirects && S.redirects.checks) || {};
+    const L = (S.redirects && S.redirects.launch) || null;
+    const after = S.after || (saved.after_launch && { ...saved.after_launch.result, at: saved.after_launch.at });
+    const day7 = saved.day7 && { ...saved.day7.result, at: saved.day7.at };
+    const launched = !!(L && L.launched_at);
+    const snap = L && L.dns_before;
+    const list = a => (a && a.length ? a.map(x => h(typeof x === 'string' ? x : x.exchange)).join(', ') : '<span class="muted">none</span>');
+    const dkim = snap && Object.keys(snap.dkim || {}).length ? h(Object.keys(snap.dkim).join(', ')) : '<span class="muted">none on the common names: ask the email provider for its key name and check it by hand</span>';
+    const snapBody = snap
+      ? `<div class="small" style="margin-top:8px"><strong>DNS before launch</strong> <span class="muted">${h(fmtDate(snap.at, true))}</span><ul style="margin:6px 0 0;padding-left:18px"><li>MX (email): ${list(snap.mx)}</li><li>SPF: ${list(snap.spf)}</li><li>DMARC: ${list(snap.dmarc)}</li><li>DKIM keys found: ${dkim}</li><li>Other TXT records: ${(snap.txt || []).length}</li><li>DNS host: ${list(snap.ns)}</li></ul>${(snap.errors || []).length ? `<div class="notice warn" style="margin-top:6px">Some lookups failed: ${h(snap.errors.join('; '))}. Take it again.</div>` : ''}</div>`
+      : '<div class="muted small" style="margin-top:8px">No DNS snapshot yet. Take it before anything changes at the DNS host: the email records are compared against it after launch.</div>';
+    const urlRow = r => `<tr><td style="overflow-wrap:anywhere">${h(r.path)}</td><td style="overflow-wrap:anywhere">${h(r.expected)}</td><td style="overflow-wrap:anywhere">${h(r.got)}</td><td>${r.ok ? pill('ok', 'Right') : pill('block', 'Wrong')}</td></tr>`;
+    const urlRows = c => (c && (c.urls || []).length ? `<details style="margin-top:8px"><summary class="small muted">Old URLs on the live site: ${c.passed} of ${c.checked} right</summary><div class="tbl-wrap" style="margin-top:6px;max-height:260px;overflow:auto"><table class="tbl"><thead><tr><th>Old URL</th><th>Should be</th><th>Answered</th><th></th></tr></thead><tbody>${c.urls.map(urlRow).join('')}</tbody></table></div></details>` : '');
+    const dnsLine = c => (c && c.dns && c.dns.compared && (c.dns.changes || []).length ? `<ul class="small muted" style="margin:6px 0 0;padding-left:18px">${c.dns.changes.map(x => `<li>${h(x)}</li>`).join('')}</ul>` : '');
+    const mon = (L && L.monitor) || [];
+    const pageRow = p => `<tr><td style="overflow-wrap:anywhere">${h(p.old)}</td><td style="overflow-wrap:anywhere">${h(p.home)}</td><td>${h(p.before)}</td><td>${h(p.now)}</td><td>${h(p.search || '')}</td><td>${p.before_position == null ? '' : h(p.before_position)}</td><td>${p.search ? (p.now_position == null ? 'Not found' : h(p.now_position)) : ''}</td></tr>`;
+    const pageTable = m => ((m.pages || []).length ? `<details><summary class="muted">The top list pages</summary><div class="tbl-wrap" style="margin-top:6px;max-height:240px;overflow:auto"><table class="tbl"><thead><tr><th>Old URL</th><th>New page</th><th>Est. visits before</th><th>Now</th><th>Main search</th><th>Position before</th><th>Now</th></tr></thead><tbody>${m.pages.map(pageRow).join('')}</tbody></table></div></details>` : '');
+    const monPill = m => (m.status === 'done' ? ((m.flags || []).length ? pill('block', `${m.flags.length} red ${m.flags.length === 1 ? 'flag' : 'flags'}`) : pill('ok', 'No red flags')) : m.status === 'failed' ? pill('block', 'Failed') : pill('wait', 'Running'));
+    const monRow = m => `<div class="small" style="margin-top:6px">${h(m.day)} days: ${monPill(m)} <span class="muted">${m.finished_at ? h(fmtDate(m.finished_at, true)) : ''}${m.cost_usd != null ? `, $${Number(m.cost_usd).toFixed(2)}` : ''}</span>${m.error ? ` <span class="muted">${h(m.error)}</span>` : ''}${(m.flags || []).length ? `<ul style="margin:4px 0 0;padding-left:18px">${m.flags.map(x => `<li>${h(x.text)}</li>`).join('')}</ul>` : ''}${pageTable(m)}</div>`;
+    const monBody = mon.length ? `<div style="margin-top:12px"><strong>Rankings since launch</strong>${mon.map(monRow).join('')}</div>` : '';
+    const next = L && L.next ? ` Next: ${h(L.next.what)}, from ${h(fmtDate(L.next.at))}. It runs by itself, and any red flag goes to Brandon.` : ' All the checks after launch have run.';
+    const status = launched ? `<div class="notice" style="margin-top:10px">Launched ${h(fmtDate(L.launched_at))}.${next}${!L.day7_at && !mon.length ? ' <a href="#" id="lUndo">Not launched after all?</a>' : ''}</div>` : '';
+    const buttons = `<div class="btn-row" style="flex-wrap:wrap"><button class="btn btn-ghost btn-sm" id="lSnap" ${S.busy || launched ? 'disabled' : ''}>${snap ? 'Take the DNS snapshot again' : 'Take the DNS snapshot'}</button><button class="btn btn-primary btn-sm" id="vAfter" ${S.busy ? 'disabled' : ''}>${launched ? 'Run the launch day check again' : 'Run the launch day check'}</button></div>`;
+    return card({ title: 'Launch and after', sub: 'Read only. Take the DNS snapshot before launch. On launch day, once the domain points at the new site and the redirects are turned on, run the launch day check. Day 7 and the rankings at 30, 60 and 90 days run by themselves.', body: `${buttons}${S.busy ? `<div class="muted small" style="margin-top:8px">${h(S.busy)}</div>` : ''}${status}${snapBody}${checkLine(after, 'The launch day check')}${urlRows(after)}${dnsLine(after)}${checkLine(day7, 'The day 7 check')}${urlRows(day7)}${monBody}` });
   }
 
   // The Page Map moves only when a person says so, because the page's address changes everywhere
@@ -225,7 +266,7 @@ export async function render(el, ctx) {
     if (d.running && d.scan) parts.push(progress());
     if (d.scan) {
       parts.push(warnings());
-      if (d.scan.summary) parts.push(tiles(), benchmark(), issues(), pageMapCard(), urlTable(), noActionGroup(), redirectsCard(), validatorCard(), settingsCard());
+      if (d.scan.summary) parts.push(tiles(), benchmark(), issues(), pageMapCard(), urlTable(), noActionGroup(), redirectsCard(), validatorCard(), launchCard(), settingsCard());
       else if (!d.running) parts.push(card({ body: empty({ title: 'No results from that scan', text: 'Resume carries on from where it stopped.' }) }));
     } else {
       parts.push(card({ body: empty({ title: 'No scan yet', text: 'Scan old site reads every page it can find, then asks DataForSEO for rankings and backlinks. It usually costs 6 to 15 cents and writes nothing to the site.' }) }), settingsCard());
@@ -275,7 +316,18 @@ export async function render(el, ctx) {
       if (!(await confirm({ title: 'Test the redirects on staging?', text: "This turns Copybot's redirects on at the staging site, requests each old URL, and always turns them off again, even if the check fails part way. It refuses to run if the connection is the live domain.", ok: 'Run the test' }))) return;
       task('Testing on staging, then switching back off', async () => { S.test = await api(`${base}/redirects/test`, { method: 'POST', body: { confirm: true } }); });
     });
-    on('#vAfter', () => task('Checking every version of the live domain', async () => { S.after = await api(`${base}/redirects/after-launch`, { method: 'POST', body: {} }); }));
+    on('#lSnap', () => task("Reading the domain's DNS", async () => { await api(`${base}/launch/dns-snapshot`, { method: 'POST', body: {} }); }));
+    on('#vAfter', async () => {
+      const L = S.redirects && S.redirects.launch;
+      const first = !(L && L.launched_at);
+      if (first && !(await confirm({ title: 'Run the launch day check?', text: `Only once the domain points at the new site and the Copybot redirects are turned on. It checks every version of the domain, every old URL on the live site${L && L.dns_before ? ' and the DNS against the snapshot' : ''}, and marks the site launched today: the day 7 check and the rankings at 30, 60 and 90 days then run by themselves. Read only.`, ok: 'Run the check' }))) return;
+      task('Checking the domain, every old URL and the DNS. About a second a URL', async () => { S.after = await api(`${base}/redirects/after-launch`, { method: 'POST', body: {} }); });
+    });
+    on('#lUndo', async e => {
+      e.preventDefault();
+      if (!(await confirm({ title: 'Not launched after all?', text: "The site goes back to not launched, so the day 7 and rankings checks won't run. The DNS snapshot is kept.", ok: 'Undo the launch' }))) return;
+      task('Undoing the launch', async () => { await api(`${base}/launch/undo`, { method: 'POST', body: { confirm: true } }); S.after = null; });
+    });
 
     el.querySelectorAll('[data-filter]').forEach(b => b.addEventListener('click', () => { S.filter = b.dataset.filter; S.showAll = false; draw(); }));
     on('#showAll', () => { S.showAll = true; draw(); });
