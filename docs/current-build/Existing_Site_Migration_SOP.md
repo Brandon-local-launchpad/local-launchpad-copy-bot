@@ -163,7 +163,7 @@ Most clients won't. Ask once, at onboarding or when you start the scan: "Do you 
 
 If they do:
 
-1. **Get access.** Ask the client to add our Google account as a user: in Search Console, **Settings → Users and permissions → Add user**, our email, permission **Restricted** (read only). Use the Local Launchpad Google account Brandon names for this. If they'd rather not, ask them to do step 2 themselves and send you the file.
+1. **Get access.** Ask the client to add our Google account as a user: in Search Console, **Settings → Users and permissions → Add user**, **team@locallaunchpad.co.uk**, permission **Restricted** (read only). If they'd rather not, ask them to do step 2 themselves and send you the file.
 2. **Export the data.** In Search Console, open the property for the domain, then **Performance → Search results**. Set the date range to **Last 12 months**. Press **Export → Download CSV**. Google gives a zip.
 3. **Upload it.** Site audit tab, **Upload Search Console file**, and choose the zip as it is (Copybot reads its Pages and Queries files). Before or after the scan is fine: the list is reworked either way, and the tab then says the benchmark is from Search Console.
 4. **After launch, if we have access:**
