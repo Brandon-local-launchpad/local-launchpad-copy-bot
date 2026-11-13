@@ -1,0 +1,101 @@
+{
+  "key": "group_llp_cat_block5",
+  "title": "Category page: Block 5 (cost)",
+  "fields": [
+    {
+      "key": "field_llp_cat_block5_h2",
+      "label": "H2",
+      "name": "cat_block5_h2",
+      "type": "text",
+      "instructions": "Written by Copybot. Edits here are overwritten by the next push.",
+      "required": 0,
+      "conditional_logic": 0,
+      "show_in_rest": 1
+    },
+    {
+      "key": "field_llp_cat_cost_intro",
+      "label": "Intro",
+      "name": "cat_cost_intro",
+      "type": "wysiwyg",
+      "instructions": "Written by Copybot. Edits here are overwritten by the next push.",
+      "required": 0,
+      "conditional_logic": 0,
+      "show_in_rest": 1,
+      "tabs": "all",
+      "toolbar": "basic",
+      "media_upload": 0
+    },
+    {
+      "key": "field_llp_cat_block5",
+      "label": "Cards",
+      "name": "cat_block5",
+      "type": "repeater",
+      "instructions": "Written by Copybot. Edits here are overwritten by the next push.",
+      "required": 0,
+      "conditional_logic": 0,
+      "show_in_rest": 1,
+      "layout": "block",
+      "button_label": "Add row",
+      "sub_fields": [
+        {
+          "key": "field_llp_cat_block5_card_title",
+          "label": "Title",
+          "name": "card_title",
+          "type": "text",
+          "instructions": "Written by Copybot. Edits here are overwritten by the next push.",
+          "required": 0,
+          "conditional_logic": 0,
+          "show_in_rest": 1
+        },
+        {
+          "key": "field_llp_cat_block5_card_body",
+          "label": "Body",
+          "name": "card_body",
+          "type": "wysiwyg",
+          "instructions": "Written by Copybot. Edits here are overwritten by the next push.",
+          "required": 0,
+          "conditional_logic": 0,
+          "show_in_rest": 1,
+          "tabs": "all",
+          "toolbar": "basic",
+          "media_upload": 0
+        }
+      ]
+    },
+    {
+      "key": "field_llp_cat_cost_price_line",
+      "label": "Price line",
+      "name": "cat_cost_price_line",
+      "type": "text",
+      "instructions": "Written by Copybot. Edits here are overwritten by the next push.",
+      "required": 0,
+      "conditional_logic": 0,
+      "show_in_rest": 1
+    }
+  ],
+  "location": [
+    [
+      {
+        "param": "post_type",
+        "operator": "==",
+        "value": "service-category"
+      }
+    ],
+    [
+      {
+        "param": "post_type",
+        "operator": "==",
+        "value": "category-location"
+      }
+    ]
+  ],
+  "menu_order": 17,
+  "position": "normal",
+  "style": "default",
+  "label_placement": "top",
+  "instruction_placement": "label",
+  "hide_on_screen": "",
+  "active": true,
+  "description": "Local Launchpad category page (master copy in the Copybot repo).",
+  "show_in_rest": 1
+}

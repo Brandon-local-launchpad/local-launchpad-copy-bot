@@ -1,0 +1,30 @@
+{
+  "path_meta": "_llp_path",
+  "post_types": [
+    {
+      "post_type": "service-category",
+      "label": "Category pages",
+      "singular": "Category page"
+    },
+    {
+      "post_type": "category-location",
+      "label": "Location category pages",
+      "singular": "Location category page"
+    },
+    {
+      "post_type": "service",
+      "label": "Service pages",
+      "singular": "Service page"
+    },
+    {
+      "post_type": "location-service",
+      "label": "Town service pages",
+      "singular": "Town service page"
+    },
+    {
+      "post_type": "location",
+      "label": "Location pages",
+      "singular": "Location page"
+    }
+  ]
+}

@@ -1,0 +1,71 @@
+{
+  "key": "group_llp_loc_block4",
+  "title": "Location page: Block 4",
+  "fields": [
+    {
+      "key": "field_llp_loc_block4_h2",
+      "label": "H2",
+      "name": "loc_block4_h2",
+      "type": "text",
+      "instructions": "Written by Copybot. Edits here are overwritten by the next push.",
+      "required": 0,
+      "conditional_logic": 0,
+      "show_in_rest": 1
+    },
+    {
+      "key": "field_llp_loc_block4",
+      "label": "Cards",
+      "name": "loc_block4",
+      "type": "repeater",
+      "instructions": "Written by Copybot. Edits here are overwritten by the next push.",
+      "required": 0,
+      "conditional_logic": 0,
+      "show_in_rest": 1,
+      "layout": "block",
+      "button_label": "Add row",
+      "sub_fields": [
+        {
+          "key": "field_llp_loc_block4_card_title",
+          "label": "Title",
+          "name": "card_title",
+          "type": "text",
+          "instructions": "Written by Copybot. Edits here are overwritten by the next push.",
+          "required": 0,
+          "conditional_logic": 0,
+          "show_in_rest": 1
+        },
+        {
+          "key": "field_llp_loc_block4_card_body",
+          "label": "Body",
+          "name": "card_body",
+          "type": "wysiwyg",
+          "instructions": "Written by Copybot. Edits here are overwritten by the next push.",
+          "required": 0,
+          "conditional_logic": 0,
+          "show_in_rest": 1,
+          "tabs": "all",
+          "toolbar": "basic",
+          "media_upload": 0
+        }
+      ]
+    }
+  ],
+  "location": [
+    [
+      {
+        "param": "post_type",
+        "operator": "==",
+        "value": "location"
+      }
+    ]
+  ],
+  "menu_order": 39,
+  "position": "normal",
+  "style": "default",
+  "label_placement": "top",
+  "instruction_placement": "label",
+  "hide_on_screen": "",
+  "active": true,
+  "description": "Local Launchpad location page (master copy in the Copybot repo).",
+  "show_in_rest": 1
+}

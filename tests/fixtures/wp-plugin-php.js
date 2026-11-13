@@ -28,6 +28,8 @@ console.log('\n=== FIXTURE: companion plugin PHP (php-wasm) ===\n');
   put('/tests/rankmath-stubs.php', path.join(root, 'tests/php/rankmath-stubs.php'));
   put('/plugin/redirects.php', path.join(PLUGIN, 'redirects.php'));
   put('/plugin/review-funnel.php', path.join(PLUGIN, 'review-funnel.php'));
+  put('/plugin/page-types.php', path.join(PLUGIN, 'page-types.php'));
+  put('/plugin/page-post-types.json', path.join(PLUGIN, 'page-post-types.json'));
 
   const res = await php.run({ scriptPath: '/tests/plugin-tests.php' });
   php.exit();
@@ -119,6 +121,23 @@ console.log('\n=== FIXTURE: companion plugin PHP (php-wasm) ===\n');
   chk('Redirects: delete all removes Copybot\'s rows and leaves theirs', R.del_all.deleted === 3 && R.rows_after_del.length === 1 && R.rows_after_del[0] === 500 && R.list_after_del.length === 0, J(R), '');
   chk('Redirects: every route needs manage_options', [R.perm_get, R.perm_post, R.perm_delete, R.perm_status].every(x => x === false));
   chk('Status reports the redirects state', R.status_route.redirects && R.status_route.redirects.ready === true, J(R.status_route), '');
+
+  // ── The inner pages (page-types.php, 13 Nov 2026) ──
+  const P = o.page_types;
+  const FIVE = ['service-category', 'category-location', 'service', 'location-service', 'location'];
+  const LEFT = { pagename: 'x' };
+  chk('Inner pages: the five post types, from the generated list', J(P.types) === J(FIVE), J(P.types), J(FIVE));
+  chk('Inner pages: a post type the site lacks is registered; one it has is left alone', J(P.registered.sort()) === J(['location-service', 'service-category']) && P.status['service-category'] === 'plugin' && P.status['location-service'] === 'plugin' && P.status.service === 'site' && P.status.location === 'site' && P.status['category-location'] === 'site', J([P.registered, P.status]), '');
+  chk('Inner pages: a registered post type is public, in the REST API, with custom fields', P.new_args.public === true && P.new_args.show_in_rest === true && P.new_args.supports.includes('custom-fields') && P.new_args.label === 'Category pages', J(P.new_args), '');
+  chk('Inner pages: all five support custom fields, so the REST API carries their meta', FIVE.every(t => (P.supports[t] || []).includes('custom-fields')), J(P.supports), '');
+  chk('Inner pages: the path meta is on all five, in REST, cleaned, edit_pages only', J(P.path_meta_on) === J(FIVE) && P.path_meta.rest === true && P.path_meta.clean === 'llp_page_clean_path' && P.path_meta.auth === true, J([P.path_meta_on, P.path_meta]), '');
+  chk('Inner pages: the SEO meta is on pages and all five', J(P.seo_meta_on) === J(['page', ...FIVE]), J(P.seo_meta_on), '');
+  chk('Inner pages: the rewrite rules are rebuilt once, not on every load', P.flushes === 1 && P.flushes_again === 1, J([P.flushes, P.flushes_again]), '1, 1');
+  chk('Inner pages: a path is stored lower case with no trailing slash; anything odd is refused', J(P.clean) === J(['/services/patios', '/locations/romsey/patios', '', '', '', '', '', '', '']), J(P.clean), '');
+  chk('Inner pages: the permalink is the page map path; no path, or a page, keeps its own', J(P.links) === J(['https://site.test/services/patios/', 'https://site.test/locations/romsey/patios/', 'https://site.test/default/43/', 'https://site.test/default/45/']), J(P.links), '');
+  chk('Inner pages: a request for a path is answered with its entry; two sharing a path, the older', J(P.req_service) === J({ post_type: 'service', p: 41 }) && J(P.req_case) === J({ post_type: 'service', p: 41 }), J([P.req_service, P.req_case]), '');
+  chk('Inner pages: a nested town path finds its draft, and a preview stays a preview', J(P.req_town) === J({ post_type: 'location-service', p: 42, preview: 'true' }), J(P.req_town), '');
+  chk('Inner pages: an unknown path, one in the bin, a page with a path, the homepage and the admin are left to WordPress', [P.req_unknown, P.req_bin, P.req_page, P.req_home, P.req_admin].every(q => J(q) === J(LEFT)), J([P.req_unknown, P.req_bin, P.req_page, P.req_home, P.req_admin]), '');
 
   console.log(`\n${pass + fail} checks: ${pass} passed, ${fail} failed`);
   if (fail > 0) process.exit(1);
