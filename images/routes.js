@@ -8,6 +8,7 @@
 // The photos themselves are shown through the GBP posts photo route (the service account, ?size=thumb).
 
 const { createImages } = require('./service');
+const { heroChoiceOf } = require('./pick');
 const { createDriveStore } = require('../drive/store');
 const { createAutopostStore } = require('../leadsnap/autopost/store');
 const { lockedFrom, groupServices } = require('../leadsnap/autopost/intake');
@@ -41,6 +42,11 @@ function mountImagesApi(app, { pool, pageRows, latestRecords, getSite, getDrive,
       return out;
     },
     createLog: clientId => require('../wp/db-store').createDbStore(pool, clientId),
+    // The client's own answer on the onboarding form decides whether heroes are their photos or the site's graphic
+    heroChoiceFor: async clientId => {
+      const { rows } = await pool.query(`SELECT value FROM client_fields WHERE client_id = $1 AND field_key = 'hero_image'`, [clientId]);
+      return heroChoiceOf(rows.length ? rows[0].value : '');
+    },
   });
   const wrap = fn => async (req, res) => {
     try { res.json(await fn(req)); }

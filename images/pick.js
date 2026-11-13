@@ -66,7 +66,8 @@ function folderFor(title, folders, groups) {
 // rows: the saved page map rows; photos: drive_photos rows; notes: the parsed notes or null;
 // groups: [{ folder, services }] or null; cards: Map page path → [card target paths] (from the written copy)
 // choices: Map page identity → Map slot → the photo a person chose, or '' for "leave it empty"
-function pickImages({ rows = [], photos = [], notes = null, groups = null, cards = new Map(), choices = new Map(), gallerySize = GALLERY } = {}) {
+// heroChoice: the client's onboarding answer, 'photo' (a real photo of their work), 'illustration' or 'none'
+function pickImages({ rows = [], photos = [], notes = null, groups = null, cards = new Map(), choices = new Map(), gallerySize = GALLERY, heroChoice = 'none' } = {}) {
   const find = indexNotes(notes);
   const all = photos.map(r => describe(r, find(r)));
   const folders = [...new Set(photos.filter(p => p.kind === 'post' && p.label !== BRAND).map(p => p.label))];
@@ -120,12 +121,14 @@ function pickImages({ rows = [], photos = [], notes = null, groups = null, cards
     const held = id => { const p = byId.get(id); return !!(p && !p.unusable); };
     const taken = new Set([...chosen.values()].filter(held));
     const slots = [];
-    const put = (slot, label, cands, sort, why) => {
+    // auto: false: the slot is never filled by code (a hero for a client who chose an illustration), only by a person
+    const put = (slot, label, cands, sort, why, auto = true) => {
       const list = cands.filter(p => !taken.has(p.file_id)).sort(sort);
       const ids = n => list.slice(0, n).map(p => p.file_id);
       const c = chosen.has(slot) ? chosen.get(slot) : undefined;
       if (c === '') { slots.push({ slot, label, pick: null, runners: ids(RUNNERS), chosen: true, why: 'Left empty by hand.' }); return null; }
       if (c !== undefined && held(c)) { bump(slot, c); slots.push({ slot, label, pick: c, runners: ids(RUNNERS), chosen: true, why: '' }); return c; }
+      if (!auto) { slots.push({ slot, label, pick: null, runners: ids(RUNNERS), why, ...(c !== undefined ? { stale: true } : {}) }); return null; }
       const pick = list[0] || null;
       if (pick) { taken.add(pick.file_id); bump(slot, pick.file_id); }
       // stale: a person's choice that is no longer in Drive, so the pick stands in
@@ -137,8 +140,17 @@ function pickImages({ rows = [], photos = [], notes = null, groups = null, cards
     const baseKey = r.type === 'town_service' ? `service:${r.info && r.info.service_id}` : r.type === 'location_category' ? `category:${r.info && r.info.category_key}` : null;
     const base = (baseKey && basePicks.get(baseKey)) || {};
     const notBase = (kind, id) => (a, b) => ((a.file_id === id) - (b.file_id === id)) || spreadFor(kind)(a, b);
-    const heroId = put('hero', 'Hero background', work.filter(p => p.hero && (!p.type || p.type === 'finished job')), notBase('hero', base.hero),
-      pool.length ? `No photo of ${what(r)} suits a hero: it needs a wide, clean shot of the finished work, at least ${HERO_WIDTH}px across.` : `No photos of ${what(r)} yet.`);
+    // The hero follows the client's answer on the onboarding form (Brandon, 13 Nov). A real photo of their work:
+    // one of theirs where there is a hero quality one, else the site's graphic shows and the page is listed.
+    // An illustration, or no answer: the graphic on every page, and code never fills the slot.
+    const heroWhy = heroChoice === 'photo'
+      ? `The site's graphic shows here: ${pool.length ? `no photo of ${what(r)} suits a hero` : `there are no photos of ${what(r)} yet`}. Ask the client for a wide, clean shot of the finished work, at least ${HERO_WIDTH}px across.`
+      : heroChoice === 'illustration' ? 'The client chose an illustration, so the site\'s graphic shows here.'
+        : 'No hero answer on the onboarding form, so the site\'s graphic shows here.';
+    const heroId = put('hero', 'Hero background', work.filter(p => p.hero && (!p.type || p.type === 'finished job')), notBase('hero', base.hero), heroWhy, heroChoice === 'photo');
+    const heroSlot = slots[slots.length - 1];
+    // An empty hero is not a gap: the template's graphic is there. graphic: true tells the screen and the counts
+    if (!heroSlot.pick && !heroSlot.chosen) heroSlot.graphic = true;
     const contentId = put('content', 'Content image', work.filter(p => !p.type || p.type === 'finished job' || p.type === 'before-after'), notBase('content', base.content), pool.length ? `No second photo of ${what(r)}.` : `No photos of ${what(r)} yet.`);
     if (r.type === 'service' || r.type === 'category') basePicks.set(identity, { hero: heroId, content: contentId });
     if (r.type !== 'service' && r.type !== 'town_service') {
@@ -172,10 +184,22 @@ function pickImages({ rows = [], photos = [], notes = null, groups = null, cards
     pages: out, photos: photoMap,
     summary: {
       photos: all.length, usable: ok.length, with_notes: all.filter(p => p.noted).length, no_description: ok.filter(p => !p.shows).length,
-      empty: out.reduce((n, p) => n + p.slots.filter(s => !s.pick).length, 0), filled: out.reduce((n, p) => n + p.slots.filter(s => s.pick).length, 0),
+      // A hero showing the site's graphic is not an empty slot
+      empty: out.reduce((n, p) => n + p.slots.filter(s => !s.pick && !s.graphic).length, 0), filled: out.reduce((n, p) => n + p.slots.filter(s => s.pick).length, 0),
+      hero_choice: heroChoice, heroes_photo: out.filter(p => p.slots[0].pick).length, heroes_graphic: out.filter(p => p.slots[0].graphic).length,
+      // For a client who asked for real photos: the pages still on the graphic, to ask the client about
+      heroes_wanted: heroChoice === 'photo' ? out.filter(p => p.slots[0].graphic && ['homepage', 'category', 'service', 'location'].includes(p.type)).map(p => p.title) : [],
       services_with_no_folder: noFolder,
     },
   };
 }
 
-module.exports = { pickImages, folderFor, describe, GALLERY, HERO_WIDTH };
+// The onboarding form's "Hero image: a real photo of your work, or an illustration?" answer (fillout/field-map.json hero_image)
+function heroChoiceOf(answer) {
+  const a = norm(answer);
+  if (!a) return 'none';
+  if (a.includes('illustration')) return 'illustration';
+  return a.includes('photo') ? 'photo' : 'none';
+}
+
+module.exports = { pickImages, folderFor, describe, heroChoiceOf, GALLERY, HERO_WIDTH };

@@ -56,7 +56,8 @@ const sameSlots = (a, b) => JSON.stringify([...a].sort((x, y) => x.slot.localeCo
 // ({ files, photo_notes, last_ok_at }) or null; groupsFor(clientId) → [{ folder, services }] or null;
 // cardsFor(clientId) → Map page path → [card target paths]; getSite(clientId) → the WordPress site or
 // null; getDrive() → the Drive client; createLog(clientId) → { appendLog }; wp: wp/client.js (for tests)
-function createImages({ pool, pageRows, readDrive, groupsFor, cardsFor, getSite, getDrive, createLog, wp = require('../wp/client') }) {
+// heroChoiceFor(clientId) → 'photo' | 'illustration' | 'none': the client's onboarding answer (images/pick.js heroChoiceOf)
+function createImages({ pool, pageRows, readDrive, groupsFor, cardsFor, getSite, getDrive, createLog, heroChoiceFor = async () => 'none', wp = require('../wp/client') }) {
   async function state(clientId) {
     const [rows, read, groups, cards, { rows: ch }, { rows: ap }] = await Promise.all([
       pageRows(clientId), readDrive(clientId), groupsFor(clientId).catch(() => null), cardsFor(clientId).catch(() => new Map()),
@@ -67,7 +68,7 @@ function createImages({ pool, pageRows, readDrive, groupsFor, cardsFor, getSite,
     for (const c of ch) { if (!choices.has(c.identity)) choices.set(c.identity, new Map()); choices.get(c.identity).set(c.slot, c.file_id); }
     const ok = !!(read && read.last_ok_at);
     // A person's choices go into the pick, so the other slots on the page choose around them
-    const picked = pickImages({ rows, photos: ok ? read.files : [], notes: ok ? read.photo_notes : null, groups, cards, choices });
+    const picked = pickImages({ rows, photos: ok ? read.files : [], notes: ok ? read.photo_notes : null, groups, cards, choices, heroChoice: await heroChoiceFor(clientId).catch(() => 'none') });
     const drive = { read: ok, error: read ? read.error : null, last_ok_at: read ? read.last_ok_at : null, notes: !!(ok && read.photo_notes) };
     const approvals = new Map(ap.map(a => [a.identity, { slots: parse(a.slots) || [], by: a.approved_by, at: a.approved_at }]));
     const pages = picked.pages.map(page => {

@@ -16,12 +16,13 @@ export async function render(el, ctx) {
     return `<div class="img-slot" style="width:150px">
       <div class="small muted" style="margin-bottom:4px">${h(s.label)}</div>
       ${p ? `<img src="${attr(thumb(s.pick))}" alt="${attr(p.shows || p.name)}" title="${attr(photoTip(p))} · click to see it bigger" loading="lazy" data-view="${attr(s.pick)}" style="width:150px;height:100px;object-fit:cover;border-radius:6px;display:block;cursor:zoom-in">`
-          : `<div class="small muted" title="${attr(s.why)}" style="width:150px;height:100px;border:1px dashed #c9c9c9;border-radius:6px;display:flex;align-items:center;justify-content:center;text-align:center;padding:6px;box-sizing:border-box">Empty</div>`}
+          : `<div class="small muted" title="${attr(s.why)}" style="width:150px;height:100px;border:1px dashed #c9c9c9;border-radius:6px;display:flex;align-items:center;justify-content:center;text-align:center;padding:6px;box-sizing:border-box">${s.graphic ? 'Site graphic' : 'Empty'}</div>`}
       <div style="margin-top:4px"><button class="btn btn-ghost btn-xs" data-swap="${attr(page.identity)}" data-slot="${attr(s.slot)}">${p ? 'Swap' : 'Choose'}</button>${s.chosen ? ' <span class="small muted">by hand</span>' : ''}</div>
     </div>`;
   };
   const pageHtml = page => {
-    const empties = page.slots.filter(s => !s.pick);
+    // A hero on the site's graphic is only worth a line when the client asked for real photos
+    const empties = page.slots.filter(s => !s.pick && (!s.graphic || S.summary.hero_choice === 'photo'));
     const state = page.approved ? pill('ok', 'approved') : page.changed_since_approval ? pill('warn', 'changed since approval') : '';
     return `<div class="img-page" style="padding:14px 0;border-top:1px solid #ececec">
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px">
@@ -41,12 +42,16 @@ export async function render(el, ctx) {
       el.innerHTML = card({ title: 'Images', sub: 'A photo for every slot on every page.', body: empty({ title: 'The Drive photo folder has not been read', text: d.error ? d.error : 'Set the client\'s Drive photo folder and press Read Drive on the GBP Posts & Photos tab. Then come back here.' }) });
       return;
     }
-    const shown = S.pages.filter(p => filter === 'all' || (filter === 'empty' ? p.slots.some(s => !s.pick) : filter === 'todo' ? !p.approved && p.slots.some(s => s.pick) : p.approved));
+    const shown = S.pages.filter(p => filter === 'all' || (filter === 'empty' ? p.slots.some(s => !s.pick && !s.graphic) : filter === 'todo' ? !p.approved && p.slots.some(s => s.pick) : p.approved));
     const toPlace = S.pages.filter(p => p.approved);
     const canApproveAll = S.pages.some(p => !p.approved && p.slots.some(s => s.pick));
     const lines = [
       `${plural(m.usable, 'usable photo')} of ${m.photos} in Drive. ${d.notes ? `${m.with_notes} have notes from the photo sort.` : 'No photo notes file: photos are picked on size and shape only, and have no alt text. Run the photo sort again to get one.'}`,
       `${m.filled} slots filled, ${m.empty} empty, across ${plural(m.pages, 'page')}. ${m.approved} approved.`,
+      m.hero_choice === 'photo' ? `Heroes: the client chose a real photo of their work. ${plural(m.heroes_photo, 'page')} ${m.heroes_photo === 1 ? 'has' : 'have'} one; ${m.heroes_graphic} show the site's graphic because there is no hero quality photo.`
+        : m.hero_choice === 'illustration' ? 'Heroes: the client chose an illustration, so every page shows the site\'s graphic. A photo only goes in a hero if you choose one.'
+          : 'Heroes: no answer on the onboarding form, so every page shows the site\'s graphic. A photo only goes in a hero if you choose one.',
+      m.heroes_wanted && m.heroes_wanted.length ? `Ask the client for a wide, clean shot of the finished work for: ${m.heroes_wanted.join(', ')}.` : '',
       m.no_description ? `${plural(m.no_description, 'photo')} with no description will go up with empty alt text.` : '',
       m.services_with_no_folder.length ? `No photo folder for: ${m.services_with_no_folder.join(', ')}.` : '',
     ].filter(Boolean);

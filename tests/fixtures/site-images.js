@@ -108,7 +108,7 @@ const CARDS = new Map([['/', ['/paving-contractor', '/fencing-contractor']], ['/
   chk('Drive read: no notes file is fine; a broken or unreadable one is a note, never a problem, and the photos are still read', r3.photo_notes === null && !r3.notes.length && r4.photo_notes === null && r4.notes.some(n => /not valid JSON/.test(n)) && r5.notes.some(n => /could not be read/.test(n)) && !r4.problems.length && r4.files.length === 3, J([r3.notes, r4.notes, r5.notes]), '');
 
   // ── The pick ──
-  const pick = pickImages({ rows: ROWS, photos: PHOTOS, notes: parsed.notes, groups: GROUPS, cards: CARDS });
+  const pick = pickImages({ rows: ROWS, photos: PHOTOS, notes: parsed.notes, groups: GROUPS, cards: CARDS, heroChoice: 'photo' });
   const pg = p => pick.pages.find(x => x.path === p);
   const slot = (p, s) => pg(p).slots.find(x => x.slot === s);
   const ids = p => pg(p).slots.map(s => s.pick).filter(Boolean);
@@ -123,8 +123,8 @@ const CARDS = new Map([['/', ['/paving-contractor', '/fencing-contractor']], ['/
   chk('Pick: a town page reuses its base page\'s photos, with a different hero when there are two', slot('/locations/romsey/patios', 'hero').pick && slot('/services/patios', 'hero').pick !== slot('/locations/romsey/patios', 'hero').pick && ids('/locations/romsey/patios').every(i => /^p\d$|^g2$/.test(i)), J([slot('/services/patios', 'hero').pick, slot('/locations/romsey/patios', 'hero').pick]), 'two different patio heroes');
   chk('Pick: a category page takes from its services\' folders', ids('/paving-contractor').every(i => /^[pd]\d$|^g2$/.test(i)) && pg('/paving-contractor').pool === 9, J(ids('/paving-contractor')), '');
   const fence = pg('/services/fencing');
-  chk('Pick: a service with no photos has every slot empty, listed with the reason', fence.slots.every(s => !s.pick) && /No photos of Garden fencing yet/.test(fence.slots[0].why) && pick.summary.services_with_no_folder.includes('Garden fencing'), J(fence.slots.map(s => s.why)), '');
-  chk('Pick: a hero that can\'t be filled says what is needed', /needs a wide, clean shot of the finished work, at least 1600px/.test(pickImages({ rows: ROWS, photos: PHOTOS.filter(p => ['d2'].includes(p.file_id)), notes: parsed.notes, groups: GROUPS }).pages.find(p => p.path === '/services/driveways').slots[0].why), '', '');
+  chk('Pick: a service with no photos has every slot empty, listed with the reason', fence.slots.every(s => !s.pick) && /there are no photos of Garden fencing yet/.test(fence.slots[0].why) && /No photos of Garden fencing yet/.test(fence.slots[1].why) && pick.summary.services_with_no_folder.includes('Garden fencing'), J(fence.slots.map(s => s.why)), '');
+  chk('Pick: a hero that can\'t be filled says what is needed', /no photo of Driveways suits a hero. Ask the client for a wide, clean shot of the finished work, at least 1600px/.test(pickImages({ rows: ROWS, photos: PHOTOS.filter(p => ['d2'].includes(p.file_id)), notes: parsed.notes, groups: GROUPS, heroChoice: 'photo' }).pages.find(p => p.path === '/services/driveways').slots[0].why), '', '');
   chk('Pick: the gallery is up to 6 and is what is left, work in progress included', pick.pages.every(p => p.slots.filter(s => /^gallery:/.test(s.slot)).length <= 6) && ids('/services/patios').includes('p4'), J(ids('/services/patios')), '');
   chk('Pick: a card shows its own page\'s best photo; a card whose page is not in the build is empty and says so', /^[p]\d$|^g2$/.test(slot('/paving-contractor', 'card:/services/patios').pick) && /^d\d$/.test(slot('/paving-contractor', 'card:/services/driveways').pick) && slot('/paving-contractor', 'card:/services/gone').pick === null && /not in the build/.test(slot('/paving-contractor', 'card:/services/gone').why), J(pg('/paving-contractor').slots.filter(s => /^card/.test(s.slot))), '');
   chk('Pick: the homepage has the owner photo from the Brand folder (the team shot, not the van) and no gallery', slot('/', 'owner').pick === 'b1' && !pg('/').slots.some(s => /^gallery/.test(s.slot)) && slot('/', 'card:/paving-contractor').pick && slot('/', 'card:/fencing-contractor').pick === null, J(pg('/').slots.map(s => [s.slot, s.pick])), '');
@@ -132,7 +132,20 @@ const CARDS = new Map([['/', ['/paving-contractor', '/fencing-contractor']], ['/
   chk('Pick: runners-up are offered for a swap', slot('/services/patios', 'hero').runners.length >= 1 && !slot('/services/patios', 'hero').runners.includes(slot('/services/patios', 'hero').pick), J(slot('/services/patios', 'hero')), '');
   chk('Pick: the summary counts photos, notes and slots', pick.summary.photos === 16 && pick.summary.usable === 13 && pick.summary.with_notes === 14 && pick.summary.no_description === 0 && pick.summary.empty > 0 && pick.summary.filled > 20, J(pick.summary), '');
 
-  const bare = pickImages({ rows: ROWS, photos: PHOTOS, notes: null, groups: GROUPS, cards: CARDS });
+  // The hero follows the client's answer on the onboarding form (Brandon, 13 Nov)
+  const { heroChoiceOf } = require(path.join(root, 'images/pick.js'));
+  chk('Hero answer: the form\'s two answers are read, and anything else is no answer', heroChoiceOf('A real photo of my work') === 'photo' && heroChoiceOf('An illustration') === 'illustration' && heroChoiceOf('') === 'none' && heroChoiceOf(null) === 'none' && heroChoiceOf('Not sure') === 'none', '', '');
+  const illus = pickImages({ rows: ROWS, photos: PHOTOS, notes: parsed.notes, groups: GROUPS, cards: CARDS, heroChoice: 'illustration' });
+  chk('The client chose an illustration: no hero is ever filled by code; the site\'s graphic shows, and says why', illus.pages.every(p => p.slots[0].slot === 'hero' && p.slots[0].pick === null && p.slots[0].graphic === true) && /chose an illustration, so the site's graphic shows/.test(illus.pages[0].slots[0].why) && illus.summary.heroes_photo === 0 && illus.summary.heroes_graphic === 9 && !illus.summary.heroes_wanted.length, J(illus.pages[0].slots[0]), '');
+  chk('…the rest of the page still gets its photos, and a graphic hero is not counted as an empty slot', illus.pages.find(p => p.path === '/services/patios').slots.filter(s => s.pick).length >= 5 && illus.summary.empty === illus.pages.reduce((n, p) => n + p.slots.filter(s => !s.pick && s.slot !== 'hero').length, 0), J(illus.summary), '');
+  chk('…the photos that would have been heroes are offered when a person presses Swap', illus.pages.find(p => p.path === '/services/patios').slots[0].runners.length >= 1, J(illus.pages.find(p => p.path === '/services/patios').slots[0]), '');
+  const byHand = pickImages({ rows: ROWS, photos: PHOTOS, notes: parsed.notes, groups: GROUPS, cards: CARDS, heroChoice: 'illustration', choices: new Map([['service:s1', new Map([['hero', 'p1']])]]) });
+  chk('…and a person can still put a photo in a hero by hand', byHand.pages.find(p => p.path === '/services/patios').slots[0].pick === 'p1' && !byHand.pages.find(p => p.path === '/services/patios').slots[0].graphic, J(byHand.pages.find(p => p.path === '/services/patios').slots[0]), 'p1');
+  const noAnswer = pickImages({ rows: ROWS, photos: PHOTOS, notes: parsed.notes, groups: GROUPS, cards: CARDS });
+  chk('No answer on the form: treated as an illustration, and it says so', noAnswer.pages.every(p => p.slots[0].pick === null && p.slots[0].graphic) && /No hero answer on the onboarding form/.test(noAnswer.pages[0].slots[0].why) && noAnswer.summary.hero_choice === 'none', J(noAnswer.pages[0].slots[0]), '');
+  chk('The client chose a real photo: a page with no hero quality photo falls back to the graphic and is listed to ask the client about', fence.slots[0].graphic === true && pick.summary.hero_choice === 'photo' && pick.summary.heroes_wanted.includes('Garden fencing') && pick.summary.heroes_wanted.includes('Fencing Contractor') && !pick.summary.heroes_wanted.includes('Patio installation') && pick.summary.heroes_photo + pick.summary.heroes_graphic === 9, J(pick.summary), '');
+
+  const bare = pickImages({ rows: ROWS, photos: PHOTOS, notes: null, groups: GROUPS, cards: CARDS, heroChoice: 'photo' });
   const bHero = bare.pages.find(p => p.path === '/services/patios').slots[0];
   chk('No notes: a hero is judged on shape, wide and 1600px or more; the tall photo and the small one are never one', ['p1', 'p2', 'p3', 'p4', 'p5', 'x3'].includes(bHero.pick) && !bare.pages.some(p => ['p6', 'x2', 'x1'].includes(p.slots[0].pick)), bHero.pick, 'a wide photo');
   const heroCount = {}; for (const p of pick.pages) { const hId = p.slots[0].pick; if (hId) heroCount[hId] = (heroCount[hId] || 0) + 1; }
@@ -140,7 +153,7 @@ const CARDS = new Map([['/', ['/paving-contractor', '/fencing-contractor']], ['/
   chk('No notes: nobody can say which Brand photo is the owner, so a person chooses; photos have no description', bare.pages[0].slots.find(s => s.slot === 'owner').pick === null && /Choose the owner photo/.test(bare.pages[0].slots.find(s => s.slot === 'owner').why) && bare.pages[0].slots.find(s => s.slot === 'owner').runners.length === 2 && bare.summary.no_description === bare.summary.usable, J(bare.pages[0].slots.find(s => s.slot === 'owner')), '');
   chk('Folders: the saved label wins, then a folder of the page\'s own name, then a folder whose words are all in the title', folderFor('Patio installation', ['Patios', 'Driveways'], GROUPS) === 'Patios' && folderFor('Driveways', ['Patios', 'Driveways'], null) === 'Driveways' && folderFor('Garden fencing', ['Fencing', 'Patios'], null) === 'Fencing' && folderFor('Tree surgery', ['Fencing', 'Patios'], null) === null, '', '');
 
-  const withChoice = pickImages({ rows: ROWS, photos: PHOTOS, notes: parsed.notes, groups: GROUPS, cards: CARDS, choices: new Map([['service:s1', new Map([['hero', 'p2'], ['content', ''], ['gallery:1', 'zzz']])]]) });
+  const withChoice = pickImages({ rows: ROWS, photos: PHOTOS, notes: parsed.notes, groups: GROUPS, cards: CARDS, heroChoice: 'photo', choices: new Map([['service:s1', new Map([['hero', 'p2'], ['content', ''], ['gallery:1', 'zzz']])]]) });
   const swapped = withChoice.pages.find(p => p.path === '/services/patios');
   chk('A person\'s choice: any usable photo, "leave it empty", and a photo no longer in Drive (the pick stands in, marked stale)', swapped.slots[0].pick === 'p2' && swapped.slots[0].chosen === true && swapped.slots[1].pick === null && /by hand/.test(swapped.slots[1].why) && swapped.slots.find(s => s.slot === 'gallery:1').stale === true && !!swapped.slots.find(s => s.slot === 'gallery:1').pick, J(swapped.slots.slice(0, 3)), '');
   chk('A person\'s choice: the other slots pick around it, so the photo is still on the page only once', swapped.slots.filter(s => s.pick === 'p2').length === 1 && new Set(swapped.slots.map(s => s.pick).filter(Boolean)).size === swapped.slots.filter(s => s.pick).length, J(swapped.slots.map(s => [s.slot, s.pick])), '');
@@ -189,10 +202,11 @@ const CARDS = new Map([['/', ['/paving-contractor', '/fencing-contractor']], ['/
   ];
   const fake = createFakeWp({ pages: [seedHomepage()], innerPages: entries });
   const live = await listen(fake.app);
-  let staging = true, connected = true, downloads = 0, driveDown = false;
+  let staging = true, connected = true, downloads = 0, driveDown = false, heroMode = 'photo';
   const images = createImages({
     pool, pageRows: async () => ROWS, readDrive: id => driveStore.read(id), groupsFor: async () => GROUPS, cardsFor: async () => CARDS,
     getSite: async () => (connected ? { url: live.url, user: 'copybot', appPassword: 'test-app-password-not-real', staging } : null),
+    heroChoiceFor: async () => heroMode,
     getDrive: () => ({ async download() { downloads++; if (driveDown) throw new Error('Drive could not give this photo (500).'); return big; } }),
     createLog: id => createDbStore(pool, id),
   });
