@@ -301,5 +301,39 @@ $P['req_home']    = $ask( '' );
 $T1['is_admin']   = true;
 $P['req_admin']   = $ask( 'services/patios' );
 $T1['is_admin']   = false;
+
+// The routes Copybot makes the pages through
+$pg   = $routes['llp-copybot/v1/pages'];
+$save = function ( $items ) use ( $pg ) { return ( $pg[1]['callback'] )( new WP_REST_Request( array( 'items' => $items ) ) ); };
+$T1['caps']['manage_options'] = false;
+$P['pages_perm'] = array( ( $pg[0]['permission_callback'] )(), ( $pg[1]['permission_callback'] )() );
+$T1['caps']['manage_options'] = true;
+$T1['posts'][41]['title'] = 'Patios';
+$T1['posts'][42]['title'] = 'Patios Romsey';
+$P['list_before'] = ( $pg[0]['callback'] )();
+$P['save1'] = $save( array(
+	array( 'post_type' => 'service', 'title' => 'Patios', 'path' => '/services/patios' ),                          // there already, the same
+	array( 'post_type' => 'location-service', 'title' => 'Patio Laying Romsey', 'path' => '/locations/romsey/patios' ), // there, a new title
+	array( 'post_type' => 'service-category', 'title' => ' <b>Gardener</b> ', 'path' => '/gardener' ),              // new
+	array( 'post_type' => 'location', 'title' => 'Romsey', 'path' => '/services/patios' ),                         // the path is a service's
+	array( 'post_type' => 'page', 'title' => 'About', 'path' => '/about' ),                                        // not an inner page
+	array( 'post_type' => 'service', 'title' => '', 'path' => '/services/turfing' ),                               // no title
+	array( 'post_type' => 'service', 'title' => 'Turfing', 'path' => 'services/Turf Laying' ),                     // a bad path
+	'nonsense',
+) );
+$new_id = $P['save1']['items'][2]['id'];
+$P['new_entry']   = $T1['posts'][ $new_id ] ?? null;
+$P['draft_still'] = $T1['posts'][42]['status'];
+$P['save_again']  = $save( array( array( 'post_type' => 'service-category', 'title' => 'Gardener', 'path' => '/gardener' ) ) );
+// The page map moved a page: the same entry, by its id, at a new path
+$P['save_move']   = $save( array( array( 'post_type' => 'service', 'title' => 'Patios', 'path' => '/services/patio-laying', 'id' => 41 ) ) );
+$P['moved_entry'] = $T1['posts'][41];
+$P['save_move_taken'] = $save( array( array( 'post_type' => 'service', 'title' => 'Patios', 'path' => '/gardener', 'id' => 41 ) ) );
+$P['save_gone']   = $save( array( array( 'post_type' => 'service', 'title' => 'Decking', 'path' => '/services/decking', 'id' => 44 ) ) );
+$T1['insert_fails'] = true;
+$P['save_fail']   = $save( array( array( 'post_type' => 'service', 'title' => 'Turfing', 'path' => '/services/turfing' ) ) );
+$T1['insert_fails'] = false;
+$P['save_bad']    = ( $pg[1]['callback'] )( new WP_REST_Request( array( 'nope' => 1 ) ) );
+$P['list_after']  = ( $pg[0]['callback'] )();
 $out['page_types'] = $P;
 echo json_encode( $out, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );

@@ -570,7 +570,7 @@ Unlike the homepage, these records hold the literal word `HIDDEN`. There is no p
 
 ## Inner pages: post types and URLs
 
-Brandon, Ray and Given agreed on 12 and 13 Nov 2026 that Copybot generates these field groups, as it does the homepage's. They are in plugin 0.6.0. The master copy is `wp/acf-schema.js` (`INNER_GROUPS`) and `wp/post-types.js`.
+Brandon, Ray and Given agreed on 12 and 13 Nov 2026 that Copybot generates these field groups, as it does the homepage's. They are in the plugin since 0.6.0. The master copy is `wp/acf-schema.js` (`INNER_GROUPS`) and `wp/post-types.js`.
 
 **Post types.** Each kind of page is an entry in its own post type, so its Elementor single template applies itself.
 
@@ -588,9 +588,11 @@ Brandon, Ray and Given agreed on 12 and 13 Nov 2026 that Copybot generates these
 
 **URLs.** The page map decides every URL: `/gardener`, `/services/patios`, `/locations/romsey`, `/locations/romsey/patios`. WordPress can't build the nested town paths across post types from its settings, so the plugin does it. Each entry holds its path in the post meta `_llp_path`. The plugin makes that the entry's permalink and answers a request for the path with the entry. No URL plugin is needed and the post types' own URL bases don't matter. An entry with no path keeps its ordinary URL.
 
-**Not built yet:** creating the entries from the page map, and pushing the copy. Until then `_llp_path` is only set through the REST API.
+**Making the pages (plugin 0.7.0, 13 Nov 2026).** On the Pages tab, Pages on the site: Check the site lists what is missing, and Create makes every category, service and location page in the build as a draft, in its post type, at its page map URL (`wp/pages.js`; the plugin routes `GET` and `POST /llp-copybot/v1/pages`). A page is never made twice, a page the page map moved keeps its entry, and nothing is published, deleted or changed beyond its title and URL. Phase 2 towns are made when they come into the build. Staging sites only.
 
-**Not proven on a real site.** The plugin's PHP is tested under php-wasm against stand-ins for WordPress. The first install of 0.6.0 on staging should check: the 34 groups appear in ACF, a new Service entry shows the fields, and an entry given a path opens at that path.
+**Not built yet:** pushing the copy into those pages.
+
+**Not proven on a real site.** The plugin's PHP is tested under php-wasm against stand-ins for WordPress. The first install of 0.7.0 on staging should check: the 34 groups appear in ACF, a new Service entry shows the fields, Create on the Pages tab makes the drafts, and one of them opens at its page map URL when previewed.
 
 ## The inner pages' fields
 
