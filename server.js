@@ -4050,6 +4050,22 @@ const wpPages = (pool && pageMapApi) ? require('./wp/pages').createPagesService(
   pageRows: id => pageMapApi.store.saved(id),
   createLog: id => require('./wp/db-store').createDbStore(pool, id),
 }) : null;
+// Website images (images/, 13 Nov): a photo picked for every slot on every page, a person's swap and approval, then
+// each approved page's pictures shrunk, uploaded and placed on the staging site. Staging only, behind a confirm.
+if (pool && pageMapApi) {
+  let imagesDrive = null;
+  require('./images/routes').mountImagesApi(app, {
+    pool,
+    pageRows: id => pageMapApi.store.saved(id),
+    latestRecords: (id, type) => v20Store.pages(id, type),
+    getSite: async id => {
+      const row = await require('./wp/db-store').getConnectionRow(pool, id);
+      if (!row || !row.app_password_enc) return null;
+      return { url: row.url, user: row.wp_user, appPassword: require('./wp/secrets').decrypt(row.app_password_enc, process.env.COPYBOT_SECRET_KEY), staging: !!row.staging, homepageSlug: row.homepage_slug || undefined };
+    },
+    getDrive: () => (imagesDrive = imagesDrive || require('./drive/client').createDrive()),
+  });
+}
 // Which inner pages are ready to have their copy pushed (wp/copy-plan.js): reads only. The screen pushes each ready
 // page through the page view's own push (wpService.push), so its checks all still run.
 const wpCopyPlan = (pool && pageMapApi) ? require('./wp/copy-plan').createCopyPlanService({

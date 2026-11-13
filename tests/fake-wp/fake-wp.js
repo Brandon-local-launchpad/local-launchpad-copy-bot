@@ -135,6 +135,27 @@ function createFakeWp({ user = 'copybot', appPassword = 'test-app-password-not-r
     if (req.body.status) p.status = req.body.status;
     res.json(view(p));
   });
+  // The media library (images/service.js): an upload is the file's bytes with its name in the header; the alt
+  // text and title are set after. state.media: Map id → { id, file, type, bytes, alt_text, title }
+  state.media = new Map(); state.nextMediaId = 900;
+  app.post('/wp-json/wp/v2/media', express.raw({ type: () => true, limit: '30mb' }), (req, res) => {
+    if (state.failMedia) return res.status(500).json({ code: 'rest_upload_unknown_error', message: 'Sorry, you are not allowed to upload this file type.' });
+    const file = (String(req.headers['content-disposition'] || '').match(/filename="([^"]+)"/) || [])[1] || '';
+    if (!file || !Buffer.isBuffer(req.body) || !req.body.length) return res.status(400).json({ code: 'rest_upload_no_data', message: 'No data supplied.' });
+    state.writes++;
+    const m = { id: state.nextMediaId++, file, type: req.headers['content-type'], bytes: req.body.length, alt_text: '', title: '' };
+    state.media.set(m.id, m);
+    res.status(201).json({ id: m.id, source_url: `http://fake.test/wp-content/uploads/${file}` });
+  });
+  app.get('/wp-json/wp/v2/media/:id', (req, res) => { const m = state.media.get(Number(req.params.id)); if (!m) return res.status(404).json({ code: 'rest_post_invalid_id', message: 'Invalid post ID.' }); res.json({ id: m.id, alt_text: m.alt_text }); });
+  app.post('/wp-json/wp/v2/media/:id', (req, res) => {
+    const m = state.media.get(Number(req.params.id));
+    if (!m) return res.status(404).json({ code: 'rest_post_invalid_id', message: 'Invalid post ID.' });
+    state.writes++;
+    if (req.body.alt_text !== undefined) m.alt_text = String(req.body.alt_text);
+    if (req.body.title !== undefined) m.title = String(req.body.title);
+    res.json({ id: m.id, alt_text: m.alt_text });
+  });
   // An inner page through its post type's REST base, as ACF gives it: every field of its set (null when unset)
   for (const type of POST_TYPES) {
     const names = noFieldsOn.includes(type) ? [] : INNER_FIELDS[type];

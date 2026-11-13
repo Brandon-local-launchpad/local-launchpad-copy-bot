@@ -29,6 +29,11 @@ async function ensureDriveTables(pool) {
       PRIMARY KEY (client_id, file_id)
     )`);
   await pool.query(`
+    CREATE TABLE IF NOT EXISTS drive_photo_notes (
+      client_id   UUID PRIMARY KEY REFERENCES clients(id) ON DELETE CASCADE,
+      notes       JSONB,
+      read_at     TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
     CREATE TABLE IF NOT EXISTS drive_photo_reads (
       client_id   UUID PRIMARY KEY REFERENCES clients(id) ON DELETE CASCADE,
       folder_id   TEXT,
@@ -61,6 +66,9 @@ function createDriveStore(pool) {
          VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
         [clientId, f.file_id, f.kind, f.label, f.folder_id, f.name, f.mime_type, f.size_bytes, f.width, f.height, f.md5, f.modified_at, f.web_link, f.problem]);
     }
+    // The sort skill's photo notes, as read with the folders (drive/notes.js); none clears the last
+    await pool.query(`DELETE FROM drive_photo_notes WHERE client_id=$1`, [clientId]);
+    if (r.photo_notes) await pool.query(`INSERT INTO drive_photo_notes (client_id, notes) VALUES ($1, $2)`, [clientId, json(r.photo_notes)]);
     await pool.query(`DELETE FROM drive_photo_reads WHERE client_id=$1`, [clientId]);
     await pool.query(
       `INSERT INTO drive_photo_reads (client_id, folder_id, folder_name, posts_found, drip_found, folders, problems, notes, last_try_at, last_ok_at, error)
@@ -82,7 +90,9 @@ function createDriveStore(pool) {
     if (!rows.length) return null;
     const { rows: photos } = await pool.query(`SELECT file_id, kind, label, folder_id, name, mime_type, size_bytes, width, height, md5, modified_at, web_link, problem FROM drive_photos WHERE client_id=$1 ORDER BY label, name`, [clientId]);
     const R = rows[0];
+    const { rows: noteRows } = await pool.query(`SELECT notes FROM drive_photo_notes WHERE client_id=$1`, [clientId]);
     return {
+      photo_notes: noteRows.length ? parse(noteRows[0].notes) : null,
       folder_id: R.folder_id, folder_name: R.folder_name, posts_found: !!R.posts_found, drip_found: !!R.drip_found,
       folders: parse(R.folders), problems: parse(R.problems), notes: parse(R.notes), last_try_at: R.last_try_at, last_ok_at: R.last_ok_at, error: R.error,
       files: photos.map(p => ({ ...p, size_bytes: Number(p.size_bytes) || 0 })),

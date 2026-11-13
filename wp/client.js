@@ -35,6 +35,20 @@ async function wpPost(site, path, body) {
   return JSON.parse(text);
 }
 
+// A file into the site's media library (images/service.js): the bytes as the body, the name in the header.
+// The answer is the new attachment, { id, source_url }.
+async function wpUpload(site, fileName, bytes, type) {
+  assertSafeUrl(site.url);
+  const r = await fetch(new URL('/wp-json/wp/v2/media', site.url), {
+    method: 'POST',
+    headers: { Authorization: authHeader(site), Accept: 'application/json', 'Content-Type': type, 'Content-Disposition': `attachment; filename="${String(fileName).replace(/[^a-zA-Z0-9._-]+/g, '-')}"` },
+    body: bytes,
+  });
+  const text = await r.text();
+  if (!r.ok) throw new Error(`POST /wp/v2/media → ${r.status}: ${text.slice(0, 200)}`);
+  return JSON.parse(text);
+}
+
 // Every page read asks for these fields only (3 Nov 2026, Brandon): a response that includes
 // `content` comes back with `acf: []` on an Elementor front page (rendering the content
 // moves ACF off the page), so the fields the dry run, the attachment check, the diff and the
@@ -78,4 +92,4 @@ async function findInnerPage(site, record) {
   return hit ? readPage(site, hit.id, hit.post_type) : null;
 }
 
-module.exports = { findHomepage, findPageBySlug, findInnerPage, readPage, wpGet, wpPost, authHeader, PAGE_FIELDS };
+module.exports = { findHomepage, findPageBySlug, findInnerPage, readPage, wpGet, wpPost, wpUpload, authHeader, PAGE_FIELDS };
