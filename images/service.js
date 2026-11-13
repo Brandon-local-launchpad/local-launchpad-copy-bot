@@ -13,7 +13,8 @@
 // site and size (wp_media), and used again after that.
 
 const { pickImages } = require('./pick');
-const { shrink, fileName, fieldsFor, notPlaced, widthFor } = require('./place');
+const { shrink, fileName, fieldsFor, notPlaced, widthFor, cleanCrop, cropKey } = require('./place');
+const { ensureUploadTables, createUploads, isUpload } = require('./uploads');
 
 async function ensureImageTables(pool) {
   await pool.query(`
@@ -44,12 +45,23 @@ async function ensureImageTables(pool) {
       created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       UNIQUE (client_id, site, file_id, width)
     )`);
+  // A crop a person drew for one slot: the box as fractions of the photo (images/place.js cleanCrop)
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS page_image_crops (
+      client_id   UUID NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+      identity    TEXT NOT NULL,
+      slot        TEXT NOT NULL,
+      crop        TEXT NOT NULL,
+      updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE (client_id, identity, slot)
+    )`);
+  await ensureUploadTables(pool);
 }
 
 const parse = v => (typeof v === 'string' ? JSON.parse(v) : v);
 const bad = (msg, status = 400) => Object.assign(new Error(msg), { status });
 // The slots that hold a photo, as an approval keeps them
-const filled = page => page.slots.filter(s => s.pick).map(s => ({ slot: s.slot, file_id: s.pick }));
+const filled = page => page.slots.filter(s => s.pick).map(s => ({ slot: s.slot, file_id: s.pick, ...(s.crop ? { crop: cropKey(s.crop) } : {}) }));
 const sameSlots = (a, b) => JSON.stringify([...a].sort((x, y) => x.slot.localeCompare(y.slot))) === JSON.stringify([...b].sort((x, y) => x.slot.localeCompare(y.slot)));
 
 // pool; pageRows(clientId) → the saved page map rows; readDrive(clientId) → the last Drive read
@@ -58,9 +70,14 @@ const sameSlots = (a, b) => JSON.stringify([...a].sort((x, y) => x.slot.localeCo
 // null; getDrive() → the Drive client; createLog(clientId) → { appendLog }; wp: wp/client.js (for tests)
 // heroChoiceFor(clientId) → 'photo' | 'illustration' | 'none': the client's onboarding answer (images/pick.js heroChoiceOf)
 function createImages({ pool, pageRows, readDrive, groupsFor, cardsFor, getSite, getDrive, createLog, heroChoiceFor = async () => 'none', wp = require('../wp/client') }) {
+  const uploads = createUploads(pool);
+  // A photo's bytes: one a person added, or one in Drive
+  const bytesOf = (clientId, fileId) => (isUpload(fileId) ? uploads.bytes(clientId, fileId) : getDrive().download(fileId));
+
   async function state(clientId) {
-    const [rows, read, groups, cards, { rows: ch }, { rows: ap }] = await Promise.all([
+    const [rows, read, groups, cards, added, { rows: cr }, { rows: ch }, { rows: ap }] = await Promise.all([
       pageRows(clientId), readDrive(clientId), groupsFor(clientId).catch(() => null), cardsFor(clientId).catch(() => new Map()),
+      uploads.list(clientId), pool.query(`SELECT identity, slot, crop FROM page_image_crops WHERE client_id = $1`, [clientId]),
       pool.query(`SELECT identity, slot, file_id FROM page_image_choices WHERE client_id = $1`, [clientId]),
       pool.query(`SELECT identity, slots, approved_by, approved_at FROM page_image_approvals WHERE client_id = $1`, [clientId]),
     ]);
@@ -68,15 +85,19 @@ function createImages({ pool, pageRows, readDrive, groupsFor, cardsFor, getSite,
     for (const c of ch) { if (!choices.has(c.identity)) choices.set(c.identity, new Map()); choices.get(c.identity).set(c.slot, c.file_id); }
     const ok = !!(read && read.last_ok_at);
     // A person's choices go into the pick, so the other slots on the page choose around them
-    const picked = pickImages({ rows, photos: ok ? read.files : [], notes: ok ? read.photo_notes : null, groups, cards, choices, heroChoice: await heroChoiceFor(clientId).catch(() => 'none') });
+    // Photos a person added by hand are in with the Drive photos, but code never picks one: they go where they are put
+    const picked = pickImages({ rows, photos: [...(ok ? read.files : []), ...added], notes: ok ? read.photo_notes : null, groups, cards, choices, heroChoice: await heroChoiceFor(clientId).catch(() => 'none') });
     const drive = { read: ok, error: read ? read.error : null, last_ok_at: read ? read.last_ok_at : null, notes: !!(ok && read.photo_notes) };
     const approvals = new Map(ap.map(a => [a.identity, { slots: parse(a.slots) || [], by: a.approved_by, at: a.approved_at }]));
-    const pages = picked.pages.map(page => {
+    const crops = new Map(cr.map(c => [`${c.identity}|${c.slot}`, cleanCrop(parse(c.crop))]));
+    const pages = picked.pages.map(p => {
+      // A crop belongs to the photo in the slot: it is kept only while that slot holds a photo
+      const page = { ...p, slots: p.slots.map(sl => { const c = sl.pick && crops.get(`${p.identity}|${sl.slot}`); return c ? { ...sl, crop: c } : sl; }) };
       const a = approvals.get(page.identity);
       const current = !!a && sameSlots(a.slots, filled(page));
       return { ...page, approved: current, approved_at: current ? a.at : null, approved_by: current ? a.by : null, changed_since_approval: !!a && !current };
     });
-    return { pages, photos: picked.photos, summary: { ...picked.summary, pages: pages.length, approved: pages.filter(p => p.approved).length, with_photos: pages.filter(p => filled(p).length).length }, drive };
+    return { pages, photos: picked.photos, summary: { ...picked.summary, pages: pages.length, approved: pages.filter(p => p.approved).length, with_photos: pages.filter(p => filled(p).length).length, added: added.length, stock: added.filter(u => u.source === 'stock').length }, drive };
   }
 
   async function view(clientId) {
@@ -92,15 +113,65 @@ function createImages({ pool, pageRows, readDrive, groupsFor, cardsFor, getSite,
     if (!page.slots.some(x => x.slot === slot)) throw bad('That page has no such slot.');
     if (fileId !== '') {
       const photo = s.photos[fileId];
-      if (!photo) throw bad('That photo is not in the client\'s Drive folders. Read Drive again.');
+      if (!photo) throw bad('That photo is not in the client\'s Drive folders or added photos. Read Drive again.');
       if (photo.unusable) throw bad(`That photo can't be used: ${photo.unusable}.`);
       // A photo the code put in another slot moves here and that slot picks again; one a person put there stays
       if (page.slots.some(x => x.slot !== slot && x.chosen && x.pick === fileId)) throw bad('That photo is already in another slot on this page that was chosen by hand.');
     }
     const u = await pool.query(`UPDATE page_image_choices SET file_id = $4, updated_at = NOW() WHERE client_id = $1 AND identity = $2 AND slot = $3`, [clientId, identity, slot, fileId]);
     if (!u.rowCount) await pool.query(`INSERT INTO page_image_choices (client_id, identity, slot, file_id) VALUES ($1, $2, $3, $4)`, [clientId, identity, slot, fileId]);
+    // A crop was drawn on the photo that was there: it goes with it
+    await pool.query(`DELETE FROM page_image_crops WHERE client_id = $1 AND identity = $2 AND slot = $3`, [clientId, identity, slot]);
     await pool.query(`DELETE FROM page_image_approvals WHERE client_id = $1 AND identity = $2`, [clientId, identity]);
     return view(clientId);
+  }
+
+  // A photo dropped in by hand (a stock photo, or one the client sent late): shrunk and kept, and put in the slot
+  // it was dropped on when one is named
+  async function upload(clientId, { name, bytes, alt = '', source = 'stock', by = '', identity = '', slot = '' } = {}) {
+    if (identity) {
+      const page = (await state(clientId)).pages.find(p => p.identity === identity);
+      if (!page) throw bad('That page is not in the build.');
+      if (!page.slots.some(x => x.slot === slot)) throw bad('That page has no such slot.');
+    }
+    const added = await uploads.add(clientId, { name, bytes, alt, source, by });
+    const v = identity ? await choose(clientId, { identity, slot, file_id: added.id }) : await view(clientId);
+    return { ...v, added };
+  }
+
+  async function setAlt(clientId, { file_id: fileId, alt = '' } = {}) {
+    if (!isUpload(fileId)) throw bad("Only a photo added by hand has alt text to type. A Drive photo's comes from the photo sort's notes.");
+    await uploads.setAlt(clientId, fileId, alt);
+    return view(clientId);
+  }
+
+  // crop: { x, y, w, h } as fractions of the photo, or null to clear it
+  async function crop(clientId, { identity, slot, crop: box = null } = {}) {
+    const page = (await state(clientId)).pages.find(p => p.identity === identity);
+    if (!page) throw bad('That page is not in the build.');
+    const sl = page.slots.find(x => x.slot === slot);
+    if (!sl) throw bad('That page has no such slot.');
+    if (!sl.pick) throw bad('There is no photo in that slot to crop.');
+    const clean = cleanCrop(box);
+    if (box && !clean) throw bad('That crop is too small. Draw a bigger box.');
+    await pool.query(`DELETE FROM page_image_crops WHERE client_id = $1 AND identity = $2 AND slot = $3`, [clientId, identity, slot]);
+    if (clean) await pool.query(`INSERT INTO page_image_crops (client_id, identity, slot, crop) VALUES ($1, $2, $3, $4)`, [clientId, identity, slot, JSON.stringify(clean)]);
+    await pool.query(`DELETE FROM page_image_approvals WHERE client_id = $1 AND identity = $2`, [clientId, identity]);
+    return view(clientId);
+  }
+
+  // A photo for the screen: one added by hand, at full size or as a thumbnail; and a slot as it will look on the
+  // site, with its crop
+  async function uploadImage(clientId, fileId, { thumb = false } = {}) {
+    const bytes = await uploads.bytes(clientId, fileId);
+    if (!thumb) return { bytes, type: 'image/jpeg' };
+    return { bytes: (await shrink(bytes, 'card', null, 480)).bytes, type: 'image/webp' };
+  }
+  async function preview(clientId, { identity, slot, width = 480 } = {}) {
+    const page = (await state(clientId)).pages.find(p => p.identity === identity);
+    const sl = page && page.slots.find(x => x.slot === slot);
+    if (!sl || !sl.pick) throw bad('There is no photo in that slot.', 404);
+    return { bytes: (await shrink(await bytesOf(clientId, sl.pick), slot, sl.crop || null, Math.min(1600, Math.max(120, Number(width) || 480)))).bytes, type: 'image/webp' };
   }
 
   // identity: one page, or '*' for every page that has at least one photo
@@ -119,15 +190,17 @@ function createImages({ pool, pageRows, readDrive, groupsFor, cardsFor, getSite,
   }
 
   // The photo on the site at this size: the one uploaded before when the site still has it, else a new upload
-  async function mediaFor(clientId, site, fileId, slot, photo, counts) {
+  async function mediaFor(clientId, site, photoId, slot, photo, counts, box = null) {
     const width = widthFor(slot);
+    // A cropped photo is its own upload: the key carries the box
+    const fileId = box ? `${photoId}#${cropKey(box)}` : photoId;
     const { rows } = await pool.query(`SELECT media_id FROM wp_media WHERE client_id = $1 AND site = $2 AND file_id = $3 AND width = $4`, [clientId, site.url, fileId, width]);
     if (rows.length) {
       const there = await wp.wpGet(site, `/wp/v2/media/${rows[0].media_id}?_fields=id`).then(() => true).catch(e => { if (/→ 404/.test(e.message)) return false; throw e; });
       if (there) { counts.reused++; return Number(rows[0].media_id); }
       await pool.query(`DELETE FROM wp_media WHERE client_id = $1 AND site = $2 AND file_id = $3 AND width = $4`, [clientId, site.url, fileId, width]);
     }
-    const small = await shrink(await getDrive().download(fileId), slot);
+    const small = await shrink(await bytesOf(clientId, photoId), slot, box);
     const made = await wp.wpUpload(site, fileName(photo, slot), small.bytes, 'image/webp');
     await wp.wpPost(site, `/wp/v2/media/${made.id}`, { alt_text: photo.shows || '', title: photo.shows || photo.name || '' });
     await pool.query(`INSERT INTO wp_media (client_id, site, file_id, width, media_id) VALUES ($1, $2, $3, $4, $5)`, [clientId, site.url, fileId, width, made.id]);
@@ -153,9 +226,9 @@ function createImages({ pool, pageRows, readDrive, groupsFor, cardsFor, getSite,
     const counts = { uploaded: 0, reused: 0, bytes: 0 };
     try {
       const placed = [];
-      for (const slot of filled(page)) {
-        const photo = s.photos[slot.file_id];
-        placed.push({ slot: slot.slot, media_id: await mediaFor(clientId, site, slot.file_id, slot.slot, photo, counts), alt: photo.shows || '' });
+      for (const sl of page.slots.filter(x => x.pick)) {
+        const photo = s.photos[sl.pick];
+        placed.push({ slot: sl.slot, media_id: await mediaFor(clientId, site, sl.pick, sl.slot, photo, counts, sl.crop || null), alt: photo.shows || '' });
       }
       const current = entry.acf && !Array.isArray(entry.acf) ? entry.acf : {};
       const { acf, skipped } = fieldsFor(page.type, placed, current);
@@ -173,7 +246,7 @@ function createImages({ pool, pageRows, readDrive, groupsFor, cardsFor, getSite,
     }
   }
 
-  return { view, choose, approve, placePage };
+  return { view, choose, approve, placePage, upload, setAlt, crop, uploadImage, preview };
 }
 
 module.exports = { ensureImageTables, createImages };

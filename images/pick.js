@@ -42,7 +42,9 @@ function describe(row, note) {
   const heroShape = wide === true && row.width >= HERO_WIDTH;
   return {
     file_id: row.file_id, name: row.name, kind: row.kind, label: row.label, width: row.width || null, height: row.height || null, web_link: row.web_link || '',
-    noted: !!note, type, score: note && note.score != null ? note.score : null, shows: note ? note.shows : '', staff_face: !!(note && note.staff_face),
+    // A photo a person added by hand (images/uploads.js) carries its own alt text and where it came from
+    noted: !!note, type, score: note && note.score != null ? note.score : null, shows: note ? note.shows : (row.kind === 'upload' ? row.alt || '' : ''), staff_face: !!(note && note.staff_face),
+    source: row.kind === 'upload' ? row.source || 'stock' : '',
     // The notes decide when there are any, but never past the shape: a tall or small photo can't fill a banner
     hero: note ? note.hero && wide !== false && (!row.width || row.width >= 1200) : heroShape,
     service: '', note_service: note ? note.service : '', unusable,
@@ -178,7 +180,7 @@ function pickImages({ rows = [], photos = [], notes = null, groups = null, cards
     }
     out.push({ identity, path: r.slug, title: r.title, type: r.type, pool: pool.length, slots });
   }
-  const photoMap = Object.fromEntries(all.map(p => [p.file_id, { name: p.name, shows: p.shows, score: p.score, hero: p.hero, type: p.type, service: p.service || (p.kind === 'post' ? p.label : ''), kind: p.kind, width: p.width, height: p.height, web_link: p.web_link, noted: p.noted, unusable: p.unusable }]));
+  const photoMap = Object.fromEntries(all.map(p => [p.file_id, { name: p.name, shows: p.shows, score: p.score, hero: p.hero, type: p.type, service: p.service || (p.kind === 'post' ? p.label : ''), kind: p.kind, source: p.source, width: p.width, height: p.height, web_link: p.web_link, noted: p.noted, unusable: p.unusable }]));
   const noFolder = services.filter(s => !folderOf.get(s.info && s.info.service_id)).map(s => s.title);
   return {
     pages: out, photos: photoMap,

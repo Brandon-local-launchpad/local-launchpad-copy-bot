@@ -15,10 +15,35 @@ const QUALITY = 80;
 const kindOf = slot => String(slot).split(':')[0];
 const widthFor = slot => WIDTHS[kindOf(slot)] || 1200;
 
-// bytes → { bytes, width, height } as WebP at the slot's width, turned the right way up
-async function shrink(bytes, slot) {
+// A crop a person drew on the photo for one slot: the box as fractions of the photo, { x, y, w, h } from 0 to 1.
+// Null when it is not a usable box. A box of nearly the whole photo is no crop.
+function cleanCrop(c) {
+  if (!c || typeof c !== 'object') return null;
+  const n = k => Number(c[k]);
+  const x = Math.min(Math.max(n('x'), 0), 1), y = Math.min(Math.max(n('y'), 0), 1);
+  const w = Math.min(n('w'), 1 - x), h = Math.min(n('h'), 1 - y);
+  if (![x, y, w, h].every(Number.isFinite) || w < 0.05 || h < 0.05) return null;
+  if (w > 0.995 && h > 0.995) return null;
+  const r = v => Math.round(v * 10000) / 10000;
+  return { x: r(x), y: r(y), w: r(w), h: r(h) };
+}
+// How a crop is written into a key (the upload kept for it, the approval): "" for none
+const cropKey = c => (c ? [c.x, c.y, c.w, c.h].join(',') : '');
+
+// bytes → { bytes, width, height } as WebP at the slot's width (or `width`), turned the right way up, and cut to
+// the crop first when there is one
+async function shrink(bytes, slot, crop = null, width = null) {
   const sharp = require('sharp');
-  const out = await sharp(bytes, { failOn: 'none' }).rotate().resize({ width: widthFor(slot), withoutEnlargement: true }).webp({ quality: QUALITY }).toBuffer({ resolveWithObject: true });
+  let src = bytes;
+  const c = cleanCrop(crop);
+  if (c) {
+    // Turned first, so the box is on the photo as a person saw it
+    const up = await sharp(bytes, { failOn: 'none' }).rotate().toBuffer({ resolveWithObject: true });
+    const W = up.info.width, H = up.info.height;
+    const left = Math.min(Math.round(c.x * W), W - 1), top = Math.min(Math.round(c.y * H), H - 1);
+    src = await sharp(up.data).extract({ left, top, width: Math.max(1, Math.min(Math.round(c.w * W), W - left)), height: Math.max(1, Math.min(Math.round(c.h * H), H - top)) }).toBuffer();
+  }
+  const out = await sharp(src, { failOn: 'none' }).rotate().resize({ width: width || widthFor(slot), withoutEnlargement: true }).webp({ quality: QUALITY }).toBuffer({ resolveWithObject: true });
   return { bytes: out.data, width: out.info.width, height: out.info.height };
 }
 
@@ -82,4 +107,4 @@ function notPlaced(acf, now = {}) {
   return out;
 }
 
-module.exports = { WIDTHS, QUALITY, widthFor, kindOf, shrink, fileName, fieldsFor, notPlaced, idOf };
+module.exports = { WIDTHS, QUALITY, widthFor, kindOf, cleanCrop, cropKey, shrink, fileName, fieldsFor, notPlaced, idOf };

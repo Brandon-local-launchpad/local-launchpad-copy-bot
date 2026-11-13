@@ -7,7 +7,10 @@ const TYPE_LABEL = { homepage: 'Homepage', category: 'Category', service: 'Servi
 
 export async function render(el, ctx) {
   const { clientId } = ctx;
-  const thumb = id => `/api/clients/${clientId}/gbp-posts/photo/${encodeURIComponent(id)}?size=thumb`;
+  const isAdded = id => String(id).startsWith('up:');
+  const thumb = id => (isAdded(id) ? `/api/clients/${clientId}/images/photo/${encodeURIComponent(id)}?size=thumb` : `/api/clients/${clientId}/gbp-posts/photo/${encodeURIComponent(id)}?size=thumb`);
+  // A cropped slot is shown as it will look on the site
+  const slotThumb = (page, s) => (s.crop ? `/api/clients/${clientId}/images/preview?identity=${encodeURIComponent(page.identity)}&slot=${encodeURIComponent(s.slot)}&width=320&v=${encodeURIComponent([s.pick, s.crop.x, s.crop.y, s.crop.w, s.crop.h].join('_'))}` : thumb(s.pick));
   let S = null, filter = 'all', note = '', failedPlaces = [];
 
   const photoTip = p => [p.shows || p.name, p.score != null ? `Score ${p.score}` : 'No notes', p.width ? `${p.width} x ${p.height}` : ''].filter(Boolean).join(' · ');
@@ -15,9 +18,10 @@ export async function render(el, ctx) {
     const p = s.pick ? S.photos[s.pick] : null;
     return `<div class="img-slot" style="width:150px">
       <div class="small muted" style="margin-bottom:4px">${h(s.label)}</div>
-      ${p ? `<img src="${attr(thumb(s.pick))}" alt="${attr(p.shows || p.name)}" title="${attr(photoTip(p))} · click to see it bigger" loading="lazy" data-view="${attr(s.pick)}" style="width:150px;height:100px;object-fit:cover;border-radius:6px;display:block;cursor:zoom-in">`
+      ${p ? `<img src="${attr(slotThumb(page, s))}" alt="${attr(p.shows || p.name)}" title="${attr(photoTip(p))} · click to see it bigger" loading="lazy" data-view="${attr(s.pick)}" style="width:150px;height:100px;object-fit:${s.crop ? 'contain;background:#f1f1f1' : 'cover'};border-radius:6px;display:block;cursor:zoom-in">`
           : `<div class="small muted" title="${attr(s.why)}" style="width:150px;height:100px;border:1px dashed #c9c9c9;border-radius:6px;display:flex;align-items:center;justify-content:center;text-align:center;padding:6px;box-sizing:border-box">${s.graphic ? 'Site graphic' : 'Empty'}</div>`}
-      <div style="margin-top:4px"><button class="btn btn-ghost btn-xs" data-swap="${attr(page.identity)}" data-slot="${attr(s.slot)}">${p ? 'Swap' : 'Choose'}</button>${s.chosen ? ' <span class="small muted">by hand</span>' : ''}</div>
+      <div style="margin-top:4px"><button class="btn btn-ghost btn-xs" data-swap="${attr(page.identity)}" data-slot="${attr(s.slot)}">${p ? 'Swap' : 'Choose'}</button>${p ? ` <button class="btn btn-ghost btn-xs" data-crop="${attr(page.identity)}" data-slot="${attr(s.slot)}">${s.crop ? 'Cropped' : 'Crop'}</button>` : ''}</div>
+      ${p && (p.source === 'stock' || s.chosen) ? `<div class="small muted">${p.source === 'stock' ? 'stock photo' : p.source === 'client' ? 'added by hand' : 'chosen by hand'}</div>` : ''}
     </div>`;
   };
   const pageHtml = page => {
@@ -38,15 +42,15 @@ export async function render(el, ctx) {
   const draw = () => {
     if (!S) return;
     const m = S.summary, d = S.drive;
-    if (!d.read) {
-      el.innerHTML = card({ title: 'Images', sub: 'A photo for every slot on every page.', body: empty({ title: 'The Drive photo folder has not been read', text: d.error ? d.error : 'Set the client\'s Drive photo folder and press Read Drive on the GBP Posts & Photos tab. Then come back here.' }) });
+    if (!d.read && !S.pages.length) {
+      el.innerHTML = card({ title: 'Images', sub: 'A photo for every slot on every page.', body: empty({ title: 'Nothing to show yet', text: 'This client has no pages in the build yet. Generate the page map first.' }) });
       return;
     }
     const shown = S.pages.filter(p => filter === 'all' || (filter === 'empty' ? p.slots.some(s => !s.pick && !s.graphic) : filter === 'todo' ? !p.approved && p.slots.some(s => s.pick) : p.approved));
     const toPlace = S.pages.filter(p => p.approved);
     const canApproveAll = S.pages.some(p => !p.approved && p.slots.some(s => s.pick));
     const lines = [
-      `${plural(m.usable, 'usable photo')} of ${m.photos} in Drive. ${d.notes ? `${m.with_notes} have notes from the photo sort.` : 'No photo notes file: photos are picked on size and shape only, and have no alt text. Run the photo sort again to get one.'}`,
+      !d.read ? `The Drive photo folder has not been read${d.error ? ` (${d.error})` : ''}: set it and press Read Drive on the GBP Posts & Photos tab. Until then only photos you add by hand can be used.` : `${plural(m.usable, 'usable photo')} of ${m.photos}${m.added ? `, ${m.added} of them added by hand (${m.stock} stock)` : ' in Drive'}. ${d.notes ? `${m.with_notes} have notes from the photo sort.` : 'No photo notes file: photos are picked on size and shape only, and have no alt text. Run the photo sort again to get one.'}`,
       `${m.filled} slots filled, ${m.empty} empty, across ${plural(m.pages, 'page')}. ${m.approved} approved.`,
       m.hero_choice === 'photo' ? `Heroes: the client chose a real photo of their work. ${plural(m.heroes_photo, 'page')} ${m.heroes_photo === 1 ? 'has' : 'have'} one; ${m.heroes_graphic} show the site's graphic because there is no hero quality photo.`
         : m.hero_choice === 'illustration' ? 'Heroes: the client chose an illustration, so every page shows the site\'s graphic. A photo only goes in a hero if you choose one.'
@@ -56,7 +60,7 @@ export async function render(el, ctx) {
       m.services_with_no_folder.length ? `No photo folder for: ${m.services_with_no_folder.join(', ')}.` : '',
     ].filter(Boolean);
     const tabs = [['all', `All (${S.pages.length})`], ['todo', 'To approve'], ['empty', 'With an empty slot'], ['approved', `Approved (${m.approved})`]];
-    el.innerHTML = card({ title: 'Images', sub: `Read from Drive ${h(fmtDate(d.last_ok_at, true))}. Code picks; you swap and approve; then the approved pages go to the site.`, body: `
+    el.innerHTML = card({ title: 'Images', sub: `${d.read ? `Read from Drive ${h(fmtDate(d.last_ok_at, true))}. ` : ''}Code picks; you swap, add and crop, then approve; then the approved pages go to the site.`, body: `
       ${lines.map(l => `<p class="small" style="margin:0 0 4px">${h(l)}</p>`).join('')}
       <div class="btn-row" style="margin-top:10px">
         ${canApproveAll ? '<button class="btn btn-ghost btn-sm" data-act="approve-all">Approve every page</button>' : ''}
@@ -75,18 +79,77 @@ export async function render(el, ctx) {
   };
 
   // A photo at full size, with what the photo sort said about it (13 Nov, Brandon: the tiles are too small to judge)
-  const full = id => `/api/clients/${clientId}/gbp-posts/photo/${encodeURIComponent(id)}`;
+  const full = id => (isAdded(id) ? `/api/clients/${clientId}/images/photo/${encodeURIComponent(id)}` : `/api/clients/${clientId}/gbp-posts/photo/${encodeURIComponent(id)}`);
   const openPhoto = id => {
     const p = S.photos[id]; if (!p) return;
     const facts = [
-      p.service ? `Folder: ${p.service}` : p.kind === 'drip' ? 'Photo Drip' : '',
-      p.type ? `Type: ${p.type}` : '', p.score != null ? `Score: ${p.score} out of 10` : 'No notes from the photo sort',
+      p.kind === 'upload' ? (p.source === 'stock' ? 'A stock photo, added by hand' : 'Added by hand, from the client') : p.service ? `Folder: ${p.service}` : p.kind === 'drip' ? 'Photo Drip' : '',
+      p.type ? `Type: ${p.type}` : '', p.score != null ? `Score: ${p.score} out of 10` : p.kind === 'upload' ? '' : 'No notes from the photo sort',
       p.noted ? `Hero: ${p.hero ? 'yes' : 'no'}` : '', p.width ? `${p.width} x ${p.height}px` : '', p.unusable ? `Can't be used: ${p.unusable}` : '',
     ].filter(Boolean);
-    dialog({ title: p.name, wide: true, body: `
+    const dlg = dialog({ title: p.name, wide: true, body: `
       <img src="${attr(full(id))}" alt="${attr(p.shows || p.name)}" style="max-width:100%;max-height:68vh;display:block;margin:0 auto;border-radius:6px">
-      <p class="small" style="margin:10px 0 2px">${p.shows ? `<strong>Alt text:</strong> ${h(p.shows)}` : '<span class="muted">No description, so no alt text.</span>'}</p>
+      ${p.kind === 'upload'
+        ? `<div style="display:flex;gap:8px;align-items:center;margin:10px 0 2px"><strong class="small">Alt text:</strong><input class="input" id="altText" value="${attr(p.shows)}" placeholder="What does it show?" style="flex:1"><button class="btn btn-ghost btn-sm" data-savealt="${attr(id)}">Save</button></div>`
+        : `<p class="small" style="margin:10px 0 2px">${p.shows ? `<strong>Alt text:</strong> ${h(p.shows)}` : '<span class="muted">No description, so no alt text.</span>'}</p>`}
       <p class="small muted" style="margin:0">${facts.map(h).join(' · ')}${p.web_link ? ` · <a href="${attr(p.web_link)}" target="_blank" rel="noopener">Open in Drive</a>` : ''}</p>` });
+    dlg.el.addEventListener('click', async e => {
+      const b = e.target.closest('[data-savealt]'); if (!b) return;
+      try { await busy(b, 'Saving…', async () => { S = await api(`/api/clients/${clientId}/images/alt`, { method: 'PUT', body: { file_id: b.dataset.savealt, alt: dlg.el.querySelector('#altText').value } }); toast('Saved'); draw(); }); }
+      catch (err) { toast(err.message, 'bad'); }
+    });
+  };
+
+  // Crop (13 Nov, Brandon: the owner photo's framing): drag a box over the part to keep. The box is kept per slot,
+  // so the same photo can be cut differently on another page, and the site gets the cropped picture.
+  const SHAPES = [['Free', 0], ['Square', 1], ['Portrait 4:5', 4 / 5], ['Landscape 3:2', 3 / 2], ['Wide 16:9', 16 / 9]];
+  const openCrop = (identity, slot) => {
+    const page = S.pages.find(p => p.identity === identity), s = page.slots.find(x => x.slot === slot);
+    let box = s.crop ? { ...s.crop } : null, ratio = 0, start = null;
+    const dlg = dialog({ title: `Crop: ${page.title}, ${s.label}`, wide: true, body: `
+      <p class="small muted" style="margin:0 0 8px">Drag a box over the part to keep. The site gets only what is inside it.</p>
+      <div class="btn-row" style="margin-bottom:8px">${SHAPES.map(([l, r], i) => `<button class="btn ${i === 0 ? 'btn-primary' : 'btn-ghost'} btn-xs" data-shape="${r}">${h(l)}</button>`).join('')}</div>
+      <div id="cropWrap" style="position:relative;display:inline-block;max-width:100%;overflow:hidden;user-select:none;touch-action:none;cursor:crosshair;line-height:0;border-radius:6px">
+        <img id="cropImg" src="${attr(full(s.pick))}" draggable="false" alt="" style="max-width:100%;max-height:58vh;display:block">
+        <div id="cropBox" style="position:absolute;border:2px solid #fff;box-shadow:0 0 0 9999px rgba(0,0,0,.5);display:none;pointer-events:none"></div>
+      </div>
+      <div class="btn-row" style="margin-top:10px"><button class="btn btn-primary btn-sm" data-cropact="save">Save crop</button><button class="btn btn-ghost btn-sm" data-cropact="clear">Remove crop</button><span class="small muted" id="cropNote"></span></div>` });
+    const wrap = dlg.el.querySelector('#cropWrap'), boxEl = dlg.el.querySelector('#cropBox'), img = dlg.el.querySelector('#cropImg');
+    const paint = () => {
+      if (!box) { boxEl.style.display = 'none'; return; }
+      const r = img.getBoundingClientRect();
+      Object.assign(boxEl.style, { display: 'block', left: `${box.x * r.width}px`, top: `${box.y * r.height}px`, width: `${box.w * r.width}px`, height: `${box.h * r.height}px` });
+    };
+    img.addEventListener('load', paint);
+    const at = e => { const r = img.getBoundingClientRect(); return { x: Math.min(Math.max(e.clientX - r.left, 0), r.width), y: Math.min(Math.max(e.clientY - r.top, 0), r.height), W: r.width, H: r.height }; };
+    wrap.addEventListener('pointerdown', e => { e.preventDefault(); start = at(e); wrap.setPointerCapture(e.pointerId); });
+    wrap.addEventListener('pointermove', e => {
+      if (!start) return;
+      const p = at(e);
+      let w = Math.abs(p.x - start.x), hgt = Math.abs(p.y - start.y);
+      // A fixed shape: the height follows the width, and both stay inside the photo
+      if (ratio) {
+        hgt = w / ratio;
+        const roomX = p.x >= start.x ? p.W - start.x : start.x, roomY = p.y >= start.y ? p.H - start.y : start.y;
+        if (w > roomX) { w = roomX; hgt = w / ratio; }
+        if (hgt > roomY) { hgt = roomY; w = hgt * ratio; }
+      }
+      const x = p.x >= start.x ? start.x : start.x - w, y = p.y >= start.y ? start.y : start.y - hgt;
+      box = { x: x / p.W, y: y / p.H, w: w / p.W, h: hgt / p.H };
+      paint();
+    });
+    const end = () => { start = null; };
+    wrap.addEventListener('pointerup', end); wrap.addEventListener('pointercancel', end);
+    dlg.el.addEventListener('click', async e => {
+      const sh = e.target.closest('[data-shape]');
+      if (sh) { ratio = Number(sh.dataset.shape); dlg.el.querySelectorAll('[data-shape]').forEach(b => { b.className = `btn ${b === sh ? 'btn-primary' : 'btn-ghost'} btn-xs`; }); return; }
+      const act = e.target.closest('[data-cropact]'); if (!act) return;
+      try {
+        const body = { identity, slot, crop: act.dataset.cropact === 'clear' ? null : box };
+        if (act.dataset.cropact === 'save' && !box) { dlg.el.querySelector('#cropNote').textContent = 'Drag a box on the photo first.'; return; }
+        await busy(act, 'Saving…', async () => { S = await api(`/api/clients/${clientId}/images/crop`, { method: 'PUT', body }); dlg.close(); draw(); });
+      } catch (err) { toast(err.message, 'bad'); }
+    });
   };
 
   // The swap dialog: the runners-up first, then every other usable photo; and "leave it empty"
@@ -96,12 +159,38 @@ export async function render(el, ctx) {
     const onPage = new Set(page.slots.filter(x => x.slot !== slot && x.chosen && x.pick).map(x => x.pick));
     const usable = Object.entries(S.photos).filter(([id, p]) => !p.unusable && !onPage.has(id) && id !== s.pick);
     const first = s.runners.filter(id => S.photos[id] && !onPage.has(id));
-    const rest = usable.map(([id]) => id).filter(id => !first.includes(id)).sort((a, b) => (S.photos[b].score || 0) - (S.photos[a].score || 0));
-    const tile = id => { const p = S.photos[id]; return `<div style="display:flex;flex-direction:column;align-items:flex-start"><button class="btn btn-ghost" data-pick="${attr(id)}" title="${attr(photoTip(p))} · click to use this photo" style="padding:4px;height:auto;display:flex;flex-direction:column;align-items:flex-start"><img src="${attr(thumb(id))}" alt="${attr(p.shows || p.name)}" loading="lazy" style="width:130px;height:88px;object-fit:cover;border-radius:4px;display:block"><span class="small muted" style="display:block;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${h(p.service || p.type || p.name)}${p.score != null ? ` · ${p.score}` : ''}</span></button><button class="btn btn-ghost btn-xs" data-view="${attr(id)}" style="margin:2px 0 0 4px">See it bigger</button></div>`; };
+    const added = usable.map(([id]) => id).filter(id => isAdded(id) && !first.includes(id));
+    const rest = usable.map(([id]) => id).filter(id => !first.includes(id) && !isAdded(id)).sort((a, b) => (S.photos[b].score || 0) - (S.photos[a].score || 0));
+    const tile = id => { const p = S.photos[id]; return `<div style="display:flex;flex-direction:column;align-items:flex-start"><button class="btn btn-ghost" data-pick="${attr(id)}" title="${attr(photoTip(p))} · click to use this photo" style="padding:4px;height:auto;display:flex;flex-direction:column;align-items:flex-start"><img src="${attr(thumb(id))}" alt="${attr(p.shows || p.name)}" loading="lazy" style="width:130px;height:88px;object-fit:cover;border-radius:4px;display:block"><span class="small muted" style="display:block;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${h(p.kind === 'upload' ? (p.source === 'stock' ? 'stock' : 'from the client') : p.service || p.type || p.name)}${p.score != null ? ` · ${p.score}` : ''}</span></button><button class="btn btn-ghost btn-xs" data-view="${attr(id)}" style="margin:2px 0 0 4px">See it bigger</button></div>`; };
     const dlg = dialog({ title: `${page.title}: ${s.label}`, wide: true, body: `
+      <div id="drop" style="border:2px dashed #b9b9b9;border-radius:8px;padding:14px;text-align:center;margin-bottom:14px">
+        <div class="small"><strong>Drop a photo here</strong> to add it and put it in this slot, or <label class="btn btn-ghost btn-xs" style="cursor:pointer">choose a file<input type="file" id="upFile" accept="image/*" style="display:none"></label></div>
+        <div style="margin-top:8px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap"><input class="input" id="upAlt" placeholder="What does it show? This is its alt text" style="max-width:340px"><select class="input" id="upSource" style="max-width:170px"><option value="stock">A stock photo</option><option value="client">From the client</option></select></div>
+        <div class="small muted" id="upNote" style="margin-top:6px">Any size up to 60 MB: Copybot shrinks it as it arrives.</div>
+      </div>
+      ${added.length ? `<p class="small"><strong>Photos you have added</strong></p><div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">${added.map(tile).join('')}</div>` : ''}
       ${first.length ? `<p class="small"><strong>Next best for this slot</strong></p><div style="display:flex;gap:8px;flex-wrap:wrap">${first.map(tile).join('')}</div>` : ''}
       <p class="small" style="margin-top:12px"><strong>Every other photo</strong></p><div style="display:flex;gap:8px;flex-wrap:wrap;max-height:340px;overflow:auto">${rest.map(tile).join('') || '<span class="small muted">None.</span>'}</div>
       <div class="btn-row" style="margin-top:12px"><button class="btn btn-ghost btn-sm" data-pick="">Leave this slot empty</button></div>` });
+    const drop = dlg.el.querySelector('#drop'), upNote = dlg.el.querySelector('#upNote');
+    const sendFile = async file => {
+      if (!file) return;
+      if (!/^image\//.test(file.type || '')) { upNote.textContent = 'That is not a photo. Use a JPG, PNG or WebP.'; return; }
+      upNote.textContent = `Adding ${file.name} (${(file.size / 1048576).toFixed(1)} MB)…`;
+      try {
+        const q = new URLSearchParams({ name: file.name, alt: dlg.el.querySelector('#upAlt').value, source: dlg.el.querySelector('#upSource').value, identity, slot, by: ctx.userName ? ctx.userName() : '' });
+        const r = await fetch(`/api/clients/${clientId}/images/upload?${q}`, { method: 'POST', headers: { 'Content-Type': file.type || 'application/octet-stream' }, body: file });
+        if (r.status === 401) { location.href = '/login.html'; return; }
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(j.error || `The photo was not added (${r.status}).`);
+        S = j; dlg.close(); draw();
+        toast(`Added: ${(j.added.original_bytes / 1048576).toFixed(1)} MB shrunk to ${Math.round(j.added.size_bytes / 1024)} KB`);
+      } catch (err) { upNote.textContent = err.message; toast(err.message, 'bad'); }
+    };
+    drop.addEventListener('dragover', e => { e.preventDefault(); drop.style.borderColor = '#5b5bd6'; });
+    drop.addEventListener('dragleave', () => { drop.style.borderColor = '#b9b9b9'; });
+    drop.addEventListener('drop', e => { e.preventDefault(); drop.style.borderColor = '#b9b9b9'; sendFile(e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]); });
+    dlg.el.querySelector('#upFile').addEventListener('change', e => sendFile(e.target.files[0]));
     dlg.el.addEventListener('click', async e => {
       const big = e.target.closest('[data-view]'); if (big) { openPhoto(big.dataset.view); return; }
       const b = e.target.closest('[data-pick]'); if (!b) return;
@@ -113,6 +202,7 @@ export async function render(el, ctx) {
   el.addEventListener('click', async e => {
     const f = e.target.closest('[data-filter]'); if (f) { filter = f.dataset.filter; draw(); return; }
     const sw = e.target.closest('[data-swap]'); if (sw) { openSwap(sw.dataset.swap, sw.dataset.slot); return; }
+    const cr = e.target.closest('[data-crop]'); if (cr) { openCrop(cr.dataset.crop, cr.dataset.slot); return; }
     const big = e.target.closest('[data-view]'); if (big) { openPhoto(big.dataset.view); return; }
     const who = ctx.userName ? ctx.userName() : '';
     try {

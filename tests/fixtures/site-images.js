@@ -275,6 +275,57 @@ const CARDS = new Map([['/', ['/paving-contractor', '/fencing-contractor']], ['/
   const front = fake.state.pages.get(7).acf;
   chk('The homepage: the hero, content image and owner photo are placed; its cards wait for the copy', front.home_hero_background_image > 0 && front.home_content_block_image > 0 && front.home_owner_photo > 0 && media(front.home_owner_photo).alt_text === 'Two of the team beside the van.' && front.home_hero_h1 === seedHomepage().acf.home_hero_h1, J([home.result, home.skipped, Object.keys(front).filter(k => /image|photo/.test(k))]), '');
 
+  // ── A photo added by hand (a stock photo), and a crop ──
+  const { createUploads, isUpload } = require(path.join(root, 'images/uploads.js'));
+  const huge = await sharp({ create: { width: 6937, height: 6000, channels: 3, background: { r: 120, g: 110, b: 90 } } }).jpeg({ quality: 95 }).toBuffer();
+  chk('Crop box: fractions of the photo, held inside it; a tiny box, a box of the whole photo and nonsense are no crop', J(PL.cleanCrop({ x: 0.25, y: 0.1, w: 0.5, h: 0.6 })) === J({ x: 0.25, y: 0.1, w: 0.5, h: 0.6 }) && J(PL.cleanCrop({ x: 0.8, y: 0.8, w: 0.6, h: 0.6 })) === J({ x: 0.8, y: 0.8, w: 0.2, h: 0.2 }) && PL.cleanCrop({ x: 0, y: 0, w: 0.01, h: 0.5 }) === null && PL.cleanCrop({ x: 0, y: 0, w: 1, h: 1 }) === null && PL.cleanCrop('x') === null && PL.cleanCrop(null) === null, J(PL.cleanCrop({ x: 0.8, y: 0.8, w: 0.6, h: 0.6 })), '');
+  const cut = await PL.shrink(big, 'owner', { x: 0.25, y: 0.25, w: 0.5, h: 0.5 });
+  const tall = await PL.shrink(big, 'owner', { x: 0.4, y: 0, w: 0.2, h: 1 });
+  chk('Shrink with a crop: only the box is kept, then sized for the slot; a narrow box is not blown up', cut.width === 800 && cut.height === 533 && tall.width === 600 && tall.height === 2000, J([cut.width, cut.height, tall.width, tall.height]), '800x533, 600x2000');
+
+  const U = createUploads(pool);
+  const up0 = await U.add(clientId, { name: 'garden-steps-envato.jpg', bytes: huge, alt: '  Stone garden steps   between planted borders. ', source: 'stock', by: 'Brandon' });
+  chk('Add a photo: a 6,937px stock file is shrunk to 2,400px as it arrives, and only that is kept', isUpload(up0.id) && up0.width === 2400 && up0.height === 2076 && up0.size_bytes < huge.length / 4 && up0.original_bytes === huge.length && (await sharp(await U.bytes(clientId, up0.id)).metadata()).width === 2400, J(up0), '2400 wide');
+  chk('Add a photo: a file that is not a photo, and nothing at all, are refused', /not a photo Copybot can read/.test(await throwsMsg(() => U.add(clientId, { name: 'x.pdf', bytes: Buffer.from('%PDF-1.4 not an image') }))) && /No photo was sent/.test(await throwsMsg(() => U.add(clientId, { name: 'x.jpg', bytes: Buffer.alloc(0) }))), '', '');
+  const vAdded = await images.view(clientId);
+  chk('An added photo is one of the client\'s photos, marked as stock with its alt text, and code never picks it', vAdded.photos[up0.id] && vAdded.photos[up0.id].source === 'stock' && vAdded.photos[up0.id].shows === 'Stone garden steps between planted borders.' && !vAdded.pages.some(p => p.slots.some(sl => sl.pick === up0.id)) && vAdded.summary.added === 1 && vAdded.summary.stock === 1, J([vAdded.photos[up0.id], vAdded.summary.added]), '');
+
+  // Dropped straight onto an empty slot: the Garden fencing page has no photos of its own
+  const FEN = 'service:s3';
+  const dropped = await images.upload(clientId, { name: 'fence-stock.jpg', bytes: huge, alt: 'A closeboard fence along a lawn.', source: 'stock', identity: FEN, slot: 'content' });
+  const fenContent = page(dropped, FEN).slots.find(sl => sl.slot === 'content');
+  chk('Dropped on a slot: the photo is added and is in that slot, by hand', isUpload(fenContent.pick) && fenContent.chosen === true && dropped.added.width === 2400 && dropped.photos[fenContent.pick].shows === 'A closeboard fence along a lawn.', J(fenContent), '');
+  chk('Dropped on a page or slot that does not exist: refused, and nothing is added', /not in the build/.test(await throwsMsg(() => images.upload(clientId, { name: 'a.jpg', bytes: huge, identity: 'service:zzz', slot: 'content' }))) && /no such slot/.test(await throwsMsg(() => images.upload(clientId, { name: 'a.jpg', bytes: huge, identity: FEN, slot: 'banner' }))) && (await images.view(clientId)).summary.added === 2, '', '');
+  const altered = await images.setAlt(clientId, { file_id: fenContent.pick, alt: 'A new closeboard fence beside a lawn.' });
+  chk('Its alt text can be typed again; a Drive photo\'s can\'t (it comes from the notes)', altered.photos[fenContent.pick].shows === 'A new closeboard fence beside a lawn.' && /Only a photo added by hand/.test(await throwsMsg(() => images.setAlt(clientId, { file_id: 'p1', alt: 'x' }))), altered.photos[fenContent.pick].shows, '');
+
+  // The added photo on the site: into the Patio installation page's content slot, which was left empty by hand
+  const beforeDownloads = downloads, beforeMedia = fake.state.media.size;
+  await images.choose(clientId, { identity: SVC, slot: 'content', file_id: up0.id });
+  await images.approve(clientId, { identity: SVC, approved: true });
+  const withStock = await images.placePage(clientId, { identity: SVC, confirm: true });
+  const stockMedia = media(entry(601).acf.svc_content_image);
+  chk('Placed: the added photo goes up at the slot\'s size with its alt text, straight from Copybot (no Drive download)', withStock.ok === true && withStock.uploaded === 1 && downloads === beforeDownloads && fake.state.media.size === beforeMedia + 1 && stockMedia && /-1200\.webp$/.test(stockMedia.file) && stockMedia.alt_text === 'Stone garden steps between planted borders.' && entry(601).acf.svc_content_image_alt === 'Stone garden steps between planted borders.', J([withStock, stockMedia]), '');
+
+  // A crop on the hero
+  const heroNow = entry(601).acf.svc_hero_background_image;
+  const cropped = await images.crop(clientId, { identity: SVC, slot: 'hero', crop: { x: 0.1, y: 0.2, w: 0.6, h: 0.6 } });
+  chk('Crop: the slot carries the box, and the page has to be approved again', J(page(cropped, SVC).slots[0].crop) === J({ x: 0.1, y: 0.2, w: 0.6, h: 0.6 }) && page(cropped, SVC).approved === false, J(page(cropped, SVC).slots[0]), '');
+  chk('Crop: a box too small, a slot with no photo and an unknown slot are refused', /too small/.test(await throwsMsg(() => images.crop(clientId, { identity: SVC, slot: 'hero', crop: { x: 0, y: 0, w: 0.01, h: 0.01 } }))) && /no photo in that slot/.test(await throwsMsg(() => images.crop(clientId, { identity: 'service:s3', slot: 'hero', crop: { x: 0, y: 0, w: 0.5, h: 0.5 } }))) && /no such slot/.test(await throwsMsg(() => images.crop(clientId, { identity: SVC, slot: 'banner', crop: { x: 0, y: 0, w: 0.5, h: 0.5 } }))), '', '');
+  const prev = await images.preview(clientId, { identity: SVC, slot: 'hero', width: 300 });
+  const prevMeta = await sharp(prev.bytes).metadata();
+  chk('Crop: the preview is the cropped picture', prev.type === 'image/webp' && prevMeta.width === 300 && prevMeta.height === 200, J([prevMeta.width, prevMeta.height]), '300x200');
+  await images.approve(clientId, { identity: SVC, approved: true });
+  const placedCrop = await images.placePage(clientId, { identity: SVC, confirm: true });
+  chk('Crop: the cropped picture is a new upload in the hero field; the uncropped one is not reused for it', placedCrop.ok === true && placedCrop.uploaded === 1 && entry(601).acf.svc_hero_background_image !== heroNow && fake.state.media.has(entry(601).acf.svc_hero_background_image), J([placedCrop.uploaded, heroNow, entry(601).acf.svc_hero_background_image]), '');
+  const againCrop = await images.placePage(clientId, { identity: SVC, confirm: true });
+  chk('Crop: placed again, the cropped upload is reused', againCrop.ok === true && againCrop.uploaded === 0, J(againCrop.uploaded), '0');
+  const cleared = await images.crop(clientId, { identity: SVC, slot: 'hero', crop: null });
+  chk('Crop: removed, the slot is the whole photo again', !page(cleared, SVC).slots[0].crop, J(page(cleared, SVC).slots[0]), '');
+  await images.crop(clientId, { identity: SVC, slot: 'hero', crop: { x: 0.1, y: 0.2, w: 0.6, h: 0.6 } });
+  const swappedAway = await images.choose(clientId, { identity: SVC, slot: 'hero', file_id: 'p1' });
+  chk('Crop: a different photo put in the slot does not inherit the old photo\'s crop', page(swappedAway, SVC).slots[0].pick === 'p1' && !page(swappedAway, SVC).slots[0].crop, J(page(swappedAway, SVC).slots[0]), '');
+
   // Failures
   driveDown = true;
   // A photo that has never been a hero, so its 1920px size has to be downloaded and uploaded

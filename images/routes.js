@@ -7,7 +7,9 @@
 //   POST /api/clients/:id/images/place      { identity, confirm: true }: one approved page onto the staging site
 // The photos themselves are shown through the GBP posts photo route (the service account, ?size=thumb).
 
+const express = require('express');
 const { createImages } = require('./service');
+const { MAX_BYTES } = require('./uploads');
 const { heroChoiceOf } = require('./pick');
 const { createDriveStore } = require('../drive/store');
 const { createAutopostStore } = require('../leadsnap/autopost/store');
@@ -56,6 +58,20 @@ function mountImagesApi(app, { pool, pageRows, latestRecords, getSite, getDrive,
   app.put('/api/clients/:id/images/choice', wrap(req => images.choose(req.params.id, req.body || {})));
   app.post('/api/clients/:id/images/approve', wrap(req => images.approve(req.params.id, req.body || {})));
   app.post('/api/clients/:id/images/place', wrap(req => images.placePage(req.params.id, req.body || {})));
+  // A photo dropped in by hand: the file is the body; its name, alt text, source and the slot it was dropped on are in the query
+  app.post('/api/clients/:id/images/upload', express.raw({ type: () => true, limit: `${Math.ceil(MAX_BYTES / 1024 / 1024) + 1}mb` }), wrap(req => {
+    const q = req.query || {};
+    return images.upload(req.params.id, { bytes: req.body, name: String(q.name || ''), alt: String(q.alt || ''), source: String(q.source || 'stock'), by: String(q.by || ''), identity: String(q.identity || ''), slot: String(q.slot || '') });
+  }));
+  app.put('/api/clients/:id/images/alt', wrap(req => images.setAlt(req.params.id, req.body || {})));
+  app.put('/api/clients/:id/images/crop', wrap(req => images.crop(req.params.id, req.body || {})));
+  const send = fn => async (req, res) => {
+    try { const img = await fn(req); res.set('Content-Type', img.type); res.set('Cache-Control', 'private, max-age=3600'); res.send(img.bytes); }
+    catch (err) { if (!err.status || err.status >= 500) log.error('[images]', err); res.status(err.status || 500).json({ error: err.message }); }
+  };
+  // A photo added by hand (?size=thumb), and a slot as it will look on the site, with its crop
+  app.get('/api/clients/:id/images/photo/:fileId', send(req => images.uploadImage(req.params.id, req.params.fileId, { thumb: req.query.size === 'thumb' })));
+  app.get('/api/clients/:id/images/preview', send(req => images.preview(req.params.id, { identity: String(req.query.identity || ''), slot: String(req.query.slot || ''), width: req.query.width })));
   return images;
 }
 
