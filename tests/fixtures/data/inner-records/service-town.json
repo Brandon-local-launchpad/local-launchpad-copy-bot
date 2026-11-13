@@ -1,0 +1,530 @@
+{
+ "page": "service",
+ "VALIDATION": {
+  "status": "run",
+  "block": 0,
+  "flag": 7,
+  "issues": []
+ },
+ "CLAIMS": {
+  "for": "2026-10-27T15:21:44.228Z",
+  "at": "2026-10-27T15:25:25.038Z",
+  "status": "needs acceptance",
+  "first_review": 9,
+  "findings": [
+   {
+    "field": "svc_content_body",
+    "quote": "so each post position is checked before a hole is dug",
+    "why": "A client-specific check made before the work; not in confirmed practices."
+   },
+   {
+    "field": "svc_content_body",
+    "quote": "so the whole line is marked out first and the length is known before anything is ordered",
+    "why": "A client-specific working practice (marking out and ordering materials); not in confirmed practices."
+   },
+   {
+    "field": "svc_content_body",
+    "quote": "We do this work in Romsey ourselves",
+    "why": "Claims who does the work; no such practice is confirmed."
+   },
+   {
+    "field": "svc_content_body",
+    "quote": "the cut offs and old timber go with us",
+    "why": "Claims what happens to waste; no waste practice is confirmed."
+   },
+   {
+    "field": "svc_areas_intro",
+    "quote": "We're based in Southampton",
+    "why": "A base location is not in the client values or facts on file."
+   },
+   {
+    "field": "block4 card_body (It keeps coming back)",
+    "quote": "so a lasting fix means resetting that post, not tidying the symptom",
+    "why": "Describes a repair approach as this business's practice; not confirmed."
+   },
+   {
+    "field": "block4 card_body (What the season is about to throw at it)",
+    "quote": "Getting ahead of it means finding weak sections early, while they're still easy to reach.",
+    "why": "Implies a check or inspection practice that is not confirmed."
+   },
+   {
+    "field": "faq_answer (When should I book fencing for the season?)",
+    "quote": "That first visit is where failing sections are found and dealt with before they spread.",
+    "why": "Claims an inspection and repair practice at the first visit; not confirmed."
+   }
+  ],
+  "rounds": [
+   {
+    "round": 1,
+    "findings": [
+     {
+      "field": "svc_content_body",
+      "quote": "so each post position is checked before a hole is dug",
+      "why": "Claims a client-specific check before digging; no confirmed practices on file."
+     },
+     {
+      "field": "svc_content_body",
+      "quote": "so the whole line is marked out first and the length is known before anything is ordered",
+      "why": "Describes a business ordering and measuring practice that is not on file."
+     },
+     {
+      "field": "svc_content_body",
+      "quote": "We do this work in Romsey ourselves",
+      "why": "Claims who does the work; not confirmed in practices."
+     },
+     {
+      "field": "svc_content_body",
+      "quote": "the cut offs and old timber go with us",
+      "why": "Claims waste removal as business practice; no confirmed practice."
+     },
+     {
+      "field": "block4 card_body (Growth has got ahead of you)",
+      "quote": "The visit takes out what's failed and replaces it with new posts and panels.",
+      "why": "States what this business's visit does (replacement of failed sections); not supported by confirmed practices."
+     },
+     {
+      "field": "block4 card_body (It keeps coming back)",
+      "quote": "The visit goes back to the cause, dealing with the hole and the drainage around the base before a new post goes in.",
+      "why": "Claims a drainage practice by this business that is not on file."
+     },
+     {
+      "field": "block4 card_body (What the season is about to throw at it)",
+      "quote": "Posts and bases are looked over, and failing sections are taken out and replaced while they're still easy to reach.",
+      "why": "Claims a client-specific inspection and replacement practice that is not on file."
+     },
+     {
+      "field": "svc_areas_intro",
+      "quote": "you get the same crew and the same approach",
+      "why": "Promise about who turns up and consistency; not on file."
+     },
+     {
+      "field": "faq_answer (How much does a fencing visit cost in Romsey?)",
+      "quote": "The quickest way to a figure is to send us the details.",
+      "why": "Implies a quoting method and speed that are not on file."
+     }
+    ],
+    "retries": [
+     {
+      "round": 1,
+      "field": "svc_content_body",
+      "claims": [
+       "so each post position is checked before a hole is dug",
+       "so the whole line is marked out first and the length is known before anything is ordered",
+       "We do this work in Romsey ourselves",
+       "the cut offs and old timber go with us"
+      ],
+      "before": "Fencing in Romsey starts with the ground as much as the timber. On the lower streets towards the River Test, water sits high after prolonged rain, so each post position is checked before a hole is dug. Out at Crampmoor and Highwood, the larger wooded gardens mean longer boundary runs, so the whole line is marked out first and the length is known before anything is ordered. We're a family run, independent team of [CV: team_size].\n\nThe work follows a set order. We peg out the run and check for anything buried along it, then the old fence comes down if there is one. Holes are dug, posts are stood and lined up, and only then do the rails and boards or panels go on, because everything hangs off those posts. The gate is hung last, and the cut offs and old timber go with us.\n\nCutting corners on the posts is where fences let people down. Posts that aren't supported properly move, and once one shifts, the panels either side go out of line with it. Left alone, a loose section keeps working looser until it drops. It's a slow failure, which is why the groundwork matters more than the finish.\n\nWe do this work in Romsey ourselves, and you can [see our full fencing service](/services/fencing) for the wider picture.\n\nIf a boundary needs replacing or putting in, the length and the style you're after are all we need to start.",
+      "after": "Fencing in Romsey depends on the ground as much as the timber. On the lower streets towards the River Test, water sits high after prolonged rain, which matters for how well a post holds. Out at Crampmoor and Highwood the gardens are larger and more wooded, so boundary runs tend to be long. We're a family run, independent business, and we've completed [CV: jobs_completed] jobs with a team of [CV: team_size].\n\nThe work follows a set order. The run is marked out and the ground is checked for anything buried along it. Then the old fence comes down, if there is one. Holes are dug, and the posts are stood and lined up. Only then do the rails and boards or panels go on, because everything hangs off those posts. The gate is hung last.\n\nPosts are where fences let people down. Posts that aren't properly supported lean, and once one shifts, the panels either side go out of line with it. Timber with poor drainage around its base also tends to rot early. A loose section keeps working looser until it drops, which makes it a slow failure. That's why the groundwork matters more than the finish.\n\nThe style is a choice you make early. Close board, panel, palisade and post and rail all suit different boundaries, and the timber or concrete posts that carry them are set to match. You can [see our full fencing service](/services/fencing) for the wider picture.\n\nIf a boundary needs replacing or putting in, the length and the style you're after are all we need to start.",
+      "kept": false,
+      "error": "the rewrite added a BLOCK"
+     },
+     {
+      "round": 1,
+      "field": "block4 card_body (Growth has got ahead of you)",
+      "claims": [
+       "The visit takes out what's failed and replaces it with new posts and panels."
+      ],
+      "before": "Miss the checks through a growing season and growth builds against the fence base, holding water against the timber. Signs are timber gone soft at ground level and sections that move when pushed. The visit takes out what's failed and replaces it with new posts and panels. Left alone, loose sections weaken and fall.",
+      "after": "Miss the checks through a growing season and growth builds against the fence base, holding water against the timber. Signs are timber gone soft at ground level, posts that lean and sections that move when pushed. Left alone, trapped moisture keeps working at the wood, and loose sections weaken and fall.",
+      "kept": true
+     },
+     {
+      "round": 1,
+      "field": "block4 card_body (It keeps coming back)",
+      "claims": [
+       "The visit goes back to the cause, dealing with the hole and the drainage around the base before a new post goes in."
+      ],
+      "before": "A board nailed back or a post propped up deals with what shows, not why it failed. Where water has nowhere to drain from around the timber, it rots early however often it's patched. The visit goes back to the cause, dealing with the hole and the drainage around the base before a new post goes in.",
+      "after": "A board nailed back or a post propped up only deals with what shows. Fence timber that sits in wet ground without drainage around it tends to rot early, however often it's patched. The cause is usually how the post was supported at ground level, so a lasting fix means resetting that post, not tidying the symptom.",
+      "kept": true
+     },
+     {
+      "round": 1,
+      "field": "block4 card_body (What the season is about to throw at it)",
+      "claims": [
+       "Posts and bases are looked over, and failing sections are taken out and replaced while they're still easy to reach."
+      ],
+      "before": "Spring growth arrives all at once and covers the base of the fence, so loose or soft timber goes unnoticed until it's hidden. Getting ahead of it means checking the run first. Posts and bases are looked over, and failing sections are taken out and replaced while they're still easy to reach.",
+      "after": "Spring growth arrives all at once and covers the base of the fence, so soft timber at ground level or a post that has started to lean can go unnoticed until it's hidden. Trapped moisture is what rots timber, and winter leaves it wetter than it looks. Getting ahead of it means finding weak sections early, while they're still easy to reach.",
+      "kept": true
+     },
+     {
+      "round": 1,
+      "field": "svc_areas_intro",
+      "claims": [
+       "you get the same crew and the same approach"
+      ],
+      "before": "We work within [CV: travel_distance] of base, inland and along the coast, and this service covers the whole of Romsey and the villages around it. Wherever you are on the list below, you get the same crew and the same approach.",
+      "after": "We're based in Southampton and travel up to [CV: travel_distance] inland and along the coast. That means fencing in Romsey covers the town itself and the villages around it, from the lower streets by the River Test to the wooded gardens out towards Crampmoor.",
+      "kept": false,
+      "error": "the rewrite added a BLOCK"
+     },
+     {
+      "round": 1,
+      "field": "faq_answer (How much does a fencing visit cost in Romsey?)",
+      "claims": [
+       "The quickest way to a figure is to send us the details."
+      ],
+      "before": "Fencing costs depend on your boundary, and quotes are free. Length is one of the main things that moves the price. The quickest way to a figure is to send us the details.",
+      "after": "Fencing prices are agreed with you for each boundary, and the quote is free. Length is one of the main things that moves the price, along with what's standing there now and how easy the ground is to dig. Once the boundary has been looked at, the figure is clear.",
+      "kept": true
+     }
+    ]
+   },
+   {
+    "round": 2,
+    "findings": [
+     {
+      "field": "svc_content_body",
+      "quote": "so each post position is checked before a hole is dug",
+      "why": "A check made before the work is a client-specific practice, and no practices are confirmed."
+     },
+     {
+      "field": "svc_content_body",
+      "quote": "so the whole line is marked out first and the length is known before anything is ordered",
+      "why": "Describes how the business orders materials and plans jobs, which is not on file."
+     },
+     {
+      "field": "svc_content_body",
+      "quote": "We do this work in Romsey ourselves",
+      "why": "Claims who does the work and that it is done in Romsey, with no confirmed practice or Romsey experience on file."
+     },
+     {
+      "field": "svc_areas_intro",
+      "quote": "you get the same crew and the same approach",
+      "why": "Promises the same crew and approach on every job, which is not on file."
+     },
+     {
+      "field": "faq_answer (What does a fencing visit include?)",
+      "quote": "We mark the line and check the ground for buried services.",
+      "why": "States the business's own working practice of checking for buried services, which is not a confirmed practice."
+     },
+     {
+      "field": "block4 card_body (Growth has got ahead of you)",
+      "quote": "Miss the checks through a growing season",
+      "why": "Implies the business makes regular checks through the growing season, which is not on file."
+     }
+    ],
+    "retries": [
+     {
+      "round": 2,
+      "field": "svc_content_body",
+      "claims": [
+       "so each post position is checked before a hole is dug",
+       "so the whole line is marked out first and the length is known before anything is ordered",
+       "We do this work in Romsey ourselves"
+      ],
+      "before": "Fencing in Romsey starts with the ground as much as the timber. On the lower streets towards the River Test, water sits high after prolonged rain, so each post position is checked before a hole is dug. Out at Crampmoor and Highwood, the larger wooded gardens mean longer boundary runs, so the whole line is marked out first and the length is known before anything is ordered. We're a family run, independent team of [CV: team_size].\n\nThe work follows a set order. We peg out the run and check for anything buried along it, then the old fence comes down if there is one. Holes are dug, posts are stood and lined up, and only then do the rails and boards or panels go on, because everything hangs off those posts. The gate is hung last, and the cut offs and old timber go with us.\n\nCutting corners on the posts is where fences let people down. Posts that aren't supported properly move, and once one shifts, the panels either side go out of line with it. Left alone, a loose section keeps working looser until it drops. It's a slow failure, which is why the groundwork matters more than the finish.\n\nWe do this work in Romsey ourselves, and you can [see our full fencing service](/services/fencing) for the wider picture.\n\nIf a boundary needs replacing or putting in, the length and the style you're after are all we need to start.",
+      "after": "Fencing in Romsey starts with the ground as much as the timber. On the lower streets towards the River Test, water sits high after prolonged rain, and that shapes how well a post can be supported. Out at Crampmoor and Highwood, the gardens are larger and more wooded. That usually means longer boundary runs, with more posts and more rail to carry. We're a family run, independent team of [CV: team_size], and we've completed [CV: jobs_completed] jobs.\n\nThe work follows a set order. The boundary line is marked out and the ground is checked for anything buried along it, then the old fence comes down if there is one. Post holes are dug next. The posts are stood and lined up along the run. Only then do the rails and boards or panels go on, because everything hangs off those posts. The gate is hung last, and the old timber and offcuts are cleared away.\n\nPosts that aren't supported properly are where a fence lets people down. Once one post shifts, the panels either side go out of line with it. A loose section keeps working looser until it drops. Timber with poor drainage around its base also tends to rot early. It's a slow failure, which is why the groundwork matters more than the finish.\n\nFor wider cover of the work, [see our full fencing service](/services/fencing) and the styles it takes in, from close board to post and rail.\n\nIf a boundary needs replacing or putting in, the length and the style you're after are all we need to start.",
+      "kept": false,
+      "error": "the rewrite added a BLOCK"
+     },
+     {
+      "round": 2,
+      "field": "svc_areas_intro",
+      "claims": [
+       "you get the same crew and the same approach"
+      ],
+      "before": "We work within [CV: travel_distance] of base, inland and along the coast, and this service covers the whole of Romsey and the villages around it. Wherever you are on the list below, you get the same crew and the same approach.",
+      "after": "We're based in Southampton and travel up to [CV: travel_distance] inland and along the coast, which takes in the whole of Romsey and the villages around it. Fencing is carried out across all of that area, from the lower streets by the River Test to the plots out towards Crampmoor.",
+      "kept": true
+     },
+     {
+      "round": 2,
+      "field": "faq_answer (What does a fencing visit include?)",
+      "claims": [
+       "We mark the line and check the ground for buried services."
+      ],
+      "before": "A fencing visit runs from marking out the boundary to hanging the gate. We mark the line and check the ground for buried services. Any old fence comes down, then the post holes are dug and the posts set in line. Rails and cladding follow, and the gate goes on last. Work on a hedge beside the fence is a separate service, [hedge trimming](/services/hedge-trimming).",
+      "after": "A fencing visit covers taking down any old fence, digging the post holes and setting the posts in line. Rails go on next, then panels or boards fixed to those posts. Last come the gate and clearing the waste. Gardening work beside the fence, such as [hedge trimming](/services/hedge-trimming), is a separate service.",
+      "kept": false,
+      "error": "the rewrite added a BLOCK"
+     },
+     {
+      "round": 2,
+      "field": "block4 card_body (Growth has got ahead of you)",
+      "claims": [
+       "Miss the checks through a growing season"
+      ],
+      "before": "Miss the checks through a growing season and growth builds against the fence base, holding water against the timber. Signs are timber gone soft at ground level, posts that lean and sections that move when pushed. Left alone, trapped moisture keeps working at the wood, and loose sections weaken and fall.",
+      "after": "Long grass and weeds climb against the base of a fence in the growing season and hold water against the timber. The signs are boards gone soft at ground level, posts that lean and sections that move when pushed. Left alone, trapped moisture keeps working at the wood, and loose sections weaken and fall.",
+      "kept": true
+     }
+    ]
+   }
+  ]
+ },
+ "scope": "town",
+ "service": "Fencing",
+ "category": "Gardener",
+ "town": "Romsey",
+ "page_slug": "/locations/romsey/fencing",
+ "seo_title": "Fencing Romsey | Edens Edge Landscaping",
+ "meta_description": "Edens Edge Landscaping offers fencing in Romsey, fixed prices with no hidden costs. Get your free quote today.",
+ "breadcrumb": [
+  {
+   "name": "Home",
+   "url": "/"
+  },
+  {
+   "name": "Romsey",
+   "url": "/locations/romsey"
+  },
+  {
+   "name": "Fencing",
+   "url": null
+  }
+ ],
+ "svc_hero_h1": "Fencing Romsey",
+ "svc_hero_trust_line": "100+ Jobs Completed",
+ "svc_hero_intro": "[CV: company_name] carries out fencing in Romsey, from setting out the boundary to hanging the gate. We work to fixed prices, and there are no hidden costs.",
+ "svc_hero_rating_line": "",
+ "buttons": [
+  "Get My Free Quote",
+  "Call [CV: phone]"
+ ],
+ "svc_included_h2": "What's Included in a Fencing Visit",
+ "svc_included_intro": "Fencing here means taking out or putting up a boundary in close board, panel, palisade or post and rail. It suits homeowners with a failing fence or an open boundary, and ends with a finished run, gate fitted where wanted, and the waste cleared.",
+ "included": [
+  {
+   "item_title": "Set out boundary",
+   "item_text": "Mark the boundary line and fence run"
+  },
+  {
+   "item_title": "Check services and ground",
+   "item_text": "Check for buried services and ground condition"
+  },
+  {
+   "item_title": "Remove old fence",
+   "item_text": "Take down and remove the existing fence"
+  },
+  {
+   "item_title": "Excavate post holes",
+   "item_text": "Dig post holes along the marked line"
+  },
+  {
+   "item_title": "Set and align posts",
+   "item_text": "Set timber or concrete posts, aligned along the run"
+  },
+  {
+   "item_title": "Fix rails or panels",
+   "item_text": "Fit rails, then hang panels or boards to the posts"
+  },
+  {
+   "item_title": "Fit gate and clear waste",
+   "item_text": "Hang the gate and clear away waste"
+  }
+ ],
+ "svc_content_h2": "Local Fencing for Romsey Homeowners",
+ "svc_content_body": "Fencing in Romsey starts with the ground as much as the timber. On the lower streets towards the River Test, water sits high after prolonged rain, so each post position is checked before a hole is dug. Out at Crampmoor and Highwood, the larger wooded gardens mean longer boundary runs, so the whole line is marked out first and the length is known before anything is ordered. We're a family run, independent team of [CV: team_size].\n\nThe work follows a set order. We peg out the run and check for anything buried along it, then the old fence comes down if there is one. Holes are dug, posts are stood and lined up, and only then do the rails and boards or panels go on, because everything hangs off those posts. The gate is hung last, and the cut offs and old timber go with us.\n\nCutting corners on the posts is where fences let people down. Posts that aren't supported properly move, and once one shifts, the panels either side go out of line with it. Left alone, a loose section keeps working looser until it drops. It's a slow failure, which is why the groundwork matters more than the finish.\n\nWe do this work in Romsey ourselves, and you can [see our full fencing service](/services/fencing) for the wider picture.\n\nIf a boundary needs replacing or putting in, the length and the style you're after are all we need to start.",
+ "svc_block4_h2": "Signs It's Time for a Fencing Visit",
+ "block4": [
+  {
+   "card_title": "Growth has got ahead of you",
+   "card_body": "Long grass and weeds climb against the base of a fence in the growing season and hold water against the timber. The signs are boards gone soft at ground level, posts that lean and sections that move when pushed. Left alone, trapped moisture keeps working at the wood, and loose sections weaken and fall."
+  },
+  {
+   "card_title": "It looks untidy from the house",
+   "card_body": "From the window or the back door, a fence that's drifted out of line shows first. Boards come away, panels sit at different heights and the run no longer reads as one boundary. The visit puts that right at the posts: they're set and lined up, then the rails and panels or boards are fixed square to them."
+  },
+  {
+   "card_title": "It keeps coming back",
+   "card_body": "A board nailed back or a post propped up only deals with what shows. Fence timber that sits in wet ground without drainage around it tends to rot early, however often it's patched. The cause is usually how the post was supported at ground level, so a lasting fix means resetting that post, not tidying the symptom."
+  },
+  {
+   "card_title": "What the season is about to throw at it",
+   "card_body": "Spring growth arrives all at once and hides the foot of the fence. Soft timber or a post that has started to lean can go unnoticed until it's covered. Winter leaves timber wetter than it looks, so getting ahead of it means finding weak sections early, while they're still easy to reach."
+  }
+ ],
+ "svc_process_h2": "Your Free Quote in 3 Simple Steps",
+ "steps": [
+  {
+   "step_title": "Tell Us What Needs Keeping On Top Of",
+   "step_body": "Message or call with the boundary length, the fence style you have in mind and any photos. Tell us too if an old fence needs to come out."
+  },
+  {
+   "step_title": "We Agree the Visit and the Price",
+   "step_body": "We go through what the fencing involves, from taking the old fence out to hanging the gate. Then we agree the cost, so you know the job and its price."
+  },
+  {
+   "step_title": "We Start on a Date That Suits You",
+   "step_body": "Your fencing job goes in the diary for a date that works for you. The first task on the day is marking out the boundary."
+  }
+ ],
+ "svc_block5_h2": "How We Price Fencing Visits in Romsey",
+ "svc_cost_intro": "What a fencing job costs depends on the boundary itself and on what's standing there now. The cards below set out the main things that move the price, so you can see why two gardens can come out differently.",
+ "block5": [
+  {
+   "card_title": "What a visit has to get through",
+   "card_body": "Boundary length is the first thing that moves the price, because a longer run means more posts, more timber and more hours on site. A short, straight run with square corners costs less than a long one that bends around the garden."
+  },
+  {
+   "card_title": "How much is in the way",
+   "card_body": "Difficult ground and limited access both add time. Ground that's hard to dig slows the post holes, and a narrow way in means materials and waste have to be moved further."
+  },
+  {
+   "card_title": "The first visit",
+   "card_body": "What's already there changes the job. Taking out and clearing an old fence adds work, while sound posts or panels that can be reused take work out. Which applies is clear once the boundary has been looked at."
+  },
+  {
+   "card_title": "Extras you add to the visit",
+   "card_body": "A gate adds to the job because it has to be hung and fitted square. Work alongside the fence, such as hedge trimming or weed control along the boundary, adds further to the visit."
+  }
+ ],
+ "svc_cost_price_line": null,
+ "svc_reviews_show": false,
+ "svc_reviews_h2": "HIDDEN",
+ "reviews": [],
+ "svc_areas_h2": "Where We Provide Fencing Across Romsey",
+ "svc_areas_intro": "We're based just outside the area and travel up to [CV: travel_distance] inland and along the coast. That takes in the whole of Romsey and the villages around it. Fencing is carried out across all of that area, from the lower streets by the River Test to the larger gardens further out.",
+ "svc_areas_links": [
+  {
+   "name": "Whitenap",
+   "url": null
+  },
+  {
+   "name": "Halterworth",
+   "url": null
+  },
+  {
+   "name": "Tadburn Valley",
+   "url": null
+  },
+  {
+   "name": "Tadburn Gardens",
+   "url": null
+  },
+  {
+   "name": "Great Woodley",
+   "url": null
+  },
+  {
+   "name": "Upper Cupernham and Winchester Road",
+   "url": null
+  },
+  {
+   "name": "Lower Cupernham and Fishlake Meadows",
+   "url": null
+  },
+  {
+   "name": "Romsey Old Town and riverside streets",
+   "url": null
+  },
+  {
+   "name": "Town Centre Outer Core and Priestlands",
+   "url": null
+  },
+  {
+   "name": "Harefield and Little Woodley",
+   "url": null
+  },
+  {
+   "name": "Woodley and Ganger",
+   "url": null
+  },
+  {
+   "name": "Crampmoor and Highwood",
+   "url": null
+  }
+ ],
+ "svc_areas_also_cover": [],
+ "svc_faq_h2": "Fencing Questions Answered",
+ "faq_items": [
+  {
+   "faq_question": "How often should fencing be done?",
+   "faq_answer": "Fencing isn't done on a set cycle, so the schedule is agreed with you. The weather decides the timing. Groundwork isn't done when the ground is frozen or too wet to hold a stable post hole. How long a job takes varies with the boundary, so there's no standard time.",
+   "doubt": "Timing"
+  },
+  {
+   "faq_question": "How much does a fencing visit cost in Romsey?",
+   "faq_answer": "Fencing prices are agreed with you for each boundary, and the quote is free. Length is one of the main things that moves the price, along with what's standing there now and how easy the ground is to dig. Once the boundary has been looked at, the figure is clear.",
+   "doubt": "Price"
+  },
+  {
+   "faq_question": "Are you insured for fencing?",
+   "faq_answer": "Yes, we're insured up to £[CV: insurance_cover]. That cover applies to the fencing work we carry out, from the first post hole to the last panel. It's there for accidents that can happen while the work is under way, such as damage to a neighbouring panel or a nearby window.",
+   "doubt": "Trust"
+  },
+  {
+   "faq_question": "Do I need to be home for a fencing visit?",
+   "faq_answer": "The arrangements for getting in are agreed before the first visit. If access to the boundary is tight, say so when you first message us. Limited access is one of the things that shapes how the job is planned.",
+   "doubt": "Process"
+  },
+  {
+   "faq_question": "What does a fencing visit include?",
+   "faq_answer": "A fencing visit runs from marking out the boundary to hanging the gate. We mark the line and check the ground for buried services. Any old fence comes down, then the post holes are dug and the posts set in line. Rails and cladding follow, and the gate goes on last. Work on a hedge beside the fence is a separate service, [hedge trimming](/services/hedge-trimming).",
+   "doubt": "Fit"
+  },
+  {
+   "faq_question": "Are there rules or standards for fencing?",
+   "faq_answer": "Usually no planning permission is needed if the fence stays under a set height. In most cases that's up to two metres, or one metre beside a road used by vehicles. Listed buildings and conservation areas can change that, so check first if yours is one. Ordinary fences don't usually need separate building control approval, but they do have to be built soundly.",
+   "doubt": "Process"
+  },
+  {
+   "faq_question": "When should I book fencing for the season?",
+   "faq_answer": "Book the first fencing visit of the year early. Winter wind and rain work on posts and panels. That first visit is where failing sections are found and dealt with before they spread. Finding a rotted post early often means replacing one post rather than a whole run.",
+   "doubt": "Timing"
+  }
+ ],
+ "svc_more_h2": "Our Other Gardening Services in Romsey",
+ "svc_more_intro": "There's more to a garden than the boundary. These are the other gardening services we carry out, and each one has its own page with the detail.",
+ "more_cards": [
+  {
+   "card_name": "Lawn mowing",
+   "card_url": "/services/lawn-mowing",
+   "card_target": "base"
+  },
+  {
+   "card_name": "Lawn seeding",
+   "card_url": "/services/lawn-seeding",
+   "card_target": "base"
+  },
+  {
+   "card_name": "Hedge trimming",
+   "card_url": "/services/hedge-trimming",
+   "card_target": "base"
+  },
+  {
+   "card_name": "Mulching",
+   "card_url": "/services/mulching",
+   "card_target": "base"
+  },
+  {
+   "card_name": "Weed control",
+   "card_url": "/services/weed-control",
+   "card_target": "base"
+  }
+ ],
+ "svc_final_cta_h2": "Get a Free Fencing Quote in Romsey",
+ "svc_final_cta_body": "Message us the boundary details and any photos, and we'll talk through the job and book it in for the same week.",
+ "svc_final_cta_trust_lines": [
+  "[CV: hours]"
+ ],
+ "meta": {
+  "page_type": "service",
+  "page_key": "/locations/romsey/fencing",
+  "scope": "town",
+  "town": "Romsey",
+  "generated_at": "2026-10-27T15:21:44.228Z",
+  "stand_ins": [],
+  "client_values": {
+   "company_name": "Edens Edge Landscaping",
+   "phone": "07850 412717",
+   "hours": "Monday to Saturday, 7am to 6pm",
+   "primary_category": "Landscaper",
+   "jobs_completed": "100",
+   "insurance_cover": "5m",
+   "differentiator_1": "Fixed Prices With No Hidden Costs",
+   "differentiator_1_sentence": "Fixed prices with no hidden costs",
+   "differentiator_2": "Family Run and Independent",
+   "differentiator_2_sentence": "Family Run and Independent",
+   "free_quotes": "yes",
+   "start_time": "same week",
+   "owner_name": "Ethan",
+   "business_type": "A",
+   "team_size": "4",
+   "travel_distance": "20 miles",
+   "jobs_wanted": "Landscape Gardener, Landscape Designer"
+  }
+ }
+}

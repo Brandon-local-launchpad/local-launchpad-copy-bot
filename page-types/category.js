@@ -80,12 +80,14 @@ module.exports = {
   ranges: RANGES,
   validate: (record, V) => require('../validate-category').validateCategory(record, V),
   readerView: (record, values) => require('../category-reader').buildCategoryReaderView(record, values),
-  // The WordPress mapping waits for the category template's field map (23 Oct): no push yet
+  // WordPress (13 Nov 2026): the fields are the cat_ set in wp/acf-schema.js INNER_GROUPS; the page is the entry
+  // in the page's post type at the record's page map URL (made by wp/pages.js, Pages on the site)
   wp: {
     label: 'category page',
-    fields: [],
-    buildPayload: () => { throw new Error('Category pages cannot be pushed yet: the WordPress field map for the category template is not in Copybot.'); },
-    findPage: async () => null,
-    groups: [],
+    notFound: 'Make the pages first: Pages tab, Pages on the site.',
+    get fields() { return require('../wp/inner-map').fieldsFor('cat'); },
+    buildPayload: (record, opts) => require('../wp/inner-map').buildInnerPayload(record, 'cat', opts),
+    findPage: (site, record) => require('../wp/client').findInnerPage(site, record),
+    get groups() { return require('../wp/inner-map').groupsFor('cat'); },
   },
 };

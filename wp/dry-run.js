@@ -73,7 +73,7 @@ function fieldsAttached(page, wp, status) {
   const absent = names.filter(n => !(n in acf));
   // Some fields attached: the groups match this page (an unset field can be left out); the read-back names any gap
   if (absent.length < names.length) return [];
-  const where = `page ${page.id}${page.slug ? ` (/${page.slug})` : ''}`;
+  const where = `${page.rest ? `the ${page.rest} entry` : 'page'} ${page.id}${page.slug ? ` (/${page.slug})` : ''}`;
   if (wp.label === 'homepage' && status && status.front_page && status.front_page !== page.id) {
     return [`The homepage fields only attach to the site's front page, and ${where} isn't it (the front page is page ${status.front_page}). Set it as the homepage in Settings → Reading, or clear the homepage slug so Copybot uses the front page. Otherwise the copy would not save.`];
   }
@@ -93,7 +93,7 @@ async function dryRun({ record, site, reviewed = false, seo = 'rankmath', client
   const siteCheck = await checkSite(site, seo, wp);
   refusals.push(...siteCheck.refusals);
   const page = await wp.findPage(site, record);
-  refusals.push(...checkTarget(page, site, wp.label));
+  refusals.push(...checkTarget(page, site, wp.label).map(r => (!page && wp.notFound ? `${r} ${wp.notFound}` : r)));
   refusals.push(...fieldsAttached(page, wp, siteCheck.status));
   const payload = record.blocked ? null : wp.buildPayload(record, { seo });
   const changes = page && payload ? [

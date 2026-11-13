@@ -7,14 +7,14 @@ For Given, who builds the WordPress templates. Written on 5 Nov 2026 from the co
 | Page type | ACF fields in the plugin | Copybot can push it | Copybot writes the copy |
 |---|---|---|---|
 | Homepage | Yes, 12 field groups | Yes | Yes |
-| Category | Yes, 11 groups, post type `service-category` | Not yet | Yes |
-| Location category | Yes, the same 11, post type `category-location` | Not yet | Yes |
-| Service | Yes, 12 groups, post type `service` | Not yet | Yes |
-| Town service | Yes, the same 12, post type `location-service` | Not yet | Yes |
-| Location | Yes, 11 groups, post type `location` | Not yet | Yes |
+| Category | Yes, 11 groups, post type `service-category` | Yes | Yes |
+| Location category | Yes, the same 11, post type `category-location` | Yes | Yes |
+| Service | Yes, 12 groups, post type `service` | Yes | Yes |
+| Town service | Yes, the same 12, post type `location-service` | Yes | Yes |
+| Location | Yes, 11 groups, post type `location` | Yes | Yes |
 | Blog post | Only on the `blog` branch, 7 groups | Only on the `blog` branch | Only on the `blog` branch |
 
-**Since plugin 0.6.0 (13 Nov 2026) the five inner page types have their ACF field groups in the plugin.** The fields are the ones in the Category, Service and Location template tables below. Copybot can't create those pages or push their copy yet: that is the next piece of work. See Inner pages: post types and URLs.
+**Since plugin 0.6.0 (13 Nov 2026) the five inner page types have their ACF field groups in the plugin.** The fields are the ones in the Category, Service and Location template tables below. Copybot makes those pages on the site and pushes their copy (13 Nov 2026). See Inner pages: post types and URLs.
 
 **Blog is built on its own branch, not on main, and is parked until Edens Edge is live.** The `blog` branch has its own spec, prompt, records, validator, 7 ACF groups, a push and a handover for Given. It is about 100 commits behind main, so none of it is live. See the Blog post section.
 
@@ -32,7 +32,7 @@ For Given, who builds the WordPress templates. Written on 5 Nov 2026 from the co
 
 **Blog post, on the `blog` branch:** it looks up the post by slug in any status, `/wp/v2/posts?slug=<slug>&status=any`, and creates it if there is none.
 
-**Every other page type:** there is no matching. `findPage` returns nothing and the payload builder refuses with "cannot be pushed yet". Each record does carry `page_slug` (for example `/services/patios`), which is the natural key once a mapping exists. How it should match, by slug or by a stored page ID, is still to decide.
+**Category, service and location pages:** the entry whose page map URL (`_llp_path`) is the record's `page_slug`, for example `/services/patios`, in whichever of the five post types holds it. If there is none, the push is refused and says to make the pages first.
 
 **What the push refuses, and what it never changes:**
 - The plugin must be active with the expected version, ACF Pro active, the SEO plugin matching the connection, and all 12 homepage groups present.
@@ -205,7 +205,7 @@ The push writes these to the site's Settings, Client Values. Use them for tokens
 
 ## Category page
 
-**In ACF since plugin 0.6.0 (the template tables further down), not pushed yet.** Paving Contractor, Southampton example.
+**In ACF since plugin 0.6.0 (the template tables further down), and pushed since 13 Nov 2026.** Paving Contractor, Southampton example.
 
 | Field | Type | Section | Set by | Example |
 |---|---|---|---|---|
@@ -265,7 +265,7 @@ The push writes these to the site's Settings, Client Values. Use them for tokens
 
 ## Location category page
 
-**In ACF since plugin 0.6.0 (the template tables further down), not pushed yet.** It is the same page type and template as the category page, with the record's `scope` set to `town`. Gardener, Romsey example.
+**In ACF since plugin 0.6.0 (the template tables further down), and pushed since 13 Nov 2026.** It is the same page type and template as the category page, with the record's `scope` set to `town`. Gardener, Romsey example.
 
 What differs from the category page: the copy covers that town only, `cat_areas_links` lists its villages unlinked, and `cat_areas_also_cover` is empty.
 
@@ -327,7 +327,7 @@ What differs from the category page: the copy covers that town only, `cat_areas_
 
 ## Service page
 
-**In ACF since plugin 0.6.0 (the template tables further down), not pushed yet.** Patios, Southampton example.
+**In ACF since plugin 0.6.0 (the template tables further down), and pushed since 13 Nov 2026.** Patios, Southampton example.
 
 | Field | Type | Section | Set by | Example |
 |---|---|---|---|---|
@@ -390,7 +390,7 @@ What differs from the category page: the copy covers that town only, `cat_areas_
 
 ## Town service page
 
-**In ACF since plugin 0.6.0 (the template tables further down), not pushed yet.** It is the same page type and template as the service page, with `scope` set to `town`. Tree stump removal, Romsey example.
+**In ACF since plugin 0.6.0 (the template tables further down), and pushed since 13 Nov 2026.** It is the same page type and template as the service page, with `scope` set to `town`. Tree stump removal, Romsey example.
 
 What differs from the service page: the copy covers that town and service only, `svc_areas_links` lists its villages unlinked, `svc_areas_also_cover` is empty, and the more services cards link to sibling town pages where they exist.
 
@@ -455,7 +455,7 @@ What differs from the service page: the copy covers that town and service only, 
 
 ## Location page
 
-**In ACF since plugin 0.6.0 (the template tables further down), not pushed yet.** Romsey example.
+**In ACF since plugin 0.6.0 (the template tables further down), and pushed since 13 Nov 2026.** Romsey example.
 
 | Field | Type | Section | Set by | Example |
 |---|---|---|---|---|
@@ -590,7 +590,9 @@ Brandon, Ray and Given agreed on 12 and 13 Nov 2026 that Copybot generates these
 
 **Making the pages (plugin 0.7.0, 13 Nov 2026).** On the Pages tab, Pages on the site: Check the site lists what is missing, and Create makes every category, service and location page in the build as a draft, in its post type, at its page map URL (`wp/pages.js`; the plugin routes `GET` and `POST /llp-copybot/v1/pages`). A page is never made twice, a page the page map moved keeps its entry, and nothing is published, deleted or changed beyond its title and URL. Phase 2 towns are made when they come into the build. Staging sites only.
 
-**Not built yet:** pushing the copy into those pages.
+**Pushing the copy (13 Nov 2026).** A category, service or location page pushes like the homepage, from its page view: the dry run, the claims review, the snapshot, the write, the read-back and the rollback are the same code (`wp/push.js`). The page it writes to is the entry at the record's page map URL, found through the plugin's list and read and written through its post type's REST route (`wp/client.js findInnerPage`). The fields sent are read off the schema (`wp/inner-map.js`): everything in the template tables marked Copybot, and nothing marked The site. On the Pages tab, Check the copy lists which pages are ready, and Push the copy sends every ready page one at a time. Ready means a person approved the page, every claims finding is accepted, it has no BLOCK or stand-in, and its entry is on the site.
+
+**Not sent to these pages:** the rating line, the final CTA trust lines and the buttons (the template, from Client Values), the breadcrumb (Rank Math), and the focus keyword (not pushed yet).
 
 **Not proven on a real site.** The plugin's PHP is tested under php-wasm against stand-ins for WordPress. The first install of 0.7.0 on staging should check: the 34 groups appear in ACF, a new Service entry shows the fields, Create on the Pages tab makes the drafts, and one of them opens at its page map URL when previewed.
 

@@ -1,0 +1,419 @@
+{
+ "page": "location",
+ "VALIDATION": {
+  "status": "run",
+  "block": 0,
+  "flag": 4,
+  "issues": []
+ },
+ "CLAIMS": {
+  "for": "2026-10-27T15:57:51.158Z",
+  "at": "2026-10-27T16:06:29.153Z",
+  "status": "needs acceptance",
+  "first_review": 4,
+  "findings": [
+   {
+    "field": "loc_content_body",
+    "quote": "which makes a sound fence matter more",
+    "why": "Fencing is a confirmed service, but the sentence is trade/area commentary; no business claim. (not a finding)"
+   }
+  ],
+  "rounds": [
+   {
+    "round": 1,
+    "findings": [
+     {
+      "field": "loc_areas_intro",
+      "quote": "Our base in Southampton is within [CV: travel_distance] of the town, so the outer edges are as easy to reach as the centre.",
+      "why": "A Southampton base is not in the facts on file, and 'as easy to reach as the centre' is an unsupported promise."
+     },
+     {
+      "field": "block4 card_body (Boundaries as old as the houses)",
+      "quote": "Replacing one means taking the old run out first, then putting the new one in along the line you choose.",
+      "why": "Describes how the business works on a replacement (removal first, new run on the customer's line). No confirmed practice supports it."
+     },
+     {
+      "field": "block4 card_body (Trees that have outgrown the garden)",
+      "quote": "so a tree surgeon should ask about them first",
+      "why": "Asserts a pre-work check that applies to this business's tree work; not a confirmed practice."
+     },
+     {
+      "field": "step_body (Tell Us About Your Garden)",
+      "quote": "plus how we'd reach it from the road",
+      "why": "Claims the business asks about access as part of its enquiry process; not a confirmed practice."
+     }
+    ],
+    "retries": [
+     {
+      "round": 1,
+      "field": "loc_areas_intro",
+      "claims": [
+       "Our base in Southampton is within [CV: travel_distance] of the town, so the outer edges are as easy to reach as the centre."
+      ],
+      "before": "We cover Romsey and the villages and neighbourhoods around it. Our base in Southampton is within [CV: travel_distance] of the town, so the outer edges are as easy to reach as the centre. Houses on the valley sides and gardens down by the river are both inside that distance.",
+      "after": "We cover Romsey and the villages and neighbourhoods around it, and we travel up to [CV: travel_distance] from our base in Southampton. That takes in the older streets by the river, the estates on the valley sides and the villages beyond, so wherever your garden sits around the town, it falls inside our patch.",
+      "kept": true
+     },
+     {
+      "round": 1,
+      "field": "block4 card_body (Boundaries as old as the houses)",
+      "claims": [
+       "Replacing one means taking the old run out first, then putting the new one in along the line you choose."
+      ],
+      "before": "Panels that lean, posts that wobble and a garden wall with a bow in it are often the original boundary. It went up when the houses were built, and many estates here date from after the war. Replacing one means taking the old run out first, then putting the new one in along the line you choose.",
+      "after": "Panels that lean, posts that wobble and a garden wall with a bow in it are often the original boundary. It went up when the houses were built, and many estates here date from the 1960s and 1970s, so those fences and walls have had decades of weather and are now at the end of their life.",
+      "kept": true
+     },
+     {
+      "round": 1,
+      "field": "block4 card_body (Trees that have outgrown the garden)",
+      "claims": [
+       "so a tree surgeon should ask about them first"
+      ],
+      "before": "Roots lifting a path and branches over the roof usually mean a tree planted for a bigger garden than this one. Mature trees in the older, larger gardens are the clearest example. Before a protected tree is touched, a few checks usually apply, so a tree surgeon should ask about them first.",
+      "after": "Roots lifting a path and branches over the roof usually mean a tree planted for a bigger garden than this one. Mature trees in the older, larger gardens are the clearest example. Where a tree is protected, such as in the conservation area, the council usually has to be told before it is touched.",
+      "kept": false,
+      "error": "the rewrite added a BLOCK"
+     },
+     {
+      "round": 1,
+      "field": "step_body (Tell Us About Your Garden)",
+      "claims": [
+       "plus how we'd reach it from the road"
+      ],
+      "before": "Ring or message us during [CV: hours] and tell us what bothers you most about the garden, plus how we'd reach it from the road.",
+      "after": "Ring or message us during [CV: hours] and tell us what you'd like done in the garden. A rough size and a photo or two help us picture the job.",
+      "kept": false,
+      "error": "the rewrite added a BLOCK"
+     }
+    ]
+   },
+   {
+    "round": 2,
+    "findings": [
+     {
+      "field": "loc_areas_intro",
+      "quote": "from our base in Southampton",
+      "why": "States where the business is based; no base location is in the client values or facts on file."
+     },
+     {
+      "field": "step_body (Tell Us About Your Garden)",
+      "quote": "plus how we'd reach it from the road",
+      "why": "Asks for access details as part of the process; not a confirmed practice, though minor."
+     },
+     {
+      "field": "block4 card_body (Boundaries as old as the houses)",
+      "quote": "many estates here date from the 1960s and 1970s",
+      "why": "The town profile gives Whitenap as largely 1960s/70s and post-1945 estates; stating it for 'many estates' is a stretch but is about the area, not the business."
+     }
+    ],
+    "retries": [
+     {
+      "round": 2,
+      "field": "loc_areas_intro",
+      "claims": [
+       "from our base in Southampton"
+      ],
+      "before": "We cover Romsey and the villages and neighbourhoods around it, and we travel up to [CV: travel_distance] from our base in Southampton. That takes in the older streets by the river, the estates on the valley sides and the villages beyond, so wherever your garden sits around the town, it falls inside our patch.",
+      "after": "We cover Romsey and the villages and neighbourhoods around it, and we travel up to [CV: travel_distance] to reach them. That takes in the older streets by the river and the estates on the valley sides. The villages beyond are covered too, so wherever your garden sits around the town, it falls inside our patch.",
+      "kept": true
+     },
+     {
+      "round": 2,
+      "field": "step_body (Tell Us About Your Garden)",
+      "claims": [
+       "plus how we'd reach it from the road"
+      ],
+      "before": "Ring or message us during [CV: hours] and tell us what bothers you most about the garden, plus how we'd reach it from the road.",
+      "after": "Ring or message us during [CV: hours] and tell us what you'd like done in the garden. A rough size and a photo or two help if you have them.",
+      "kept": false,
+      "error": "the rewrite added a BLOCK"
+     },
+     {
+      "round": 2,
+      "field": "block4 card_body (Boundaries as old as the houses)",
+      "claims": [
+       "many estates here date from the 1960s and 1970s"
+      ],
+      "before": "Panels that lean, posts that wobble and a garden wall with a bow in it are often the original boundary. It went up when the houses were built, and many estates here date from the 1960s and 1970s, so those fences and walls have had decades of weather and are now at the end of their life.",
+      "after": "Panels that lean, posts soft at the base and a garden wall with a bow in it usually belong to the original boundary. Romsey's post war estates and older streets were fenced when they were built, so those runs have had decades of weather. Replacing one means new posts and panels, or rebuilding the wall.",
+      "kept": true
+     }
+    ]
+   },
+   {
+    "round": "after quality 1",
+    "findings": [
+     {
+      "field": "loc_content_body",
+      "quote": "so overhanging growth is part of the job",
+      "why": "Claims the business deals with overhanging growth as a regular part of its work; no such practice is on file, and it is not a plain description of a confirmed service."
+     },
+     {
+      "field": "loc_final_cta_body",
+      "quote": "your project gets its place in our diary",
+      "why": "Implies a booking or scheduling commitment on receipt of a message; this is not on file and is not simple contact wording."
+     }
+    ],
+    "retries": [
+     {
+      "round": 1,
+      "field": "loc_content_body",
+      "claims": [
+       "so overhanging growth is part of the job"
+      ],
+      "before": "Romsey sits low beside the River Test, and that shapes the work of any gardener in Romsey. Housing climbs to flatter ground to the east, away from the water. Gardens near the water come with old trees and changing levels to plan for. Up on the plateaux the ground is easier to lay out, and lawns, paths and boundaries take most of the attention.\n\nIn Whitenap, the older Botley Road houses keep deep gardens with mature oaks and hedgerows, so overhanging growth is part of the job. The late 1970s terraces at Five Elms have rear boundaries facing public areas, which makes a sound fence matter more. In the Old Town, the generous riverbank gardens at The Causeway sit right beside the water. Levels and established trees shape what can be built there.\n\nSome gardens here are long and open, others tight and overlooked, and no two jobs look alike. We're family run and independent, with a team of [CV: team_size]. Where lawns and hedges need regular attention, our [gardening](/locations/romsey/gardener) covers it. Sloping ground, steps and retaining walls are a job for [landscape gardening](/locations/romsey/landscape-gardener), and heavy limbs over a roof or fence call for [tree surgery](/locations/romsey/tree-service).\n\nIf one of these sounds like your garden, ask for a quote and we'll go from there.",
+      "after": "Romsey sits low beside the River Test, and that shapes the work of any gardener in Romsey. Housing climbs to flatter ground to the east, away from the water. Gardens near the water come with old trees and changing levels to plan for. Up on the plateaux the ground is easier to lay out, and lawns, paths and boundaries take most of the attention.\n\nIn Whitenap, the older Botley Road houses keep deep gardens with mature oaks and hedgerows, which means a lot more lawn and boundary than the smaller estate fronts nearby. The late 1970s terraces at Five Elms have rear boundaries facing public areas, which makes a sound fence matter more. In the Old Town, the generous riverbank gardens at The Causeway sit right beside the water. Levels and established trees shape what can be built there.\n\nSome gardens here are long and open, others tight and overlooked, and no two jobs look alike. We're family run and independent, with a team of [CV: team_size]. Where lawns and hedges need regular attention, our [gardening](/locations/romsey/gardener) covers it. Sloping ground, steps and retaining walls are a job for [landscape gardening](/locations/romsey/landscape-gardener), and heavy limbs over a roof or fence call for [tree surgery](/locations/romsey/tree-service).\n\nIf one of these sounds like your garden, ask for a quote and we'll go from there.",
+      "kept": true
+     },
+     {
+      "round": 1,
+      "field": "loc_final_cta_body",
+      "claims": [
+       "your project gets its place in our diary"
+      ],
+      "before": "Ring or message with a photo of the garden and the job you have in mind, and your project gets its place in our diary.",
+      "after": "Call [CV: phone] or message us with a photo of your garden and the job you have in mind, and we'll reply from there.",
+      "kept": false,
+      "error": "the rewrite added a BLOCK"
+     }
+    ]
+   }
+  ]
+ },
+ "scope": "town",
+ "town": "Romsey",
+ "page_slug": "/locations/romsey",
+ "seo_title": "Gardener Services in and around Romsey | Edens Edge Landscaping",
+ "meta_description": "Edens Edge Landscaping is a gardener in Romsey offering fixed prices with no hidden costs. Get your free quote today.",
+ "breadcrumb": [
+  {
+   "name": "Home",
+   "url": "/"
+  },
+  {
+   "name": "Romsey",
+   "url": null
+  }
+ ],
+ "loc_hero_h1": "Gardener Services in and around Romsey",
+ "loc_hero_trust_line": "100+ Jobs Completed",
+ "loc_hero_intro": "[CV: company_name] is a gardener in Romsey, taking on everything from a simple tidy up to a full makeover with groundwork, patios and decking. Every price we give is fixed, with no hidden costs.",
+ "loc_hero_rating_line": "",
+ "buttons": [
+  "Get My Free Quote",
+  "Call [CV: phone]"
+ ],
+ "loc_services_h2": "Our Landscaping Services in Romsey",
+ "loc_services_intro": "Romsey gardens run from deep lawns by the river to small terrace yards. Homeowners here look for lawn care, groundwork, patios, decking and tree work, and the cards below show what each kind of work covers.",
+ "cards": [
+  {
+   "card_name": "Gardening",
+   "card_text": "Borders lost under weeds and grass that's got ahead of you make a garden feel neglected fast. Our [gardening](/locations/romsey/gardener) work is the upkeep that brings a garden back under control. It clears the beds and sharpens the edges, so the whole garden looks cared for again.",
+   "card_url": "/locations/romsey/gardener",
+   "card_target": "location-category"
+  },
+  {
+   "card_name": "Landscape Gardening",
+   "card_text": "Is the garden awkward to use, with a slope that makes every trip down it a chore? The [landscape gardening](/locations/romsey/landscape-gardener) we do reshapes the ground itself, changing levels and surfaces so the garden is easy to move around and sit out in.",
+   "card_url": "/locations/romsey/landscape-gardener",
+   "card_target": "location-category"
+  },
+  {
+   "card_name": "Garden Design",
+   "card_text": "Garden design suits a garden that never quite worked, such as a back door opening onto nothing or a corner nobody uses. In a [garden design](/locations/romsey/landscape-designer) job, we start from how you'd like to use the space, then lay out the lawn, paths and seating around that.",
+   "card_url": "/locations/romsey/landscape-designer",
+   "card_target": "location-category"
+  },
+  {
+   "card_name": "Tree Surgery",
+   "card_text": "People usually call about a tree after a winter gale drops a limb, or when branches start shading the house. Our [tree surgery](/locations/romsey/tree-service) jobs cover pruning, felling and stump removal, from trimming one heavy limb to taking down a whole tree.",
+   "card_url": "/locations/romsey/tree-service",
+   "card_target": "location-category"
+  },
+  {
+   "card_name": "Paving",
+   "card_text": "Rushed paving leaves ragged cuts, uneven edges and a surface that never looks finished, however good the slabs were. When you're booking [paving](/locations/romsey/paving-contractor), the work covers the groundwork and the surface, whether it's for sitting out, parking or a route to the shed.",
+   "card_url": "/locations/romsey/paving-contractor",
+   "card_target": "location-category"
+  },
+  {
+   "card_name": "Decking",
+   "card_text": "A deck you can step onto from the kitchen door and sit out on in the evenings is the result people are after. Our [decking](/locations/romsey/deck-builder) service covers new installation, repairs and restoration, so a tired deck can be rescued as well as a new one built.",
+   "card_url": "/locations/romsey/deck-builder",
+   "card_target": "location-category"
+  }
+ ],
+ "loc_content_h2": "Local Landscaping for Romsey Homeowners",
+ "loc_content_body": "Romsey sits low beside the River Test, and that shapes the work of any gardener in Romsey. Housing climbs to flatter ground to the east, away from the water. Gardens near the water come with old trees and changing levels to plan for. Up on the plateaux the ground is easier to lay out, and lawns, paths and boundaries take most of the attention.\n\nIn Whitenap, the older Botley Road houses keep deep gardens with mature oaks and hedgerows, which means a lot more lawn and boundary than the smaller estate fronts nearby. The late 1970s terraces at Five Elms have rear boundaries facing public areas, which makes a sound fence matter more. In the Old Town, the generous riverbank gardens at The Causeway sit right beside the water. Levels and established trees shape what can be built there.\n\nSome gardens here are long and open, others tight and overlooked, and no two jobs look alike. We're family run and independent, with a team of [CV: team_size]. Where lawns and hedges need regular attention, our [gardening](/locations/romsey/gardener) covers it. Sloping ground, steps and retaining walls are a job for [landscape gardening](/locations/romsey/landscape-gardener), and heavy limbs over a roof or fence call for [tree surgery](/locations/romsey/tree-service).\n\nIf one of these sounds like your garden, ask for a quote and we'll go from there.",
+ "loc_block4_h2": "Common Landscaping Problems in Romsey",
+ "block4": [
+  {
+   "card_title": "Ground that holds the rain",
+   "card_body": "A lawn beside a stream that stays soggy for days after rain is common here. Some gardens sit near the Test and others near the Tadburn. The fields to the west hold floodwater too, so how wet a garden gets depends on the street. Any job that goes into the ground has to be planned around that wetness."
+  },
+  {
+   "card_title": "Boundaries as old as the houses",
+   "card_body": "Panels that lean, posts soft at the base and a garden wall with a bow in it usually belong to the original boundary. Romsey's post war estates and older streets were fenced when they were built, so those runs have had decades of weather. Replacing one means new posts and panels, or rebuilding the wall."
+  },
+  {
+   "card_title": "Trees that have outgrown the garden",
+   "card_body": "Roots lifting a path and branches over the roof usually mean a tree planted for a bigger garden than this one. Mature trees in the older, larger gardens are the clearest example. Before a protected tree is touched, a few checks usually apply, so a tree surgeon should ask about them first."
+  },
+  {
+   "card_title": "Front gardens turned over to parking",
+   "card_body": "Terraces with no drive are why so many front gardens get paved over for parking, and a paved front sends its rain straight to the road or next door. A new hard surface there usually needs to let rain soak through, or drain inside the garden rather than into the street."
+  }
+ ],
+ "loc_block5_h2": "What Affects the Cost of Landscaping in Romsey",
+ "loc_cost_intro": "What a landscaping job costs in Romsey comes down to the hours of work and what has to be carried or cleared. The four points below are the ones that usually add or save time here.",
+ "block5": [
+  {
+   "card_title": "Getting in on a terraced street",
+   "card_body": "On terraced streets such as those around Riverside Gardens and Rivermead Close, there's no vehicle access outside the front door. Materials are carried in by hand and any skip sits on the road, and all that carrying adds time to a job."
+  },
+  {
+   "card_title": "Gardens on a slope",
+   "card_body": "A garden that falls or rises from the house needs its levels taken, steps or a retaining edge, and more digging than a flat one. Streets east of the river rise up the valley sides, so sloping gardens are part of the picture here."
+  },
+  {
+   "card_title": "Conservation areas and protected trees",
+   "card_body": "Where a conservation area applies, trees, front boundaries and ground surfaces usually get extra scrutiny. The checks and paperwork before work starts add time to a job, and some changes can't be made at all."
+  },
+  {
+   "card_title": "What the last owner left behind",
+   "card_body": "Old concrete, a shed base, buried rubble or an overgrown hedge has to come out and go in a skip before anything new goes in. Older gardens carry more of it, simply because they've had more owners and more projects."
+  }
+ ],
+ "loc_cost_price_line": null,
+ "loc_reviews_show": false,
+ "loc_reviews_h2": "HIDDEN",
+ "reviews": [],
+ "loc_process_h2": "Your Free Quote in 3 Simple Steps",
+ "steps": [
+  {
+   "step_title": "Tell Us About Your Garden",
+   "step_body": "Call us on [CV: phone] (we're open [CV: hours]) and tell us the rough size, what you'd like done, and send photos if you have them."
+  },
+  {
+   "step_title": "We Price Your Job",
+   "step_body": "Once we know what you want done, a price is agreed with you before any work starts, so you know exactly what the job covers."
+  },
+  {
+   "step_title": "We Start on a Date That Suits You",
+   "step_body": "We agree a start date with you ahead of time, chosen to suit you, so you know exactly when we'll arrive."
+  }
+ ],
+ "loc_areas_h2": "Where We Provide Landscaping Around Romsey",
+ "loc_areas_intro": "We cover Romsey and the villages and neighbourhoods around it, and we travel up to [CV: travel_distance] to reach them. That takes in the older streets by the river and the estates on the valley sides. The villages beyond are covered too, so wherever your garden sits around the town, it falls inside our patch.",
+ "loc_areas_links": [
+  {
+   "name": "Whitenap",
+   "url": null
+  },
+  {
+   "name": "Halterworth",
+   "url": null
+  },
+  {
+   "name": "Tadburn Valley",
+   "url": null
+  },
+  {
+   "name": "Tadburn Gardens",
+   "url": null
+  },
+  {
+   "name": "Great Woodley",
+   "url": null
+  },
+  {
+   "name": "Upper Cupernham and Winchester Road",
+   "url": null
+  },
+  {
+   "name": "Lower Cupernham and Fishlake Meadows",
+   "url": null
+  },
+  {
+   "name": "Romsey Old Town and riverside streets",
+   "url": null
+  },
+  {
+   "name": "Town Centre Outer Core and Priestlands",
+   "url": null
+  },
+  {
+   "name": "Harefield and Little Woodley",
+   "url": null
+  },
+  {
+   "name": "Woodley and Ganger",
+   "url": null
+  },
+  {
+   "name": "Crampmoor and Highwood",
+   "url": null
+  }
+ ],
+ "loc_faq_h2": "Landscaping Questions Answered",
+ "faq_items": [
+  {
+   "faq_question": "How much does landscaping cost in Romsey?",
+   "faq_answer": "Price follows the size of the job, the ground and the way in. A patio with steps and a retaining wall takes longer than a short path, and a garden reached only through the house takes longer again. Quotes are free. Groundwork on sloping or awkward gardens falls under [landscape gardening](/locations/romsey/landscape-gardener).",
+   "doubt": "Price"
+  },
+  {
+   "faq_question": "How soon can you get to Romsey?",
+   "faq_answer": "Our usual start is the [CV: start_time], and that holds across the whole town. A full garden makeover or a patio with steps needs more planning than a quick tidy. Frozen or waterlogged ground can also push groundwork back, so the sooner you ask, the sooner it's in the diary.",
+   "doubt": "Timing"
+  },
+  {
+   "faq_question": "Are you insured?",
+   "faq_answer": "Yes, we're insured up to £[CV: insurance_cover]. The cover relates to the landscaping work we carry out, from groundwork and paving to fencing and tree work. Ask us about it whenever you like, before a job is agreed.",
+   "doubt": "Trust"
+  },
+  {
+   "faq_question": "What happens when I ask for a quote in Romsey?",
+   "faq_answer": "You tell us about the garden, and we come back with a price. Where it is and what you'd like done are enough for us to begin. From there, we talk through the figure together and settle a date for the work to begin.",
+   "doubt": "Process"
+  },
+  {
+   "faq_question": "When is the best time of year for landscaping work?",
+   "faq_answer": "Hard landscaping runs most of the year, and planting and turf suit autumn and spring. Digging and building need ground that isn't frozen or sodden, so dry spells matter there. Seed, turf and new plants need mild, moist weather to root. If you want spring work, booking ahead helps.",
+   "doubt": "Timing"
+  }
+ ],
+ "loc_final_cta_h2": "Get a Free Landscaping Quote in Romsey",
+ "loc_final_cta_body": "Ring or message with a photo of the garden and the job you have in mind, and your project gets its place in our diary.",
+ "loc_final_cta_trust_lines": [
+  "[CV: hours]"
+ ],
+ "meta": {
+  "page_type": "location",
+  "page_key": "/locations/romsey",
+  "scope": "town",
+  "town": "Romsey",
+  "generated_at": "2026-10-27T15:57:51.158Z",
+  "stand_ins": [],
+  "client_values": {
+   "company_name": "Edens Edge Landscaping",
+   "phone": "07850 412717",
+   "hours": "Monday to Saturday, 7am to 6pm",
+   "primary_category": "Landscaper",
+   "jobs_completed": "100",
+   "insurance_cover": "5m",
+   "differentiator_1": "Fixed Prices With No Hidden Costs",
+   "differentiator_1_sentence": "Fixed prices with no hidden costs",
+   "differentiator_2": "Family Run and Independent",
+   "differentiator_2_sentence": "Family Run and Independent",
+   "free_quotes": "yes",
+   "start_time": "same week",
+   "owner_name": "Ethan",
+   "business_type": "A",
+   "team_size": "4",
+   "travel_distance": "20 miles",
+   "jobs_wanted": "Landscape Gardener, Landscape Designer"
+  }
+ }
+}

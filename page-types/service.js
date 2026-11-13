@@ -84,12 +84,14 @@ module.exports = {
   ranges: RANGES,
   validate: (record, V) => require('../validate-service').validateService(record, V),
   readerView: (record, values) => require('../service-reader').buildServiceReaderView(record, values),
-  // The WordPress mapping waits for the service template's field map: no push yet
+  // WordPress (13 Nov 2026): the fields are the svc_ set in wp/acf-schema.js INNER_GROUPS; the page is the entry
+  // in the page's post type at the record's page map URL (made by wp/pages.js, Pages on the site)
   wp: {
     label: 'service page',
-    fields: [],
-    buildPayload: () => { throw new Error('Service pages cannot be pushed yet: the WordPress field map for the service template is not in Copybot.'); },
-    findPage: async () => null,
-    groups: [],
+    notFound: 'Make the pages first: Pages tab, Pages on the site.',
+    get fields() { return require('../wp/inner-map').fieldsFor('svc'); },
+    buildPayload: (record, opts) => require('../wp/inner-map').buildInnerPayload(record, 'svc', opts),
+    findPage: (site, record) => require('../wp/client').findInnerPage(site, record),
+    get groups() { return require('../wp/inner-map').groupsFor('svc'); },
   },
 };

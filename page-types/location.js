@@ -76,12 +76,14 @@ module.exports = {
   ranges: RANGES,
   validate: (record, V) => require('../validate-location').validateLocation(record, V),
   readerView: (record, values) => require('../location-reader').buildLocationReaderView(record, values),
-  // The WordPress mapping waits for the location template's field map: no push yet
+  // WordPress (13 Nov 2026): the fields are the loc_ set in wp/acf-schema.js INNER_GROUPS; the page is the entry
+  // in the page's post type at the record's page map URL (made by wp/pages.js, Pages on the site)
   wp: {
     label: 'location page',
-    fields: [],
-    buildPayload: () => { throw new Error('Location pages cannot be pushed yet: the WordPress field map for the location template is not in Copybot.'); },
-    findPage: async () => null,
-    groups: [],
+    notFound: 'Make the pages first: Pages tab, Pages on the site.',
+    get fields() { return require('../wp/inner-map').fieldsFor('loc'); },
+    buildPayload: (record, opts) => require('../wp/inner-map').buildInnerPayload(record, 'loc', opts),
+    findPage: (site, record) => require('../wp/client').findInnerPage(site, record),
+    get groups() { return require('../wp/inner-map').groupsFor('loc'); },
   },
 };

@@ -59,9 +59,23 @@ async function findPageBySlug(site, slug) {
   return pages[0] || null;
 }
 
-// One page by id, the same fields (the read-back after a push or a rollback)
-async function readPage(site, id) {
-  return wpGet(site, `/wp/v2/pages/${id}?${pageQuery}`);
+// One page by id, the same fields (the read-back after a push or a rollback). rest: the REST base of
+// the entry's post type, for an inner page ("service", "category-location"); the answer carries it
+async function readPage(site, id, rest = 'pages') {
+  const page = await wpGet(site, `/wp/v2/${rest}/${id}?${pageQuery}`);
+  return rest === 'pages' ? page : { ...page, rest };
 }
 
-module.exports = { findHomepage, findPageBySlug, readPage, wpGet, wpPost, authHeader, PAGE_FIELDS };
+// An inner page (category, service, location) is the entry at the record's page map URL, in whichever of
+// the five post types holds it: the plugin's list finds it (page-types.php), then it is read like a page
+async function findInnerPage(site, record) {
+  const path = record && record.page_slug;
+  if (!path) return null;
+  let items;
+  try { items = (await wpGet(site, '/llp-copybot/v1/pages')).items || []; }
+  catch (e) { if (/→ 404/.test(e.message)) return null; throw e; }
+  const hit = items.find(i => i.path === path);
+  return hit ? readPage(site, hit.id, hit.post_type) : null;
+}
+
+module.exports = { findHomepage, findPageBySlug, findInnerPage, readPage, wpGet, wpPost, authHeader, PAGE_FIELDS };

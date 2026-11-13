@@ -35,7 +35,18 @@ chk('A blocked record has no fields', fieldNames({ blocked: true }).fields.lengt
 
 const service = { meta: { page_type: 'service' }, seo_title: 'T', svc_hero_h1: 'Fencing Southampton', svc_hero_intro: 'Intro', included: [{ item_title: 'A', item_text: 'B' }], block4: [{ card_title: 'C', card_body: 'D' }], steps: [], faq_items: [], more_cards: [{ card_name: 'E', card_url: '/e' }], svc_more_h2: 'HIDDEN', svc_areas_links: [{ name: 'Romsey', url: '/r' }], reviews: [] };
 const svc = fieldNames(service);
-chk('Service page: not on the site yet, and it says so', svc.onSite === false, svc.onSite, false);
+// Since 13 Nov 2026 the inner pages have their fields on the site (wp/inner-map.js)
+chk('Service page: the names are the ones on the site, and it says so', svc.onSite === true, svc.onSite, true);
+{
+  const { INNER_GROUPS } = require(path.join(root, 'wp/acf-schema.js'));
+  const onSite = new Set(INNER_GROUPS.flatMap(g => g.fields.map(x => x.name)));
+  for (const file of ['category-town.json', 'service-town.json', 'location.json']) {
+    const r = JSON.parse(fs.readFileSync(path.join(__dirname, 'data/inner-records', file), 'utf8'));
+    const listed = [...new Set(fieldNames(r).fields.map(x => x.name.split('[')[0]))];
+    const strays = listed.filter(n => !onSite.has(n) && !/^(seo_title|meta_description|focus_keyword)$|_hero_rating_line$|_final_cta_trust_lines$/.test(n));
+    chk(`${file}: every name the page view lists is an ACF field on the site, or one the push sends elsewhere`, !strays.length, strays.join(), 'none');
+  }
+}
 chk('Service page: the names follow the OUTPUT block', ['svc_hero_h1', 'svc_hero_intro', 'svc_included_items[1].item_text', 'svc_block4[1].card_body', 'svc_more_cards[1].card_name', 'svc_areas_links[1].area_name'].every(n => svc.fields.some(f => f.name === n)), svc.fields.map(f => f.name).join(), 'all');
 chk('Service page: the hero intro is the model\'s', svc.fields.find(f => f.name === 'svc_hero_intro').source === 'model' && svc.fields.find(f => f.name === 'svc_hero_h1').source === 'code', '', 'model, code');
 
