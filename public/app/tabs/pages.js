@@ -118,7 +118,8 @@ export async function render(el, ctx) {
         ${table({ columns, rows: list, rowHref: r => r.href || null, cards: true, emptyText: rows.length ? 'No pages of this type.' : 'No pages in the page map yet. Generate the page map first.' })}
         <div class="tbl-foot">${h(plural(list.length, 'page'))} · ${list.filter(r => r.status === 'written' || r.status === 'approved' || r.status === 'pushed').length} written clean · ${list.filter(r => r.status === 'blocked' || r.status === 'failed').length} blocked or failed · ${list.reduce((n, r) => n + r.claims, 0)} claims to accept</div>
       </section>
-      <div id="siteCard" style="margin-top:16px"></div>`;
+      <div id="siteCard" style="margin-top:16px"></div>
+      <div id="sitePages" style="margin-top:16px"></div>`;
     el.querySelector('#quality').addEventListener('change', e => { quality = e.target.checked; });
     drawSite();
   };
@@ -141,7 +142,44 @@ export async function render(el, ctx) {
         <label class="check"><input type="checkbox" id="testMode"${v.v20_test_mode ? ' checked' : ''}> Test mode (stand-ins allowed)</label></div>
       </div>
       <div class="btn-row"><button class="btn btn-primary btn-sm" data-site="save">Save</button><button class="btn btn-ghost btn-sm" data-site="test" ${c ? '' : 'disabled'}>Test connection</button><span class="small muted" id="siteStatus"></span></div>` });
+    drawSitePages();
   };
+  // Pages on the site (13 Nov, wp/pages.js): every category, service and location page in the build made on the
+  // site as a draft, in its post type, at its page map URL. Check reads only; Create asks first.
+  let sitePages = null, sitePagesNote = '';
+  const drawSitePages = () => {
+    const box = el.querySelector('#sitePages'); if (!box) return;
+    if (!site || !site.conn) { box.innerHTML = ''; return; }
+    const p = sitePages, c = p ? p.counts : null;
+    const todo = c ? c.create + c.update : 0;
+    const list = (title, items) => items.length ? `<p class="small" style="margin:10px 0 4px"><strong>${h(title)}</strong></p><ul class="small" style="margin:0 0 0 18px">${items.slice(0, 12).map(i => `<li>${i}</li>`).join('')}${items.length > 12 ? `<li>and ${items.length - 12} more</li>` : ''}</ul>` : '';
+    const body = !p ? '<p class="small muted">Check what the site has before making anything. Checking changes nothing.</p>' : `
+      <p class="small">${plural(c.total, 'page')} in the build: <strong>${c.create} to create</strong>, ${c.update} to bring into line, ${c.same} already there${c.conflict ? `, <strong>${c.conflict} can't be made</strong>` : ''}.</p>
+      ${list("Can't go ahead", p.refusals.map(h))}
+      ${list("Pages that can't be made", p.pages.filter(x => x.action === 'conflict').map(x => `${h(x.title)} (${h(x.path)}): ${h(x.why)}`))}
+      ${list('To bring into line', p.pages.filter(x => x.action === 'update').map(x => `${h(x.title)}: ${h(x.changes.join('; '))}`))}
+      ${list('Failed', (p.errors || []).map(x => `${h(x.title)} (${h(x.path)}): ${h(x.message)}`))}
+      ${list('On the site but not in the build (left alone)', p.extras.map(x => `${h(x.title || '(no title)')} · ${h(x.post_type)} · ${h(x.path || 'no page map URL')} · ${h(x.status)}`))}`;
+    box.innerHTML = card({ title: 'Pages on the site', sub: 'Every category, service and location page in the build, made on the site as a draft at its page map URL. Nothing is published or deleted.', body: `${body}
+      <div class="btn-row"><button class="btn btn-ghost btn-sm" data-sitepages="check">Check the site</button>${p && !p.refusals.length && todo ? `<button class="btn btn-primary btn-sm" data-sitepages="make">Create ${plural(todo, 'page')} as drafts</button>` : ''}<span class="small muted">${h(sitePagesNote)}</span></div>` });
+  };
+  el.addEventListener('click', async e => {
+    const b = e.target.closest('[data-sitepages]'); if (!b) return;
+    try {
+      if (b.dataset.sitepages === 'check') await busy(b, 'Checking…', async () => { sitePages = await api(`/api/clients/${clientId}/wp/pages`); sitePagesNote = ''; drawSitePages(); });
+      if (b.dataset.sitepages === 'make') {
+        const c = sitePages.counts;
+        if (!(await confirm({ title: `Create ${plural(c.create + c.update, 'page')} on ${sitePages.site}?`, text: `${c.create} new draft${c.create === 1 ? '' : 's'}${c.update ? ` and ${c.update} brought into line` : ''}. This writes to the staging site. Nothing is published, and nothing already there is deleted.`, ok: 'Create them' }))) return;
+        await busy(b, 'Creating…', async () => {
+          const r = await api(`/api/clients/${clientId}/wp/pages`, { method: 'POST', body: { confirm: true } });
+          sitePages = r;
+          sitePagesNote = r.error ? `Stopped: ${r.error}` : r.refusals.length ? 'Not made.' : `${r.created} created, ${r.updated} brought into line${r.ok ? '' : ', with problems below'}.`;
+          toast(r.ok ? 'Pages made' : 'Not everything was made', r.ok ? undefined : 'bad'); drawSitePages();
+        });
+      }
+    } catch (err) { toast(err.message, 'bad'); }
+  });
+
   // Row clicks open the page view (2 Nov: the rows had data-href but nothing listened)
   wire(el);
 

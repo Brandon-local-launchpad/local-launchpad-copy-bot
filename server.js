@@ -4038,6 +4038,18 @@ const siteAudit = (pool && citationStore) ? require('./site-audit/service').crea
   logCost: entry => citationStore.logCost(entry),
 }) : null;
 if (siteAudit) require('./site-audit/routes').mountSiteAuditApi(app, { pool, siteAudit });
+// Making the inner pages on the client's site (wp/pages.js, 13 Nov): every page map page in the build as a draft
+// in its post type, at its page map path. Staging sites only; needs a person's confirm.
+const wpPages = (pool && pageMapApi) ? require('./wp/pages').createPagesService({
+  pool,
+  getSite: async id => {
+    const row = await require('./wp/db-store').getConnectionRow(pool, id);
+    if (!row || !row.app_password_enc) return null;
+    return { url: row.url, user: row.wp_user, appPassword: require('./wp/secrets').decrypt(row.app_password_enc, process.env.COPYBOT_SECRET_KEY), staging: !!row.staging };
+  },
+  pageRows: id => pageMapApi.store.saved(id),
+  createLog: id => require('./wp/db-store').createDbStore(pool, id),
+}) : null;
 // After a site move (site-audit/launch.js): the day 7 check, then the rankings at 30, 60 and 90 days. Hourly.
 if (siteAudit) {
   const launchTick = () => siteAudit.launchTick().then(d => { if (d.length) console.log(`[site-audit] after launch: ${d.map(x => x.did).join(', ')}`); }).catch(e => console.error('[site-audit] after launch job:', e.message));
@@ -4505,6 +4517,8 @@ app.post('/api/clients/:clientId/wp/claims-review', wpRoute(req => wpService.rev
 app.post('/api/clients/:clientId/wp/dry-run', wpRoute(req => wpService.dryRun(req.params.clientId, req.body || {})));
 app.post('/api/clients/:clientId/wp/push', wpRoute(req => wpService.push(req.params.clientId, req.body || {})));
 app.post('/api/clients/:clientId/wp/rollback', wpRoute(req => wpService.rollback(req.params.clientId, req.body || {})));
+app.get('/api/clients/:clientId/wp/pages', wpRoute(req => { if (!wpPages) throw new Error('The page map is not set up.'); return wpPages.preview(req.params.clientId); }));
+app.post('/api/clients/:clientId/wp/pages', wpRoute(req => { if (!wpPages) throw new Error('The page map is not set up.'); return wpPages.run(req.params.clientId, req.body || {}); }));
 app.get('/api/clients/:clientId/wp/log', wpRoute(req => wpService.log(req.params.clientId)));
 app.put('/api/clients/:clientId/wp/claims-accepted', wpRoute(req => wpService.acceptClaims(req.params.clientId, req.body || {})));
 

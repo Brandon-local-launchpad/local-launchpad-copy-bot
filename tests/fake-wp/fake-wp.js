@@ -9,16 +9,19 @@ const { LEGAL_GROUPS, LEGAL_TEMPLATE } = require('../../wp/acf-schema');
 const ALL_GROUPS = [...require('../../wp/acf-schema').GROUPS, ...LEGAL_GROUPS].map(g => `group_llp_${g.name}`);
 const LEGAL_FIELDS = LEGAL_GROUPS.flatMap(g => g.fields.map(f => f.name));
 // The homepage groups' top-level field names (their ACF location is the front page)
+const POST_TYPES = require('../../wp/post-types').POST_TYPES.map(p => p.post_type);
 const HOME_FIELDS = require('../../wp/acf-schema').GROUPS.flatMap(g => g.fields.map(f => f.name));
 
 // plugin: false → the companion plugin isn't installed (its routes 404)
 function createFakeWp({ user = 'copybot', appPassword = 'test-app-password-not-real', frontId = 7, pages = [],
   plugin = true, acfPro = true, seo = 'rankmath', fieldGroups = ALL_GROUPS, clientValues = {}, pluginVersion = null,
-  failWrites = false, ignoreAcf = [], elementorFront = true, rankMath = true, redirectionsModule = true, failRedirectWrites = false, mangleSource = null, otherRedirects = [], publicPaths = ['/'], publicRedirects = {}, trailingFront = null, reviewFunnel = true, dropEndpoint = false } = {}) {
+  failWrites = false, ignoreAcf = [], elementorFront = true, rankMath = true, redirectionsModule = true, failRedirectWrites = false, mangleSource = null, otherRedirects = [], publicPaths = ['/'], publicRedirects = {}, trailingFront = null, reviewFunnel = true, dropEndpoint = false, innerPages = [], missingPostTypes = [], failPageWrites = false, refusePaths = [] } = {}) {
+  // innerPages: entries already in the inner pages' post types [{ id, post_type, status, title, path }]; missingPostTypes: post types the
+  // site reports as missing; failPageWrites: the pages route answers 500; refusePaths: paths WordPress can't save
   // failWrites: page writes return 500; ignoreAcf: fields the site doesn't save (e.g. a field group that isn't there);
   // elementorFront: as the Edens Edge test copy does (3 Nov), a read of the front page that includes `content`
   // (no _fields, or _fields with content) comes back with `acf: []`; a read that names its fields gets the ACF
-  const state = { writes: 0, pages: new Map(pages.map(p => [p.id, JSON.parse(JSON.stringify(p))])), frontId, clientValues: { ...clientValues }, reviewEndpoint: '', feedbackPosts: [], redirects: otherRedirects.map((r, i) => ({ id: 9000 + i, mine: false, status: 'active', code: 301, url_to: '/x', ...r })), nextRedirectId: 1, statusCalls: [], failStatus: {}, redirectCheck: null, publicPaths: new Set(publicPaths), requests: [] };
+  const state = { innerPages: innerPages.map(p => ({ ...p })), nextPageId: 500, pageWrites: 0, writes: 0, pages: new Map(pages.map(p => [p.id, JSON.parse(JSON.stringify(p))])), frontId, clientValues: { ...clientValues }, reviewEndpoint: '', feedbackPosts: [], redirects: otherRedirects.map((r, i) => ({ id: 9000 + i, mine: false, status: 'active', code: 301, url_to: '/x', ...r })), nextRedirectId: 1, statusCalls: [], failStatus: {}, redirectCheck: null, publicPaths: new Set(publicPaths), requests: [] };
   const redirectsReady = () => ({ rank_math: !!rankMath, module: !!(rankMath && redirectionsModule), ready: !!(rankMath && redirectionsModule) });
   const app = express();
   app.use(express.json({ limit: '2mb' }));
@@ -52,7 +55,38 @@ function createFakeWp({ user = 'copybot', appPassword = 'test-app-password-not-r
   });
   app.get('/wp-json/wp/v2/settings', (req, res) => res.json({ title: 'Fake site', page_on_front: state.frontId }));
   if (plugin) {
-    app.get('/wp-json/llp-copybot/v1/status', (req, res) => res.json({ plugin: pluginVersion || require('../../wp/plugin-version').VERSION, redirects: redirectsReady(), acf_pro: acfPro, seo, front_page: state.frontId, field_groups: fieldGroups }));
+    app.get('/wp-json/llp-copybot/v1/status', (req, res) => res.json({ plugin: pluginVersion || require('../../wp/plugin-version').VERSION, redirects: redirectsReady(), acf_pro: acfPro, seo, front_page: state.frontId, field_groups: fieldGroups, page_types: Object.fromEntries(POST_TYPES.map(t => [t, missingPostTypes.includes(t) ? 'missing' : (['service', 'location', 'category-location'].includes(t) ? 'site' : 'plugin')])) }));
+    // The inner pages (plugin 0.7.0, page-types.php llp_pages_save_one): a new entry is a draft; one that exists keeps its status
+    app.get('/wp-json/llp-copybot/v1/pages', (req, res) => res.json({ items: state.innerPages.filter(p => p.status !== 'trash').map(({ id, post_type, status, title, path }) => ({ id, post_type, status, title, path: path || '' })) }));
+    app.post('/wp-json/llp-copybot/v1/pages', (req, res) => {
+      if (failPageWrites) return res.status(500).json({ code: 'internal_server_error', message: 'There has been a critical error on this website.' });
+      const items = (req.body || {}).items;
+      if (!Array.isArray(items) || items.length > 500) return res.status(400).json({ code: 'llp_bad_body', message: 'Send { items: [ … ] }, 500 at most.' });
+      state.writes++; state.pageWrites++;
+      const alive = () => state.innerPages.filter(p => p.status !== 'trash');
+      res.json({ items: items.map(it => {
+        const out = { path: it.path, id: it.id || 0, result: 'error', message: '' };
+        if (!POST_TYPES.includes(it.post_type)) return { ...out, message: "Not one of the inner pages' post types." };
+        if (!it.title || !/^(\/[a-z0-9]+(-[a-z0-9]+)*)+$/.test(it.path || '')) return { ...out, message: 'A page needs a title and a path like /services/patios.' };
+        const holder = alive().find(p => p.path === it.path);
+        let entry = null;
+        if (it.id) {
+          entry = alive().find(p => p.id === it.id);
+          if (!entry) return { ...out, message: 'That entry is not on the site any more.' };
+          if (holder && holder.id !== it.id) return { ...out, message: `Another entry (${holder.id}) is already at this path.` };
+        } else if (holder) entry = holder;
+        if (entry) {
+          if (entry.post_type !== it.post_type) return { ...out, id: entry.id, message: `The entry at this path is a ${entry.post_type}, not a ${it.post_type}.` };
+          const changed = entry.path !== it.path || entry.title !== it.title;
+          entry.path = it.path; entry.title = it.title;
+          return { ...out, id: entry.id, result: changed ? 'updated' : 'unchanged' };
+        }
+        if (refusePaths.includes(it.path)) return { ...out, message: 'Could not insert post into the database.' };
+        const made = { id: state.nextPageId++, post_type: it.post_type, status: 'draft', title: it.title, path: it.path };
+        state.innerPages.push(made);
+        return { ...out, id: made.id, result: 'created' };
+      }) });
+    });
     app.get('/wp-json/llp-copybot/v1/client-values', (req, res) => res.json(state.clientValues));
     app.post('/wp-json/llp-copybot/v1/client-values', (req, res) => { state.writes++; Object.assign(state.clientValues, req.body); res.json(state.clientValues); });
     // The Review Us page's settings (plugin 0.5.0, review-funnel.php): where feedback is sent. A site whose

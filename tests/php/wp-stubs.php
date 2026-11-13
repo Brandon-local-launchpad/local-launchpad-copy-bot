@@ -29,11 +29,29 @@ function get_posts( $a ) {
 	$ids = array();
 	foreach ( $GLOBALS['llp_test']['posts'] as $id => $p ) {
 		if ( 'trash' === $p['status'] || ! in_array( $p['type'], (array) $a['post_type'], true ) ) { continue; }
-		if ( ( $p['meta'][ $a['meta_key'] ] ?? null ) !== $a['meta_value'] ) { continue; }
+		if ( isset( $a['meta_key'] ) && ( $p['meta'][ $a['meta_key'] ] ?? null ) !== $a['meta_value'] ) { continue; }
 		$ids[] = $id;
 	}
 	sort( $ids );
-	return array_slice( $ids, 0, $a['numberposts'] );
+	if ( $a['numberposts'] > 0 ) { $ids = array_slice( $ids, 0, $a['numberposts'] ); }
+	return 'ids' === ( $a['fields'] ?? '' ) ? $ids : array_map( 'get_post', $ids );
+}
+function get_post( $id ) {
+	$p = $GLOBALS['llp_test']['posts'][ $id ] ?? null;
+	return $p ? (object) array( 'ID' => $id, 'post_type' => $p['type'], 'post_status' => $p['status'], 'post_title' => $p['title'] ?? '', 'post_name' => $p['name'] ?? '' ) : null;
+}
+function update_post_meta( $id, $key, $value ) { $GLOBALS['llp_test']['posts'][ $id ]['meta'][ $key ] = $value; return true; }
+function wp_update_post( $a ) {
+	foreach ( array( 'post_title' => 'title', 'post_name' => 'name', 'post_status' => 'status' ) as $from => $to ) {
+		if ( isset( $a[ $from ] ) ) { $GLOBALS['llp_test']['posts'][ $a['ID'] ][ $to ] = $a[ $from ]; }
+	}
+	return $a['ID'];
+}
+function wp_insert_post( $a, $wp_error = false ) {
+	if ( ! empty( $GLOBALS['llp_test']['insert_fails'] ) ) { return new WP_Error( 'db_insert_error', 'Could not insert post into the database.' ); }
+	$id = max( array_merge( array( 100 ), array_keys( $GLOBALS['llp_test']['posts'] ) ) ) + 1;
+	$GLOBALS['llp_test']['posts'][ $id ] = array( 'type' => $a['post_type'], 'status' => $a['post_status'], 'title' => $a['post_title'], 'name' => $a['post_name'], 'meta' => $a['meta_input'] ?? array() );
+	return $id;
 }
 
 function get_option( $k, $d = false ) { return array_key_exists( $k, $GLOBALS['llp_test']['options'] ) ? $GLOBALS['llp_test']['options'][ $k ] : ( 'page_on_front' === $k ? $GLOBALS['llp_test']['front'] : $d ); }
@@ -63,7 +81,7 @@ function wp_list_pluck( $list, $field ) { return array_map( function ( $x ) use 
 function add_options_page() { return 'settings_page_llp-client-values'; }
 function settings_fields( $g ) {}
 function submit_button() {}
-class WP_Error { public $code; public $message; public $data; public function __construct( $c = '', $m = '', $d = null ) { $this->code = $c; $this->message = $m; $this->data = $d; } }
+class WP_Error { public $code; public $message; public $data; public function __construct( $c = '', $m = '', $d = null ) { $this->code = $c; $this->message = $m; $this->data = $d; } public function get_error_message() { return $this->message; } }
 class WP_REST_Request { private $json; public function __construct( $json ) { $this->json = $json; } public function get_json_params() { return $this->json; } }
 
 // For redirects.php

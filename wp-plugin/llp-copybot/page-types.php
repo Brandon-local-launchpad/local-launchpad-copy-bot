@@ -184,3 +184,144 @@ add_filter(
 		return $out;
 	}
 );
+
+// ── Copybot's routes: what is on the site, and making the pages ──────────────
+// GET  /llp-copybot/v1/pages   every entry in the five post types (the bin left out)
+// POST /llp-copybot/v1/pages   { items: [ { post_type, title, path, id? } ] }
+// A new entry is always a draft. An entry that exists keeps its status and its content: only
+// its title and its path are brought into line. Nothing here deletes or publishes.
+
+function llp_page_item( $post ) {
+	return array(
+		'id'        => (int) $post->ID,
+		'post_type' => $post->post_type,
+		'status'    => $post->post_status,
+		'title'     => $post->post_title,
+		'path'      => llp_page_path( $post->ID ),
+	);
+}
+
+function llp_pages_list() {
+	$types = llp_page_post_types();
+	if ( ! $types ) {
+		return array();
+	}
+	$posts = get_posts(
+		array(
+			'post_type'        => $types,
+			'post_status'      => array( 'publish', 'draft', 'pending', 'private', 'future' ),
+			'numberposts'      => -1,
+			'orderby'          => 'ID',
+			'order'            => 'ASC',
+			'suppress_filters' => true,
+		)
+	);
+	return array_map( 'llp_page_item', $posts );
+}
+
+/** One item of a POST: array( 'path', 'id', 'result' => created | updated | unchanged | error, 'message' ). */
+function llp_pages_save_one( $item ) {
+	$types = llp_page_post_types();
+	$type  = isset( $item['post_type'] ) && is_string( $item['post_type'] ) ? $item['post_type'] : '';
+	$path  = llp_page_clean_path( isset( $item['path'] ) ? $item['path'] : '' );
+	$title = isset( $item['title'] ) && is_string( $item['title'] ) ? sanitize_text_field( $item['title'] ) : '';
+	$id    = isset( $item['id'] ) ? (int) $item['id'] : 0;
+	$out   = array( 'path' => $path, 'id' => $id, 'result' => 'error', 'message' => '' );
+	if ( ! in_array( $type, $types, true ) ) {
+		$out['message'] = 'Not one of the inner pages\' post types.';
+		return $out;
+	}
+	if ( '' === $path || '' === $title ) {
+		$out['message'] = 'A page needs a title and a path like /services/patios.';
+		return $out;
+	}
+	$holder = llp_page_id_for_path( $path );
+	if ( $id ) {
+		$post = get_post( $id );
+		if ( ! $post || 'trash' === $post->post_status || ! in_array( $post->post_type, $types, true ) ) {
+			$out['message'] = 'That entry is not on the site any more.';
+			return $out;
+		}
+		if ( $holder && $holder !== $id ) {
+			$out['message'] = 'Another entry (' . $holder . ') is already at this path.';
+			return $out;
+		}
+	} elseif ( $holder ) {
+		$id   = $holder;
+		$post = get_post( $id );
+	}
+	if ( $id ) {
+		$out['id'] = $id;
+		if ( $post->post_type !== $type ) {
+			$out['message'] = 'The entry at this path is a ' . $post->post_type . ', not a ' . $type . '.';
+			return $out;
+		}
+		$changed = false;
+		if ( llp_page_path( $id ) !== $path ) {
+			update_post_meta( $id, llp_page_path_meta(), $path );
+			wp_update_post( array( 'ID' => $id, 'post_name' => basename( $path ) ) );
+			$changed = true;
+		}
+		if ( $post->post_title !== $title ) {
+			wp_update_post( array( 'ID' => $id, 'post_title' => $title ) );
+			$changed = true;
+		}
+		$out['result'] = $changed ? 'updated' : 'unchanged';
+		return $out;
+	}
+	$new = wp_insert_post(
+		array(
+			'post_type'   => $type,
+			'post_title'  => $title,
+			'post_name'   => basename( $path ),
+			'post_status' => 'draft',
+			'meta_input'  => array( llp_page_path_meta() => $path ),
+		),
+		true
+	);
+	if ( is_wp_error( $new ) ) {
+		$out['message'] = $new->get_error_message();
+		return $out;
+	}
+	$out['id']     = (int) $new;
+	$out['result'] = 'created';
+	return $out;
+}
+
+add_action(
+	'rest_api_init',
+	function () {
+		$admin = function () {
+			return current_user_can( 'manage_options' );
+		};
+		register_rest_route(
+			'llp-copybot/v1',
+			'/pages',
+			array(
+				array(
+					'methods'             => 'GET',
+					'callback'            => function () {
+						return rest_ensure_response( array( 'items' => llp_pages_list() ) );
+					},
+					'permission_callback' => $admin,
+				),
+				array(
+					'methods'             => 'POST',
+					'callback'            => function ( WP_REST_Request $request ) {
+						$body  = $request->get_json_params();
+						$items = is_array( $body ) && isset( $body['items'] ) && is_array( $body['items'] ) ? $body['items'] : null;
+						if ( null === $items || count( $items ) > 500 ) {
+							return new WP_Error( 'llp_bad_body', 'Send { items: [ … ] }, 500 at most.', array( 'status' => 400 ) );
+						}
+						$results = array();
+						foreach ( $items as $item ) {
+							$results[] = llp_pages_save_one( is_array( $item ) ? $item : array() );
+						}
+						return rest_ensure_response( array( 'items' => $results ) );
+					},
+					'permission_callback' => $admin,
+				),
+			)
+		);
+	}
+);

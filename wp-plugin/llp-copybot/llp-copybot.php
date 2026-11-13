@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Local Launchpad Copybot
  * Description: Client Values, [CV: key] token replacement, the ACF field groups for the homepage and the inner pages (master copy), the inner pages' post types and page map URLs, REST access for Copybot pushes, old site redirects into Rank Math, and the Review Us page (the star box and its private feedback form).
- * Version:     0.6.0
+ * Version:     0.7.0
  * Requires at least: 6.2
  * Requires PHP: 7.4
  * Author:      Local Launchpad
@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'LLP_COPYBOT_VERSION', '0.6.0' );
+define( 'LLP_COPYBOT_VERSION', '0.7.0' );
 define( 'LLP_COPYBOT_OPTION', 'llp_client_values' );
 require_once __DIR__ . '/redirects.php';
 require_once __DIR__ . '/review-funnel.php';
