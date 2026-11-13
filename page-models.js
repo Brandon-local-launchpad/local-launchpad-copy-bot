@@ -15,10 +15,12 @@ function forPage(type) {
 const judge = () => ({ ...config.judge });
 // The Google review reply drafts (reviews/draft.js)
 const reviews = () => ({ ...config.reviews });
+// The alt text of a photo added by hand (images/alt.js)
+const images = () => ({ ...config.images });
 
 function retryCaller(callModel, system, modelConfig, maxTokens = 2048) {
   const rewrite = modelConfig && modelConfig.block_rewrite;
   return ({ message, hasBlock = false }) => callModel({ system, message, maxTokens, ...(hasBlock && rewrite ? { model: rewrite.model, effort: rewrite.effort } : {}) });
 }
 
-module.exports = { forPage, judge, reviews, retryCaller, PAGE_TYPES };
+module.exports = { forPage, judge, reviews, images, retryCaller, PAGE_TYPES };

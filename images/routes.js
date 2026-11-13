@@ -11,16 +11,20 @@ const express = require('express');
 const { createImages } = require('./service');
 const { MAX_BYTES } = require('./uploads');
 const { heroChoiceOf } = require('./pick');
+const { describePhoto } = require('./alt');
 const { createDriveStore } = require('../drive/store');
 const { createAutopostStore } = require('../leadsnap/autopost/store');
 const { lockedFrom, groupServices } = require('../leadsnap/autopost/intake');
 
 // pageRows(clientId), latestRecords(clientId, type) → [{ key, record }], getSite(clientId), getDrive()
-function mountImagesApi(app, { pool, pageRows, latestRecords, getSite, getDrive, log = console }) {
+// callModel: anthropic-call.js makeCallModel's caller on the page-models.json "images" model, or null with no API key
+function mountImagesApi(app, { pool, pageRows, latestRecords, getSite, getDrive, callModel = null, log = console }) {
   const driveStore = createDriveStore(pool);
   const autopost = createAutopostStore(pool);
   const images = createImages({
     pool, pageRows, getSite, getDrive,
+    // The alt text of a photo added by hand: Copybot looks at a small copy of it (images/alt.js)
+    describe: callModel ? async ({ bytes, name }) => (await describePhoto({ bytes, name, callModel, ...require('../page-models').images() })).alt : null,
     readDrive: clientId => driveStore.read(clientId),
     // The photo folders' names and the service pages behind each: the saved post prompts' groups, whose names
     // the folders were made from; else the same grouping worked out from the page map's service pages
@@ -64,6 +68,7 @@ function mountImagesApi(app, { pool, pageRows, latestRecords, getSite, getDrive,
     return images.upload(req.params.id, { bytes: req.body, name: String(q.name || ''), alt: String(q.alt || ''), source: String(q.source || 'stock'), by: String(q.by || ''), identity: String(q.identity || ''), slot: String(q.slot || '') });
   }));
   app.put('/api/clients/:id/images/alt', wrap(req => images.setAlt(req.params.id, req.body || {})));
+  app.post('/api/clients/:id/images/alt/write', wrap(req => images.writeAlt(req.params.id, req.body || {})));
   app.put('/api/clients/:id/images/crop', wrap(req => images.crop(req.params.id, req.body || {})));
   const send = fn => async (req, res) => {
     try { const img = await fn(req); res.set('Content-Type', img.type); res.set('Cache-Control', 'private, max-age=3600'); res.send(img.bytes); }

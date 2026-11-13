@@ -1,9 +1,10 @@
 {
-  "_note": "Which model writes each page type. model and effort are the writer's, used for the first draft, the retries and the claims review. block_rewrite, when set, is the model and effort that rewrite a field carrying a BLOCK (the hybrid: a cheap writer, a stronger model on what fails). judge is the rubric reviewer in quality-review.js. reviews writes the Google review reply drafts (reviews/draft.js, 8 Nov 2026).",
+  "_note": "Which model writes each page type. model and effort are the writer's, used for the first draft, the retries and the claims review. block_rewrite, when set, is the model and effort that rewrite a field carrying a BLOCK (the hybrid: a cheap writer, a stronger model on what fails). judge is the rubric reviewer in quality-review.js. reviews writes the Google review reply drafts (reviews/draft.js, 8 Nov 2026). images writes the alt text of a photo added by hand on the Images tab, from a small copy of the photo (images/alt.js, 13 Nov 2026).",
   "homepage": { "model": "claude-sonnet-5-5", "effort": "high", "block_rewrite": null },
   "category": { "model": "claude-sonnet-5-5", "effort": "high", "block_rewrite": null },
   "service":  { "model": "claude-sonnet-5-5", "effort": "high", "block_rewrite": null },
   "location": { "model": "claude-sonnet-5-5", "effort": "high", "block_rewrite": null },
   "judge":    { "model": "claude-opus-5-5", "effort": "medium" },
-  "reviews":  { "model": "claude-sonnet-5-5", "effort": "low" }
+  "reviews":  { "model": "claude-sonnet-5-5", "effort": "low" },
+  "images":   { "model": "claude-sonnet-5-5", "effort": "low" }
 }

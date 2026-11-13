@@ -90,10 +90,16 @@ export async function render(el, ctx) {
     const dlg = dialog({ title: p.name, wide: true, body: `
       <img src="${attr(full(id))}" alt="${attr(p.shows || p.name)}" style="max-width:100%;max-height:68vh;display:block;margin:0 auto;border-radius:6px">
       ${p.kind === 'upload'
-        ? `<div style="display:flex;gap:8px;align-items:center;margin:10px 0 2px"><strong class="small">Alt text:</strong><input class="input" id="altText" value="${attr(p.shows)}" placeholder="What does it show?" style="flex:1"><button class="btn btn-ghost btn-sm" data-savealt="${attr(id)}">Save</button></div>`
+        ? `<div style="display:flex;gap:8px;align-items:center;margin:10px 0 2px"><strong class="small">Alt text:</strong><input class="input" id="altText" value="${attr(p.shows)}" placeholder="What does it show?" style="flex:1"><button class="btn btn-ghost btn-sm" data-savealt="${attr(id)}">Save</button><button class="btn btn-ghost btn-sm" data-writealt="${attr(id)}">Write it for me</button></div>`
         : `<p class="small" style="margin:10px 0 2px">${p.shows ? `<strong>Alt text:</strong> ${h(p.shows)}` : '<span class="muted">No description, so no alt text.</span>'}</p>`}
       <p class="small muted" style="margin:0">${facts.map(h).join(' · ')}${p.web_link ? ` · <a href="${attr(p.web_link)}" target="_blank" rel="noopener">Open in Drive</a>` : ''}</p>` });
     dlg.el.addEventListener('click', async e => {
+      const w = e.target.closest('[data-writealt]');
+      if (w) {
+        try { await busy(w, 'Looking…', async () => { const r = await api(`/api/clients/${clientId}/images/alt/write`, { method: 'POST', body: { file_id: w.dataset.writealt } }); S = r; dlg.el.querySelector('#altText').value = r.alt; toast('Alt text written'); draw(); }); }
+        catch (err) { toast(err.message, 'bad'); }
+        return;
+      }
       const b = e.target.closest('[data-savealt]'); if (!b) return;
       try { await busy(b, 'Saving…', async () => { S = await api(`/api/clients/${clientId}/images/alt`, { method: 'PUT', body: { file_id: b.dataset.savealt, alt: dlg.el.querySelector('#altText').value } }); toast('Saved'); draw(); }); }
       catch (err) { toast(err.message, 'bad'); }
@@ -165,7 +171,7 @@ export async function render(el, ctx) {
     const dlg = dialog({ title: `${page.title}: ${s.label}`, wide: true, body: `
       <div id="drop" style="border:2px dashed #b9b9b9;border-radius:8px;padding:14px;text-align:center;margin-bottom:14px">
         <div class="small"><strong>Drop a photo here</strong> to add it and put it in this slot, or <label class="btn btn-ghost btn-xs" style="cursor:pointer">choose a file<input type="file" id="upFile" accept="image/*" style="display:none"></label></div>
-        <div style="margin-top:8px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap"><input class="input" id="upAlt" placeholder="What does it show? This is its alt text" style="max-width:340px"><select class="input" id="upSource" style="max-width:170px"><option value="stock">A stock photo</option><option value="client">From the client</option></select></div>
+        <div style="margin-top:8px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap"><input class="input" id="upAlt" placeholder="Alt text: leave it blank and Copybot writes it" style="max-width:340px"><select class="input" id="upSource" style="max-width:170px"><option value="stock">A stock photo</option><option value="client">From the client</option></select></div>
         <div class="small muted" id="upNote" style="margin-top:6px">Any size up to 60 MB: Copybot shrinks it as it arrives.</div>
       </div>
       ${added.length ? `<p class="small"><strong>Photos you have added</strong></p><div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">${added.map(tile).join('')}</div>` : ''}
@@ -184,7 +190,7 @@ export async function render(el, ctx) {
         const j = await r.json().catch(() => ({}));
         if (!r.ok) throw new Error(j.error || `The photo was not added (${r.status}).`);
         S = j; dlg.close(); draw();
-        toast(`Added: ${(j.added.original_bytes / 1048576).toFixed(1)} MB shrunk to ${Math.round(j.added.size_bytes / 1024)} KB`);
+        toast(`Added: ${(j.added.original_bytes / 1048576).toFixed(1)} MB shrunk to ${Math.round(j.added.size_bytes / 1024)} KB.${j.added.alt_by === 'copybot' ? ` Alt text: ${j.added.alt}` : ''}${j.added.alt_error ? ` ${j.added.alt_error}` : ''}`, j.added.alt_error ? 'bad' : undefined);
       } catch (err) { upNote.textContent = err.message; toast(err.message, 'bad'); }
     };
     drop.addEventListener('dragover', e => { e.preventDefault(); drop.style.borderColor = '#5b5bd6'; });

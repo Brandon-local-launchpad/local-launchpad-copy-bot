@@ -69,7 +69,9 @@ const sameSlots = (a, b) => JSON.stringify([...a].sort((x, y) => x.slot.localeCo
 // cardsFor(clientId) → Map page path → [card target paths]; getSite(clientId) → the WordPress site or
 // null; getDrive() → the Drive client; createLog(clientId) → { appendLog }; wp: wp/client.js (for tests)
 // heroChoiceFor(clientId) → 'photo' | 'illustration' | 'none': the client's onboarding answer (images/pick.js heroChoiceOf)
-function createImages({ pool, pageRows, readDrive, groupsFor, cardsFor, getSite, getDrive, createLog, heroChoiceFor = async () => 'none', wp = require('../wp/client') }) {
+// describe({ bytes, name }) → the alt text Copybot writes for a photo by looking at it (images/alt.js), or null when
+// there is no model to ask
+function createImages({ pool, pageRows, readDrive, groupsFor, cardsFor, getSite, getDrive, createLog, heroChoiceFor = async () => 'none', describe = null, wp = require('../wp/client') }) {
   const uploads = createUploads(pool);
   // A photo's bytes: one a person added, or one in Drive
   const bytesOf = (clientId, fileId) => (isUpload(fileId) ? uploads.bytes(clientId, fileId) : getDrive().download(fileId));
@@ -135,14 +137,31 @@ function createImages({ pool, pageRows, readDrive, groupsFor, cardsFor, getSite,
       if (!page.slots.some(x => x.slot === slot)) throw bad('That page has no such slot.');
     }
     const added = await uploads.add(clientId, { name, bytes, alt, source, by });
+    // No alt text typed: Copybot looks at the photo and writes it. A failure leaves it blank, and says so
+    const typed = String(alt || '').trim();
+    let wrote = '', altError = '';
+    if (!typed && describe) {
+      try { wrote = await describe({ bytes, name }); if (wrote) await uploads.setAlt(clientId, added.id, wrote); else altError = 'Copybot could not write the alt text for this photo. Type it in.'; }
+      catch (e) { altError = `Copybot could not write the alt text (${e.message}). Type it in.`; }
+    }
     const v = identity ? await choose(clientId, { identity, slot, file_id: added.id }) : await view(clientId);
-    return { ...v, added };
+    return { ...v, added: { ...added, alt: typed || wrote, alt_by: typed ? 'typed' : wrote ? 'copybot' : '', alt_error: altError } };
   }
 
   async function setAlt(clientId, { file_id: fileId, alt = '' } = {}) {
     if (!isUpload(fileId)) throw bad("Only a photo added by hand has alt text to type. A Drive photo's comes from the photo sort's notes.");
     await uploads.setAlt(clientId, fileId, alt);
     return view(clientId);
+  }
+
+  // Copybot writes (or writes again) the alt text of a photo added by hand, from the copy it kept
+  async function writeAlt(clientId, { file_id: fileId } = {}) {
+    if (!isUpload(fileId)) throw bad("Only a photo added by hand gets its alt text written here. A Drive photo's comes from the photo sort's notes.");
+    if (!describe) throw bad('Copybot has no model to ask (no API key on this server). Type the alt text in.');
+    const alt = await describe({ bytes: await uploads.bytes(clientId, fileId), name: (await uploads.list(clientId)).find(u => u.file_id === fileId).name });
+    if (!alt) throw bad('Copybot could not write the alt text for this photo. Type it in.', 502);
+    await uploads.setAlt(clientId, fileId, alt);
+    return { ...(await view(clientId)), alt };
   }
 
   // crop: { x, y, w, h } as fractions of the photo, or null to clear it
@@ -246,7 +265,7 @@ function createImages({ pool, pageRows, readDrive, groupsFor, cardsFor, getSite,
     }
   }
 
-  return { view, choose, approve, placePage, upload, setAlt, crop, uploadImage, preview };
+  return { view, choose, approve, placePage, upload, setAlt, writeAlt, crop, uploadImage, preview };
 }
 
 module.exports = { ensureImageTables, createImages };

@@ -4064,6 +4064,8 @@ if (pool && pageMapApi) {
       return { url: row.url, user: row.wp_user, appPassword: require('./wp/secrets').decrypt(row.app_password_enc, process.env.COPYBOT_SECRET_KEY), staging: !!row.staging, homepageSlug: row.homepage_slug || undefined };
     },
     getDrive: () => (imagesDrive = imagesDrive || require('./drive/client').createDrive()),
+    // Alt text for a photo added by hand: the page-models.json "images" model, at its effort
+    callModel: process.env.ANTHROPIC_API_KEY ? args => makeCallModel(new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }), require('./page-models').images().model, { onUsage: modelLog.tagged('Image alt text'), defaultEffort: require('./page-models').images().effort })(args) : null,
   });
 }
 // Which inner pages are ready to have their copy pushed (wp/copy-plan.js): reads only. The screen pushes each ready

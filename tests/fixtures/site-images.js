@@ -299,6 +299,39 @@ const CARDS = new Map([['/', ['/paving-contractor', '/fencing-contractor']], ['/
   const altered = await images.setAlt(clientId, { file_id: fenContent.pick, alt: 'A new closeboard fence beside a lawn.' });
   chk('Its alt text can be typed again; a Drive photo\'s can\'t (it comes from the notes)', altered.photos[fenContent.pick].shows === 'A new closeboard fence beside a lawn.' && /Only a photo added by hand/.test(await throwsMsg(() => images.setAlt(clientId, { file_id: 'p1', alt: 'x' }))), altered.photos[fenContent.pick].shows, '');
 
+  // Copybot writes the alt text of an added photo by looking at it (images/alt.js)
+  const A = require(path.join(root, 'images/alt.js'));
+  chk('Alt text: the model\'s reply is tidied to one sentence; a label, quotes and "Photo of" are stripped; a full stop is added',
+    A.cleanAlt('Alt text: "Photo of stone garden steps between planted borders"') === 'Stone garden steps between planted borders.' && A.cleanAlt('  A closeboard fence   along a lawn.\n\nSecond line.') === 'A closeboard fence along a lawn.', A.cleanAlt('Alt text: "Photo of stone garden steps between planted borders"'), '');
+  chk('Alt text: an empty reply, JSON, and a reply that runs on are not used', A.cleanAlt('') === '' && A.cleanAlt('{"findings":[]}') === '' && A.cleanAlt(Array(30).fill('word').join(' ')) === '', '', '');
+  chk('Alt text: the instruction holds the skill\'s rule (15 words, only what is visible, no town, no praise)', /15 words or fewer/.test(A.SYSTEM) && /Only what is visible/.test(A.SYSTEM) && /No town/.test(A.SYSTEM) && /No praise/.test(A.SYSTEM), '', '');
+  const sent = [];
+  const seen = await A.describePhoto({ bytes: huge, name: 'stone-steps-leading-up-through-lush-green-garden-2026-09-22-06-05-08-utc.jpg', model: 'm', effort: 'low', callModel: async args => { sent.push(args); return { text: 'Stone steps rise between green shrubs.', usage: {} }; } });
+  const img0 = sent[0].message[0], txt0 = sent[0].message[1];
+  const sentMeta = await sharp(Buffer.from(img0.source.data, 'base64')).metadata();
+  chk('Alt text: the model is sent a small copy of the photo (1,024px), not the 6,937px file, with the file name as a hint and its date left off', seen.alt === 'Stone steps rise between green shrubs.' && img0.type === 'image' && img0.source.media_type === 'image/jpeg' && Math.max(sentMeta.width, sentMeta.height) === 1024 && /stone steps leading up through lush green garden"/.test(txt0.text) && !/2026/.test(txt0.text) && sent[0].model === 'm' && sent[0].effort === 'low', J([sentMeta.width, sentMeta.height, txt0.text]), '');
+  let describeCalls = 0, describeMode = 'ok';
+  const withModel = createImages({
+    pool, pageRows: async () => ROWS, readDrive: id => driveStore.read(id), groupsFor: async () => GROUPS, cardsFor: async () => CARDS, heroChoiceFor: async () => 'photo',
+    getSite: async () => ({ url: live.url, user: 'copybot', appPassword: 'test-app-password-not-real', staging: true }),
+    getDrive: () => ({ async download() { return big; } }), createLog: id => createDbStore(pool, id),
+    describe: async () => { describeCalls++; if (describeMode === 'fail') throw new Error('529 overloaded'); return describeMode === 'empty' ? '' : 'A paved path beside a lawn.'; },
+  });
+  const auto = await withModel.upload(clientId, { name: 'path.jpg', bytes: big });
+  chk('Add a photo with no alt text: Copybot writes it, and says it did', auto.added.alt === 'A paved path beside a lawn.' && auto.added.alt_by === 'copybot' && auto.photos[auto.added.id].shows === 'A paved path beside a lawn.' && describeCalls === 1, J(auto.added), '');
+  const typedAlt = await withModel.upload(clientId, { name: 'path2.jpg', bytes: big, alt: 'My own words.' });
+  chk('Add a photo with alt text typed: the typed words stand and the model is not asked', typedAlt.added.alt === 'My own words.' && typedAlt.added.alt_by === 'typed' && describeCalls === 1, J(typedAlt.added), '');
+  describeMode = 'fail';
+  const failedAlt = await withModel.upload(clientId, { name: 'path3.jpg', bytes: big });
+  describeMode = 'empty';
+  const emptyAlt = await withModel.upload(clientId, { name: 'path4.jpg', bytes: big });
+  chk('The model fails or gives nothing usable: the photo is still added, its alt text is left blank, and it says to type it', failedAlt.photos[failedAlt.added.id] && failedAlt.added.alt === '' && /could not write the alt text \(529 overloaded\)/.test(failedAlt.added.alt_error) && emptyAlt.added.alt === '' && /Type it in/.test(emptyAlt.added.alt_error), J([failedAlt.added, emptyAlt.added]), '');
+  describeMode = 'ok';
+  const rewritten = await withModel.writeAlt(clientId, { file_id: failedAlt.added.id });
+  chk('Write it for me: the alt text is written from the copy Copybot kept', rewritten.alt === 'A paved path beside a lawn.' && rewritten.photos[failedAlt.added.id].shows === 'A paved path beside a lawn.', J(rewritten.alt), '');
+  chk('Write it for me: not for a Drive photo, and it says so when the server has no model', /Only a photo added by hand/.test(await throwsMsg(() => withModel.writeAlt(clientId, { file_id: 'p1' }))) && /no model to ask/.test(await throwsMsg(() => images.writeAlt(clientId, { file_id: failedAlt.added.id }))), '', '');
+  chk('The alt text model is set in page-models.json', require(path.join(root, 'page-models.js')).images().model && require(path.join(root, 'page-models.js')).images().effort === 'low', '', '');
+
   // The added photo on the site: into the Patio installation page's content slot, which was left empty by hand
   const beforeDownloads = downloads, beforeMedia = fake.state.media.size;
   await images.choose(clientId, { identity: SVC, slot: 'content', file_id: up0.id });
