@@ -10,6 +10,7 @@
 
 const { FOLDER_MIME } = require('./client');
 const { POSTS_ROOT } = require('../leadsnap/autopost/decide');
+const { NOTES_NAME, isNotesFile, parseNotes } = require('./notes');
 
 const DRIP_ROOT = 'GBP Photos – Photo Drip';
 const REJECTED_ROOT = 'GBP Photos – Rejected';
@@ -94,7 +95,19 @@ async function readClientPhotos({ drive, folderId }) {
     }
   }
   if (ignored) notes.push(`${ignored} file${ignored === 1 ? ' is' : 's are'} not a photo and ${ignored === 1 ? 'was' : 'were'} left out.`);
-  return { folder_id: folderId, folder_name: root.name, posts_found: !!posts, drip_found: !!drip, folders, files, problems, notes };
+  // The photo notes the sort skill saved beside the folders (drive/notes.js). None, or one that can't be read, is
+  // a note, never a problem: the website images fall back to a photo's size and shape
+  let photoNotes = null;
+  const notesFile = kids.filter(k => !isFolder(k) && isNotesFile(k)).sort((a, b) => String(b.modifiedTime || '').localeCompare(String(a.modifiedTime || '')))[0];
+  if (notesFile) {
+    try {
+      const text = String(notesFile.mimeType || '').startsWith('application/vnd.google-apps.') ? await drive.exportText(notesFile.id) : (await drive.download(notesFile.id)).toString('utf8');
+      const parsed = parseNotes(text);
+      photoNotes = parsed.notes;
+      notes.push(...parsed.problems);
+    } catch (e) { notes.push(`${NOTES_NAME} could not be read (${e.message}), so it was not used.`); }
+  }
+  return { folder_id: folderId, folder_name: root.name, posts_found: !!posts, drip_found: !!drip, folders, files, problems, notes, photo_notes: photoNotes };
 }
 
 // ── The counts ──

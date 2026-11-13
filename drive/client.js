@@ -118,7 +118,14 @@ function createDrive({ env = process.env, fetchImpl = (...a) => fetch(...a), now
     return { bytes: Buffer.from(await res.arrayBuffer()), type: res.headers.get('content-type') || 'image/jpeg' };
   }
 
-  return { folder, list, download, thumbnail, accessToken };
+  // A Google Doc's text (the photo notes file, when the Drive connector saved it as a Doc and not a plain file)
+  async function exportText(id) {
+    const res = await fetchImpl(`${API}/${encodeURIComponent(id)}/export?mimeType=text%2Fplain`, { headers: { Authorization: `Bearer ${await accessToken()}` } });
+    if (!res.ok) throw Object.assign(new Error(`Drive could not give this file (${res.status}).`), { status: 502 });
+    return Buffer.from(await res.arrayBuffer()).toString('utf8');
+  }
+
+  return { folder, list, download, exportText, thumbnail, accessToken };
 }
 
 module.exports = { createDrive, configured, credentials, parseFolderId, FOLDER_MIME, SCOPE };
