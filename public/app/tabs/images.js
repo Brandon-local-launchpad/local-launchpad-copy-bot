@@ -15,7 +15,7 @@ export async function render(el, ctx) {
     const p = s.pick ? S.photos[s.pick] : null;
     return `<div class="img-slot" style="width:150px">
       <div class="small muted" style="margin-bottom:4px">${h(s.label)}</div>
-      ${p ? `<img src="${attr(thumb(s.pick))}" alt="${attr(p.shows || p.name)}" title="${attr(photoTip(p))}" loading="lazy" style="width:150px;height:100px;object-fit:cover;border-radius:6px;display:block">`
+      ${p ? `<img src="${attr(thumb(s.pick))}" alt="${attr(p.shows || p.name)}" title="${attr(photoTip(p))} · click to see it bigger" loading="lazy" data-view="${attr(s.pick)}" style="width:150px;height:100px;object-fit:cover;border-radius:6px;display:block;cursor:zoom-in">`
           : `<div class="small muted" title="${attr(s.why)}" style="width:150px;height:100px;border:1px dashed #c9c9c9;border-radius:6px;display:flex;align-items:center;justify-content:center;text-align:center;padding:6px;box-sizing:border-box">Empty</div>`}
       <div style="margin-top:4px"><button class="btn btn-ghost btn-xs" data-swap="${attr(page.identity)}" data-slot="${attr(s.slot)}">${p ? 'Swap' : 'Choose'}</button>${s.chosen ? ' <span class="small muted">by hand</span>' : ''}</div>
     </div>`;
@@ -69,6 +69,21 @@ export async function render(el, ctx) {
     catch (err) { el.innerHTML = card({ title: 'Images', body: failed({ title: 'The images could not be loaded', reason: err.message }) }); }
   };
 
+  // A photo at full size, with what the photo sort said about it (13 Nov, Brandon: the tiles are too small to judge)
+  const full = id => `/api/clients/${clientId}/gbp-posts/photo/${encodeURIComponent(id)}`;
+  const openPhoto = id => {
+    const p = S.photos[id]; if (!p) return;
+    const facts = [
+      p.service ? `Folder: ${p.service}` : p.kind === 'drip' ? 'Photo Drip' : '',
+      p.type ? `Type: ${p.type}` : '', p.score != null ? `Score: ${p.score} out of 10` : 'No notes from the photo sort',
+      p.noted ? `Hero: ${p.hero ? 'yes' : 'no'}` : '', p.width ? `${p.width} x ${p.height}px` : '', p.unusable ? `Can't be used: ${p.unusable}` : '',
+    ].filter(Boolean);
+    dialog({ title: p.name, wide: true, body: `
+      <img src="${attr(full(id))}" alt="${attr(p.shows || p.name)}" style="max-width:100%;max-height:68vh;display:block;margin:0 auto;border-radius:6px">
+      <p class="small" style="margin:10px 0 2px">${p.shows ? `<strong>Alt text:</strong> ${h(p.shows)}` : '<span class="muted">No description, so no alt text.</span>'}</p>
+      <p class="small muted" style="margin:0">${facts.map(h).join(' · ')}${p.web_link ? ` · <a href="${attr(p.web_link)}" target="_blank" rel="noopener">Open in Drive</a>` : ''}</p>` });
+  };
+
   // The swap dialog: the runners-up first, then every other usable photo; and "leave it empty"
   const openSwap = (identity, slot) => {
     const page = S.pages.find(p => p.identity === identity), s = page.slots.find(x => x.slot === slot);
@@ -77,12 +92,13 @@ export async function render(el, ctx) {
     const usable = Object.entries(S.photos).filter(([id, p]) => !p.unusable && !onPage.has(id) && id !== s.pick);
     const first = s.runners.filter(id => S.photos[id] && !onPage.has(id));
     const rest = usable.map(([id]) => id).filter(id => !first.includes(id)).sort((a, b) => (S.photos[b].score || 0) - (S.photos[a].score || 0));
-    const tile = id => { const p = S.photos[id]; return `<button class="btn btn-ghost" data-pick="${attr(id)}" title="${attr(photoTip(p))}" style="padding:4px;height:auto;display:flex;flex-direction:column;align-items:flex-start"><img src="${attr(thumb(id))}" alt="${attr(p.shows || p.name)}" loading="lazy" style="width:130px;height:88px;object-fit:cover;border-radius:4px;display:block"><span class="small muted" style="display:block;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${h(p.service || p.type || p.name)}${p.score != null ? ` · ${p.score}` : ''}</span></button>`; };
+    const tile = id => { const p = S.photos[id]; return `<div style="display:flex;flex-direction:column;align-items:flex-start"><button class="btn btn-ghost" data-pick="${attr(id)}" title="${attr(photoTip(p))} · click to use this photo" style="padding:4px;height:auto;display:flex;flex-direction:column;align-items:flex-start"><img src="${attr(thumb(id))}" alt="${attr(p.shows || p.name)}" loading="lazy" style="width:130px;height:88px;object-fit:cover;border-radius:4px;display:block"><span class="small muted" style="display:block;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${h(p.service || p.type || p.name)}${p.score != null ? ` · ${p.score}` : ''}</span></button><button class="btn btn-ghost btn-xs" data-view="${attr(id)}" style="margin:2px 0 0 4px">See it bigger</button></div>`; };
     const dlg = dialog({ title: `${page.title}: ${s.label}`, wide: true, body: `
       ${first.length ? `<p class="small"><strong>Next best for this slot</strong></p><div style="display:flex;gap:8px;flex-wrap:wrap">${first.map(tile).join('')}</div>` : ''}
       <p class="small" style="margin-top:12px"><strong>Every other photo</strong></p><div style="display:flex;gap:8px;flex-wrap:wrap;max-height:340px;overflow:auto">${rest.map(tile).join('') || '<span class="small muted">None.</span>'}</div>
       <div class="btn-row" style="margin-top:12px"><button class="btn btn-ghost btn-sm" data-pick="">Leave this slot empty</button></div>` });
     dlg.el.addEventListener('click', async e => {
+      const big = e.target.closest('[data-view]'); if (big) { openPhoto(big.dataset.view); return; }
       const b = e.target.closest('[data-pick]'); if (!b) return;
       try { S = await api(`/api/clients/${clientId}/images/choice`, { method: 'PUT', body: { identity, slot, file_id: b.dataset.pick } }); dlg.close(); draw(); }
       catch (err) { toast(err.message, 'bad'); }
@@ -92,6 +108,7 @@ export async function render(el, ctx) {
   el.addEventListener('click', async e => {
     const f = e.target.closest('[data-filter]'); if (f) { filter = f.dataset.filter; draw(); return; }
     const sw = e.target.closest('[data-swap]'); if (sw) { openSwap(sw.dataset.swap, sw.dataset.slot); return; }
+    const big = e.target.closest('[data-view]'); if (big) { openPhoto(big.dataset.view); return; }
     const who = ctx.userName ? ctx.userName() : '';
     try {
       const ap = e.target.closest('[data-approve]');
