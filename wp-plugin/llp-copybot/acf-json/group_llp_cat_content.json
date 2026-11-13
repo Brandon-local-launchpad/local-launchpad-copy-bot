@@ -1,0 +1,77 @@
+{
+  "key": "group_llp_cat_content",
+  "title": "Category page: Content block",
+  "fields": [
+    {
+      "key": "field_llp_cat_content_h2",
+      "label": "H2",
+      "name": "cat_content_h2",
+      "type": "text",
+      "instructions": "Written by Copybot. Edits here are overwritten by the next push.",
+      "required": 0,
+      "conditional_logic": 0,
+      "show_in_rest": 1
+    },
+    {
+      "key": "field_llp_cat_content_body",
+      "label": "Body",
+      "name": "cat_content_body",
+      "type": "wysiwyg",
+      "instructions": "Written by Copybot. Edits here are overwritten by the next push.",
+      "required": 0,
+      "conditional_logic": 0,
+      "show_in_rest": 1,
+      "tabs": "all",
+      "toolbar": "basic",
+      "media_upload": 0
+    },
+    {
+      "key": "field_llp_cat_content_image",
+      "label": "Image",
+      "name": "cat_content_image",
+      "type": "image",
+      "instructions": "Filled on the site, not by Copybot.",
+      "required": 0,
+      "conditional_logic": 0,
+      "show_in_rest": 1,
+      "return_format": "array",
+      "preview_size": "medium",
+      "library": "all"
+    },
+    {
+      "key": "field_llp_cat_content_image_alt",
+      "label": "Image alt text",
+      "name": "cat_content_image_alt",
+      "type": "text",
+      "instructions": "Filled on the site, not by Copybot.",
+      "required": 0,
+      "conditional_logic": 0,
+      "show_in_rest": 1
+    }
+  ],
+  "location": [
+    [
+      {
+        "param": "post_type",
+        "operator": "==",
+        "value": "service-category"
+      }
+    ],
+    [
+      {
+        "param": "post_type",
+        "operator": "==",
+        "value": "category-location"
+      }
+    ]
+  ],
+  "menu_order": 15,
+  "position": "normal",
+  "style": "default",
+  "label_placement": "top",
+  "instruction_placement": "label",
+  "hide_on_screen": "",
+  "active": true,
+  "description": "Local Launchpad category page (master copy in the Copybot repo).",
+  "show_in_rest": 1
+}

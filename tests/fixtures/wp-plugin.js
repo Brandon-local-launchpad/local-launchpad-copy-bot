@@ -50,6 +50,40 @@ const hero = JSON.parse(files['acf-json/group_llp_home_hero.json']);
 chk('Groups show on the front page and in the REST API', hero.location[0][0].value === 'front_page' && hero.show_in_rest === 1 && hero.fields.every(f => f.show_in_rest === 1), '', 'front_page, REST');
 chk('The five NEW fields are in the schema', ['home_trusted_show', 'home_reviews_show', 'home_services_more_line', 'home_cta_band_heading', 'home_final_cta_body'].every(n => schemaFields[n] && schemaFields[n].new), '', 'all five');
 
+// ── The inner pages' field groups (13 Nov 2026) ──
+{
+  const { INNER_GROUPS } = require(path.join(root, 'wp/acf-schema.js'));
+  const { POST_TYPES, postTypeFor } = require(path.join(root, 'wp/post-types.js'));
+  const count = set => INNER_GROUPS.filter(g => g.set === set).length;
+  chk('Inner pages: 11 category, 12 service and 11 location groups', count('cat') === 11 && count('svc') === 12 && count('loc') === 11, [count('cat'), count('svc'), count('loc')].join(), '11,12,11');
+  const json = name => JSON.parse(files[`acf-json/group_llp_${name}.json`]);
+  const rule = name => json(name).location.map(r => r[0].param + '=' + r[0].value).join(' | ');
+  chk('Inner pages: a group attaches by post type, the base page and its town version both',
+    rule('cat_hero') === 'post_type=service-category | post_type=category-location' && rule('svc_faq') === 'post_type=service | post_type=location-service' && rule('loc_areas') === 'post_type=location',
+    [rule('cat_hero'), rule('svc_faq'), rule('loc_areas')].join(' ; '), 'by post type');
+  chk('Inner pages: no post type is called category, and each page type and scope has one',
+    POST_TYPES.every(p => p.post_type !== 'category') && postTypeFor('category', 'base') === 'service-category' && postTypeFor('category', 'town') === 'category-location' && postTypeFor('service', 'base') === 'service' && postTypeFor('service', 'town') === 'location-service' && postTypeFor('location', 'town') === 'location', '', 'five');
+  const every = Object.keys(files).filter(f => f.startsWith('acf-json/')).flatMap(f => { const g = JSON.parse(files[f]); return [g.key, ...g.fields.flatMap(x => [x.key, ...(x.sub_fields || []).map(s => s.key)])]; });
+  chk('Inner pages: every group and field key in the plugin is unique', new Set(every).size === every.length, every.length - new Set(every).size + ' repeated', 'unique');
+  chk('Inner pages: every field and group is in the REST API', INNER_GROUPS.every(g => json(g.name).show_in_rest === 1 && json(g.name).fields.every(f => f.show_in_rest === 1)), '', 'all');
+  // Every field a record holds under its page's prefix is a field on the site, bar the two the template fills
+  const names = new Set(INNER_GROUPS.flatMap(g => g.fields.map(f => f.name)));
+  const gaps = [];
+  for (const [file, p] of [['category-record.js', 'cat'], ['service-record.js', 'svc'], ['location-record.js', 'loc']]) {
+    const src = fs.readFileSync(path.join(root, file), 'utf8');
+    const labels = Object.values(require(path.join(root, 'page-types', file.replace('-record', ''))).LABELS);
+    const held = new Set([...(src.match(new RegExp(`\\b${p}_[a-z0-9_]+(?=:)`, 'g')) || []), ...labels]);
+    for (const n of held) if (!names.has(n) && !/_hero_rating_line$|_final_cta_trust_lines$/.test(n)) gaps.push(n);
+  }
+  chk('Inner pages: every field a record holds has an ACF field', !gaps.length, gaps.join(', '), 'none');
+  const subs = name => INNER_GROUPS.flatMap(g => g.fields).find(f => f.name === name).sub_fields.map(s => s.name).join();
+  chk('Inner pages: the repeater rows are the ones the page view names (wp/field-names.js)',
+    subs('svc_included_items') === 'item_title,item_text' && subs('cat_services_cards') === 'card_name,card_text,card_image,card_url' && subs('loc_reviews') === 'review_text,review_name,review_town' && subs('svc_more_cards') === 'card_name,card_url' && subs('cat_areas_links') === 'area_name,page_url',
+    subs('svc_included_items'), 'match');
+  const types = JSON.parse(files['page-post-types.json']);
+  chk('Inner pages: the plugin\'s post type list is the one in wp/post-types.js', types.path_meta === '_llp_path' && types.post_types.map(t => t.post_type).join() === POST_TYPES.map(p => p.post_type).join(), JSON.stringify(types).slice(0, 200), 'same');
+}
+
 // ── Token rules (shared cases) ──
 const cases = JSON.parse(fs.readFileSync(path.join(PLUGIN, 'tests/token-cases.json'), 'utf8'));
 const bad = cases.cases.filter(c => resolveTokens(c.in, cases.values, { mode: c.mode, year: cases.year }) !== c.want);

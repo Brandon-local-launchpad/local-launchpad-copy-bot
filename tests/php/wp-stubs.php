@@ -12,7 +12,29 @@ $GLOBALS['llp_test'] = array(
 	'routes' => array(), 'meta' => array(), 'settings' => array(), 'pages' => array(),
 	'is_admin' => false, 'caps' => array( 'manage_options' => true, 'edit_pages' => true, 'activate_plugins' => true ),
 	'year' => '2026', 'front' => 7,
+	// The post types the staging template site had on 13 Nov 2026, and no entries yet
+	'post_types' => array( 'service' => array(), 'location' => array(), 'category-location' => array() ),
+	'supports' => array(), 'meta_types' => array(), 'posts' => array(), 'flushes' => 0,
 );
+
+// For page-types.php: post types, and entries as array( id => array( 'type', 'status', 'meta' => array() ) )
+function post_type_exists( $t ) { return isset( $GLOBALS['llp_test']['post_types'][ $t ] ); }
+function register_post_type( $t, $args ) { $GLOBALS['llp_test']['post_types'][ $t ] = $args; return true; }
+function add_post_type_support( $t, $feature ) { $GLOBALS['llp_test']['supports'][ $t ][] = $feature; }
+function flush_rewrite_rules( $hard = true ) { $GLOBALS['llp_test']['flushes']++; }
+function user_trailingslashit( $s ) { return rtrim( $s, '/' ) . '/'; }
+function get_post_type( $id ) { return $GLOBALS['llp_test']['posts'][ $id ]['type'] ?? false; }
+function get_post_meta( $id, $key, $single = false ) { return $GLOBALS['llp_test']['posts'][ $id ]['meta'][ $key ] ?? ''; }
+function get_posts( $a ) {
+	$ids = array();
+	foreach ( $GLOBALS['llp_test']['posts'] as $id => $p ) {
+		if ( 'trash' === $p['status'] || ! in_array( $p['type'], (array) $a['post_type'], true ) ) { continue; }
+		if ( ( $p['meta'][ $a['meta_key'] ] ?? null ) !== $a['meta_value'] ) { continue; }
+		$ids[] = $id;
+	}
+	sort( $ids );
+	return array_slice( $ids, 0, $a['numberposts'] );
+}
 
 function get_option( $k, $d = false ) { return array_key_exists( $k, $GLOBALS['llp_test']['options'] ) ? $GLOBALS['llp_test']['options'][ $k ] : ( 'page_on_front' === $k ? $GLOBALS['llp_test']['front'] : $d ); }
 function update_option( $k, $v ) { $GLOBALS['llp_test']['options'][ $k ] = $v; return true; }
@@ -34,7 +56,7 @@ function is_admin() { return $GLOBALS['llp_test']['is_admin']; }
 function wp_doing_ajax() { return false; }
 function current_user_can( $cap ) { return ! empty( $GLOBALS['llp_test']['caps'][ $cap ] ); }
 function register_setting( $group, $name, $args ) { $GLOBALS['llp_test']['settings'][ $name ] = $args; }
-function register_post_meta( $type, $key, $args ) { $GLOBALS['llp_test']['meta'][ $key ] = $args; return true; }
+function register_post_meta( $type, $key, $args ) { $GLOBALS['llp_test']['meta_types'][ $key ][] = $type;$GLOBALS['llp_test']['meta'][ $key ] = $args; return true; }
 function register_rest_route( $ns, $route, $args ) { $GLOBALS['llp_test']['routes'][ "$ns$route" ] = $args; return true; }
 function rest_ensure_response( $r ) { return $r; }
 function wp_list_pluck( $list, $field ) { return array_map( function ( $x ) use ( $field ) { return is_array( $x ) ? $x[ $field ] : $x->$field; }, $list ); }

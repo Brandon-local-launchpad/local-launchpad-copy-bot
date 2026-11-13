@@ -1,0 +1,88 @@
+{
+  "key": "group_llp_svc_included",
+  "title": "Service page: What is included",
+  "fields": [
+    {
+      "key": "field_llp_svc_included_h2",
+      "label": "H2",
+      "name": "svc_included_h2",
+      "type": "text",
+      "instructions": "Written by Copybot. Edits here are overwritten by the next push.",
+      "required": 0,
+      "conditional_logic": 0,
+      "show_in_rest": 1
+    },
+    {
+      "key": "field_llp_svc_included_intro",
+      "label": "Intro",
+      "name": "svc_included_intro",
+      "type": "wysiwyg",
+      "instructions": "Written by Copybot. Edits here are overwritten by the next push.",
+      "required": 0,
+      "conditional_logic": 0,
+      "show_in_rest": 1,
+      "tabs": "all",
+      "toolbar": "basic",
+      "media_upload": 0
+    },
+    {
+      "key": "field_llp_svc_included_items",
+      "label": "Items",
+      "name": "svc_included_items",
+      "type": "repeater",
+      "instructions": "Written by Copybot. Edits here are overwritten by the next push.",
+      "required": 0,
+      "conditional_logic": 0,
+      "show_in_rest": 1,
+      "layout": "block",
+      "button_label": "Add row",
+      "sub_fields": [
+        {
+          "key": "field_llp_svc_included_items_item_title",
+          "label": "Title",
+          "name": "item_title",
+          "type": "text",
+          "instructions": "Written by Copybot. Edits here are overwritten by the next push.",
+          "required": 0,
+          "conditional_logic": 0,
+          "show_in_rest": 1
+        },
+        {
+          "key": "field_llp_svc_included_items_item_text",
+          "label": "Text",
+          "name": "item_text",
+          "type": "text",
+          "instructions": "Written by Copybot. Edits here are overwritten by the next push.",
+          "required": 0,
+          "conditional_logic": 0,
+          "show_in_rest": 1
+        }
+      ]
+    }
+  ],
+  "location": [
+    [
+      {
+        "param": "post_type",
+        "operator": "==",
+        "value": "service"
+      }
+    ],
+    [
+      {
+        "param": "post_type",
+        "operator": "==",
+        "value": "location-service"
+      }
+    ]
+  ],
+  "menu_order": 25,
+  "position": "normal",
+  "style": "default",
+  "label_placement": "top",
+  "instruction_placement": "label",
+  "hide_on_screen": "",
+  "active": true,
+  "description": "Local Launchpad service page (master copy in the Copybot repo).",
+  "show_in_rest": 1
+}

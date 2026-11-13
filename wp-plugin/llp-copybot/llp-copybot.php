@@ -1,15 +1,15 @@
 <?php
 /**
  * Plugin Name: Local Launchpad Copybot
- * Description: Client Values, [CV: key] token replacement, the homepage ACF field groups (master copy), REST access for Copybot pushes, old site redirects into Rank Math, and the Review Us page (the star box and its private feedback form).
- * Version:     0.5.0
+ * Description: Client Values, [CV: key] token replacement, the ACF field groups for the homepage and the inner pages (master copy), the inner pages' post types and page map URLs, REST access for Copybot pushes, old site redirects into Rank Math, and the Review Us page (the star box and its private feedback form).
+ * Version:     0.6.0
  * Requires at least: 6.2
  * Requires PHP: 7.4
  * Author:      Local Launchpad
  *
  * Source: the Copybot repo, wp-plugin/llp-copybot/. acf-json/ and
  * client-value-keys.json are generated there (npm run wp:plugin-data): don't edit
- * them on a site. Token rules must match wp/token-resolve.js and
+ * them on a site (page-post-types.json too). Token rules must match wp/token-resolve.js and
  * tests/token-cases.json.
  */
 
@@ -17,10 +17,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'LLP_COPYBOT_VERSION', '0.5.0' );
+define( 'LLP_COPYBOT_VERSION', '0.6.0' );
 define( 'LLP_COPYBOT_OPTION', 'llp_client_values' );
 require_once __DIR__ . '/redirects.php';
 require_once __DIR__ . '/review-funnel.php';
+require_once __DIR__ . '/page-types.php';
 
 // ── Client Values ────────────────────────────────────────────────────────────
 
@@ -193,13 +194,14 @@ add_filter(
 	}
 );
 
-// Let Copybot write the SEO title and description through /wp/v2/pages
+// Let Copybot write the SEO title and description through /wp/v2/pages and the inner pages' post types
 add_action(
 	'init',
 	function () {
+		foreach ( array_merge( array( 'page' ), llp_page_post_types() ) as $llp_type ) {
 		foreach ( array( 'rank_math_title', 'rank_math_description', '_yoast_wpseo_title', '_yoast_wpseo_metadesc' ) as $key ) {
 			register_post_meta(
-				'page',
+				$llp_type,
 				$key,
 				array(
 					'type'              => 'string',
@@ -211,6 +213,7 @@ add_action(
 					},
 				)
 			);
+		}
 		}
 	}
 );
@@ -267,6 +270,7 @@ add_action(
 							'redirects'    => llp_redirects_ready(),
 							'review_funnel' => '' !== llp_review_funnel_endpoint(),
 							'field_groups' => $groups,
+							'page_types'   => llp_page_types_status(),
 						)
 					);
 				},

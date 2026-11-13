@@ -257,4 +257,49 @@ $T['caps']['manage_options'] = true;
 $R['status_route'] = ( $routes['llp-copybot/v1/status']['callback'] )();
 
 $out['redirects'] = $R;
+
+// ── The inner pages (page-types.php) ─────────────────────────────────────────
+$P  = array();
+$T1 = &$GLOBALS['llp_test'];
+$P['types']        = llp_page_post_types();
+$P['status']       = $R['status_route']['page_types'];
+$P['registered']   = array_keys( array_filter( $T1['post_types'] ) );
+$P['new_args']     = $T1['post_types']['service-category'];
+$P['supports']     = $T1['supports'];
+$P['path_meta_on'] = $T1['meta_types']['_llp_path'];
+$P['seo_meta_on']  = $T1['meta_types']['rank_math_title'];
+$P['path_meta']    = array( 'rest' => $T1['meta']['_llp_path']['show_in_rest'], 'clean' => $T1['meta']['_llp_path']['sanitize_callback'], 'auth' => ( $T1['meta']['_llp_path']['auth_callback'] )() );
+$P['flushes']      = $T1['flushes'];
+// The next page load: the plugin's two post types are not there until init registers them again
+unset( $T1['post_types']['service-category'], $T1['post_types']['location-service'] );
+do_action_test( 'init' );
+$P['flushes_again'] = $T1['flushes'];
+
+// A path as stored
+$P['clean'] = array_map( 'llp_page_clean_path', array( '/services/patios', 'Locations/Romsey/Patios/', '/', '', '/a b', '/services//patios', '/services/../x', 'https://x.test/a', array( 'x' ) ) );
+
+// Entries: a service, a town service as a draft, one with no path, one in the bin, a page, and a second entry on a taken path
+$T1['posts'] = array(
+	41 => array( 'type' => 'service', 'status' => 'publish', 'meta' => array( '_llp_path' => '/services/patios' ) ),
+	42 => array( 'type' => 'location-service', 'status' => 'draft', 'meta' => array( '_llp_path' => '/locations/romsey/patios' ) ),
+	43 => array( 'type' => 'service', 'status' => 'publish', 'meta' => array() ),
+	44 => array( 'type' => 'service', 'status' => 'trash', 'meta' => array( '_llp_path' => '/services/decking' ) ),
+	45 => array( 'type' => 'page', 'status' => 'publish', 'meta' => array( '_llp_path' => '/services/fencing' ) ),
+	46 => array( 'type' => 'location', 'status' => 'publish', 'meta' => array( '_llp_path' => '/services/patios' ) ),
+);
+$link = function ( $id ) { return apply_filters_test( 'post_type_link', 'https://site.test/default/' . $id . '/', (object) array( 'ID' => $id, 'post_type' => $GLOBALS['llp_test']['posts'][ $id ]['type'] ) ); };
+$T1['site_url'] = 'https://site.test';
+$P['links'] = array($link( 41 ), $link( 42 ), $link( 43 ), $link( 45 ) );
+$ask = function ( $request, $qv = array( 'pagename' => 'x' ) ) { $GLOBALS['wp'] = (object) array( 'request' => $request ); return apply_filters_test( 'request', $qv ); };
+$P['req_service'] = $ask( 'services/patios' );
+$P['req_town']    = $ask( 'locations/romsey/patios', array( 'pagename' => 'x', 'preview' => 'true' ) );
+$P['req_case']    = $ask( 'Services/Patios' );
+$P['req_unknown'] = $ask( 'services/turfing' );
+$P['req_bin']     = $ask( 'services/decking' );
+$P['req_page']    = $ask( 'services/fencing' );
+$P['req_home']    = $ask( '' );
+$T1['is_admin']   = true;
+$P['req_admin']   = $ask( 'services/patios' );
+$T1['is_admin']   = false;
+$out['page_types'] = $P;
 echo json_encode( $out, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );

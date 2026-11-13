@@ -7,18 +7,16 @@ For Given, who builds the WordPress templates. Written on 5 Nov 2026 from the co
 | Page type | ACF fields in the plugin | Copybot can push it | Copybot writes the copy |
 |---|---|---|---|
 | Homepage | Yes, 12 field groups | Yes | Yes |
-| Category | No | No | Yes |
-| Location category | No | No | Yes |
-| Service | No | No | Yes |
-| Town service | No | No | Yes |
-| Location | No | No | Yes |
+| Category | Yes, 11 groups, post type `service-category` | Not yet | Yes |
+| Location category | Yes, the same 11, post type `category-location` | Not yet | Yes |
+| Service | Yes, 12 groups, post type `service` | Not yet | Yes |
+| Town service | Yes, the same 12, post type `location-service` | Not yet | Yes |
+| Location | Yes, 11 groups, post type `location` | Not yet | Yes |
 | Blog post | Only on the `blog` branch, 7 groups | Only on the `blog` branch | Only on the `blog` branch |
 
-**On the main branch, only the homepage is mapped to WordPress.** For the other five page types, the names below are Copybot's own, taken from its records and prompts. They are the proposed ACF names, and nothing on a site uses them yet. The types shown for them are proposed too. In the code each of those page types says: "the WordPress mapping waits for the template's field map".
+**Since plugin 0.6.0 (13 Nov 2026) the five inner page types have their ACF field groups in the plugin.** The fields are the ones in the Category, Service and Location template tables below. Copybot can't create those pages or push their copy yet: that is the next piece of work. See Inner pages: post types and URLs.
 
 **Blog is built on its own branch, not on main, and is parked until Edens Edge is live.** The `blog` branch has its own spec, prompt, records, validator, 7 ACF groups, a push and a handover for Given. It is about 100 commits behind main, so none of it is live. See the Blog post section.
-
-**The five inner page types have a proposal.** See Proposed for Given. Nothing in it is in the plugin yet, and the plugin won't change until it's agreed.
 
 ### How the fields behave
 
@@ -207,7 +205,7 @@ The push writes these to the site's Settings, Client Values. Use them for tokens
 
 ## Category page
 
-**Not in ACF, not pushed: proposed names.** Paving Contractor, Southampton example.
+**In ACF since plugin 0.6.0 (the template tables further down), not pushed yet.** Paving Contractor, Southampton example.
 
 | Field | Type | Section | Set by | Example |
 |---|---|---|---|---|
@@ -267,7 +265,7 @@ The push writes these to the site's Settings, Client Values. Use them for tokens
 
 ## Location category page
 
-**Not in ACF, not pushed: proposed names.** It is the same page type and template as the category page, with the record's `scope` set to `town`. Gardener, Romsey example.
+**In ACF since plugin 0.6.0 (the template tables further down), not pushed yet.** It is the same page type and template as the category page, with the record's `scope` set to `town`. Gardener, Romsey example.
 
 What differs from the category page: the copy covers that town only, `cat_areas_links` lists its villages unlinked, and `cat_areas_also_cover` is empty.
 
@@ -329,7 +327,7 @@ What differs from the category page: the copy covers that town only, `cat_areas_
 
 ## Service page
 
-**Not in ACF, not pushed: proposed names.** Patios, Southampton example.
+**In ACF since plugin 0.6.0 (the template tables further down), not pushed yet.** Patios, Southampton example.
 
 | Field | Type | Section | Set by | Example |
 |---|---|---|---|---|
@@ -392,7 +390,7 @@ What differs from the category page: the copy covers that town only, `cat_areas_
 
 ## Town service page
 
-**Not in ACF, not pushed: proposed names.** It is the same page type and template as the service page, with `scope` set to `town`. Tree stump removal, Romsey example.
+**In ACF since plugin 0.6.0 (the template tables further down), not pushed yet.** It is the same page type and template as the service page, with `scope` set to `town`. Tree stump removal, Romsey example.
 
 What differs from the service page: the copy covers that town and service only, `svc_areas_links` lists its villages unlinked, `svc_areas_also_cover` is empty, and the more services cards link to sibling town pages where they exist.
 
@@ -457,7 +455,7 @@ What differs from the service page: the copy covers that town and service only, 
 
 ## Location page
 
-**Not in ACF, not pushed: proposed names.** Romsey example.
+**In ACF since plugin 0.6.0 (the template tables further down), not pushed yet.** Romsey example.
 
 | Field | Type | Section | Set by | Example |
 |---|---|---|---|---|
@@ -570,9 +568,33 @@ Unlike the homepage, these records hold the literal word `HIDDEN`. There is no p
 | `*_areas_links[].page_url` empty | Town page's villages | Show plain text |
 | `*_hero_trust_line`, `*_hero_rating_line` empty | Nothing on file | Show nothing there |
 
-## Proposed for Given
+## Inner pages: post types and URLs
 
-**This is a proposal for Given to agree or change.** None of it is in the plugin, and Copybot has no push for these pages. The plugin won't be regenerated and the push won't be built until Brandon confirms Given has agreed it.
+Brandon, Ray and Given agreed on 12 and 13 Nov 2026 that Copybot generates these field groups, as it does the homepage's. They are in plugin 0.6.0. The master copy is `wp/acf-schema.js` (`INNER_GROUPS`) and `wp/post-types.js`.
+
+**Post types.** Each kind of page is an entry in its own post type, so its Elementor single template applies itself.
+
+| Page | Post type | Field groups |
+|---|---|---|
+| Category | `service-category` | `group_llp_cat_*` |
+| Location category | `category-location` | `group_llp_cat_*` |
+| Service | `service` | `group_llp_svc_*` |
+| Town service | `location-service` | `group_llp_svc_*` |
+| Location | `location` | `group_llp_loc_*` |
+
+- On 13 Nov 2026 the staging template site had `service`, `location` and `category-location`. The plugin registers any of the five a site doesn't have, and leaves alone one the site already has. The status route's `page_types` says which is which.
+- No post type is named `category`: WordPress uses that name.
+- **For Given:** each of the five post types needs an Elementor single template, with its text bound to the fields below. Nothing else is set by hand per page.
+
+**URLs.** The page map decides every URL: `/gardener`, `/services/patios`, `/locations/romsey`, `/locations/romsey/patios`. WordPress can't build the nested town paths across post types from its settings, so the plugin does it. Each entry holds its path in the post meta `_llp_path`. The plugin makes that the entry's permalink and answers a request for the path with the entry. No URL plugin is needed and the post types' own URL bases don't matter. An entry with no path keeps its ordinary URL.
+
+**Not built yet:** creating the entries from the page map, and pushing the copy. Until then `_llp_path` is only set through the REST API.
+
+**Not proven on a real site.** The plugin's PHP is tested under php-wasm against stand-ins for WordPress. The first install of 0.6.0 on staging should check: the 34 groups appear in ACF, a new Service entry shows the fields, and an entry given a path opens at that path.
+
+## The inner pages' fields
+
+These are in the plugin as of 0.6.0.
 
 The page structure document says four templates cover every page, so the five page types need three sets of groups. A base page and its town version share one set, and only the content and link targets differ.
 
@@ -582,7 +604,7 @@ The page structure document says four templates cover every page, so the five pa
 | Service | Service, town service | `svc_` | 12 |
 | Location | Location | `loc_` | 11 |
 
-### What is proposed
+### What the groups hold
 
 - **Names:** the names in the tables above, unchanged. Group keys are `group_llp_<name>` and field keys `field_llp_<name>`, as on the homepage.
 - **Settings:** the same as the homepage. Every field and group has Show in REST on, wysiwyg uses the basic toolbar with no media upload, and images return an array.
@@ -611,12 +633,12 @@ The page structure document says four templates cover every page, so the five pa
 | `*_final_cta_trust_lines` | The template, from `hours` and `rating_line`, as on the homepage |
 | `card_target` | Nowhere: Copybot uses it for its own checks |
 
-### What Given needs to decide
+### What was decided
 
-1. **Location rules.** The homepage groups attach to the front page. These need something else, and ACF only saves a field on a page its group attaches to. I suggest one page template per set (`page_template` equals the category, service or location template). Does that work with how the Elementor templates are assigned?
-2. **Finding the page.** Copybot holds each page's slug, such as `/services/patios` or `/locations/romsey/gardener`. Would the pages already exist at those paths, with Copybot writing to them, or should Copybot create them as drafts?
-3. **Nested town URLs.** A location category slug has three levels. Does the site's page hierarchy produce that path, with Romsey as the parent page?
-4. **The also cover field and the gallery.** Are a text field and one repeater the shapes Given wants?
+1. **Location rules.** By post type, as above.
+2. **Finding the page.** Copybot will create each page as a draft and keep its ID (next piece of work).
+3. **Nested town URLs.** The plugin serves the page map's path.
+4. **The also cover field and the gallery.** A text field and one repeater, as proposed. Given can ask for a change.
 
 ### Category template
 
