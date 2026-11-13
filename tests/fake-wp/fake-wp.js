@@ -6,7 +6,10 @@
 const express = require('express');
 
 const { LEGAL_GROUPS, LEGAL_TEMPLATE } = require('../../wp/acf-schema');
-const ALL_GROUPS = [...require('../../wp/acf-schema').GROUPS, ...LEGAL_GROUPS].map(g => `group_llp_${g.name}`);
+const { INNER_GROUPS } = require('../../wp/acf-schema');
+const ALL_GROUPS = [...require('../../wp/acf-schema').GROUPS, ...LEGAL_GROUPS, ...INNER_GROUPS].map(g => `group_llp_${g.name}`);
+// An inner page's post type → the top-level field names of its set of groups (their ACF location is the post type)
+const INNER_FIELDS = Object.fromEntries(require('../../wp/post-types').POST_TYPES.map(t => [t.post_type, INNER_GROUPS.filter(g => g.set === t.set).flatMap(g => g.fields.map(f => f.name))]));
 const LEGAL_FIELDS = LEGAL_GROUPS.flatMap(g => g.fields.map(f => f.name));
 // The homepage groups' top-level field names (their ACF location is the front page)
 const POST_TYPES = require('../../wp/post-types').POST_TYPES.map(p => p.post_type);
@@ -15,7 +18,8 @@ const HOME_FIELDS = require('../../wp/acf-schema').GROUPS.flatMap(g => g.fields.
 // plugin: false → the companion plugin isn't installed (its routes 404)
 function createFakeWp({ user = 'copybot', appPassword = 'test-app-password-not-real', frontId = 7, pages = [],
   plugin = true, acfPro = true, seo = 'rankmath', fieldGroups = ALL_GROUPS, clientValues = {}, pluginVersion = null,
-  failWrites = false, ignoreAcf = [], elementorFront = true, rankMath = true, redirectionsModule = true, failRedirectWrites = false, mangleSource = null, otherRedirects = [], publicPaths = ['/'], publicRedirects = {}, trailingFront = null, reviewFunnel = true, dropEndpoint = false, innerPages = [], missingPostTypes = [], failPageWrites = false, refusePaths = [] } = {}) {
+  failWrites = false, ignoreAcf = [], elementorFront = true, rankMath = true, redirectionsModule = true, failRedirectWrites = false, mangleSource = null, otherRedirects = [], publicPaths = ['/'], publicRedirects = {}, trailingFront = null, reviewFunnel = true, dropEndpoint = false, innerPages = [], missingPostTypes = [], failPageWrites = false, refusePaths = [], noFieldsOn = [] } = {}) {
+  // noFieldsOn: post types whose field groups don't attach (a read gives `acf: []` and a write to them is dropped)
   // innerPages: entries already in the inner pages' post types [{ id, post_type, status, title, path }]; missingPostTypes: post types the
   // site reports as missing; failPageWrites: the pages route answers 500; refusePaths: paths WordPress can't save
   // failWrites: page writes return 500; ignoreAcf: fields the site doesn't save (e.g. a field group that isn't there);
@@ -131,6 +135,25 @@ function createFakeWp({ user = 'copybot', appPassword = 'test-app-password-not-r
     if (req.body.status) p.status = req.body.status;
     res.json(view(p));
   });
+  // An inner page through its post type's REST base, as ACF gives it: every field of its set (null when unset)
+  for (const type of POST_TYPES) {
+    const names = noFieldsOn.includes(type) ? [] : INNER_FIELDS[type];
+    const entry = req => state.innerPages.find(p => p.id === Number(req.params.id) && p.post_type === type && p.status !== 'trash');
+    const viewInner = p => {
+      const acf = { ...Object.fromEntries(names.map(n => [n, null])), ...Object.fromEntries(Object.entries(p.acf || {}).filter(([k]) => names.includes(k))) };
+      return { id: p.id, slug: (p.path || '').split('/').pop(), status: p.status, title: { raw: p.title, rendered: p.title }, acf: names.length ? acf : [], meta: p.meta || {} };
+    };
+    app.get(`/wp-json/wp/v2/${type}/:id`, (req, res) => { const p = entry(req); if (!p) return res.status(404).json({ code: 'rest_post_invalid_id', message: 'Invalid post ID.' }); res.json(viewInner(p)); });
+    app.post(`/wp-json/wp/v2/${type}/:id`, (req, res) => {
+      const p = entry(req);
+      if (!p) return res.status(404).json({ code: 'rest_post_invalid_id', message: 'Invalid post ID.' });
+      state.writes++;
+      if (failWrites) return res.status(500).json({ code: 'internal_server_error', message: 'There has been a critical error on this website.' });
+      if (req.body.acf) p.acf = { ...p.acf, ...Object.fromEntries(Object.entries(req.body.acf).filter(([k]) => names.includes(k) && !ignoreAcf.includes(k))) };
+      if (req.body.meta) p.meta = { ...p.meta, ...req.body.meta };
+      res.json(viewInner(p));
+    });
+  }
   // Rank Math's redirections through the plugin's routes, behaving as the real ones were read to
   // (5 Nov): only active rows fire, an unknown URL another plugin made is a conflict, a destination
   // holds this site's address, and turning on rebuilds it. rankMath: false, redirectionsModule: false to refuse.

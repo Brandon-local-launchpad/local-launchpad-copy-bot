@@ -147,6 +147,21 @@ export async function render(el, ctx) {
   // Pages on the site (13 Nov, wp/pages.js): every category, service and location page in the build made on the
   // site as a draft, in its post type, at its page map URL. Check reads only; Create asks first.
   let sitePages = null, sitePagesNote = '';
+  // The copy (wp/copy-plan.js): which pages are ready to push, and Push, which sends each ready page through the
+  // page view's own push, one at a time
+  let copyPlan = null, copyNote = '', copyFailed = [];
+  const STATE_LABEL = { 'no copy': 'not written yet', 'not ready': 'not ready', 'not approved': 'not approved', claims: 'claims to accept', 'not on the site': 'not on the site yet' };
+  const copyHtml = () => {
+    const p = copyPlan;
+    if (!p) return '<p class="small muted" style="margin-top:14px">Then the copy: check which pages are ready to push.</p>';
+    const c = p.counts;
+    const waiting = p.pages.filter(x => x.state !== 'ready' && x.state !== 'pushed');
+    const groups = Object.keys(STATE_LABEL).map(s => [s, waiting.filter(x => x.state === s)]).filter(([, l]) => l.length);
+    return `<p class="small" style="margin-top:14px"><strong>The copy:</strong> ${c.ready} ready to push, ${c.pushed} already on the site${waiting.length ? `, ${waiting.length} waiting` : ''}.</p>
+      ${p.siteError ? `<p class="small">${h(p.siteError)}</p>` : ''}
+      ${groups.map(([s, l]) => `<p class="small" style="margin:8px 0 2px"><strong>${plural(l.length, 'page')} ${h(STATE_LABEL[s])}</strong>: ${h(l[0].why)}</p><p class="small muted" style="margin:0">${l.slice(0, 8).map(x => h(x.title)).join(', ')}${l.length > 8 ? ` and ${l.length - 8} more` : ''}</p>`).join('')}
+      ${copyFailed.length ? `<p class="small" style="margin:8px 0 2px"><strong>Not pushed</strong></p><ul class="small" style="margin:0 0 0 18px">${copyFailed.map(f => `<li>${h(f.title)}: ${h(f.why)}</li>`).join('')}</ul>` : ''}`;
+  };
   const drawSitePages = () => {
     const box = el.querySelector('#sitePages'); if (!box) return;
     if (!site || !site.conn) { box.innerHTML = ''; return; }
@@ -161,7 +176,9 @@ export async function render(el, ctx) {
       ${list('Failed', (p.errors || []).map(x => `${h(x.title)} (${h(x.path)}): ${h(x.message)}`))}
       ${list('On the site but not in the build (left alone)', p.extras.map(x => `${h(x.title || '(no title)')} · ${h(x.post_type)} · ${h(x.path || 'no page map URL')} · ${h(x.status)}`))}`;
     box.innerHTML = card({ title: 'Pages on the site', sub: 'Every category, service and location page in the build, made on the site as a draft at its page map URL. Nothing is published or deleted.', body: `${body}
-      <div class="btn-row"><button class="btn btn-ghost btn-sm" data-sitepages="check">Check the site</button>${p && !p.refusals.length && todo ? `<button class="btn btn-primary btn-sm" data-sitepages="make">Create ${plural(todo, 'page')} as drafts</button>` : ''}<span class="small muted">${h(sitePagesNote)}</span></div>` });
+      <div class="btn-row"><button class="btn btn-ghost btn-sm" data-sitepages="check">Check the site</button>${p && !p.refusals.length && todo ? `<button class="btn btn-primary btn-sm" data-sitepages="make">Create ${plural(todo, 'page')} as drafts</button>` : ''}<span class="small muted">${h(sitePagesNote)}</span></div>
+      ${copyHtml()}
+      <div class="btn-row"><button class="btn btn-ghost btn-sm" data-sitepages="copy-check">Check the copy</button>${copyPlan && copyPlan.counts.ready ? `<button class="btn btn-primary btn-sm" data-sitepages="copy-push">Push the copy to ${plural(copyPlan.counts.ready, 'page')}</button>` : ''}<span class="small muted" id="copyNote">${h(copyNote)}</span></div>` });
   };
   el.addEventListener('click', async e => {
     const b = e.target.closest('[data-sitepages]'); if (!b) return;
@@ -176,6 +193,24 @@ export async function render(el, ctx) {
           sitePagesNote = r.error ? `Stopped: ${r.error}` : r.refusals.length ? 'Not made.' : `${r.created} created, ${r.updated} brought into line${r.ok ? '' : ', with problems below'}.`;
           toast(r.ok ? 'Pages made' : 'Not everything was made', r.ok ? undefined : 'bad'); drawSitePages();
         });
+      }
+      if (b.dataset.sitepages === 'copy-check') await busy(b, 'Checking…', async () => { copyPlan = await api(`/api/clients/${clientId}/wp/copy-plan`); copyNote = ''; copyFailed = []; drawSitePages(); });
+      if (b.dataset.sitepages === 'copy-push') {
+        const ready = copyPlan.pages.filter(x => x.state === 'ready');
+        if (!(await confirm({ title: `Push the copy to ${plural(ready.length, 'page')} on ${copyPlan.site}?`, text: 'Only pages a person approved, with every claim accepted. The fields and the SEO title and description of each page are written, and the Client Values on the site are brought up to date. Each push can be rolled back from the page.', ok: 'Push them' }))) return;
+        b.disabled = true; copyFailed = [];
+        let done = 0;
+        for (const [i, pg] of ready.entries()) {
+          const note = el.querySelector('#copyNote'); if (note) note.textContent = `Pushing ${i + 1} of ${ready.length}: ${pg.title}`;
+          try {
+            const r = await api(`/api/clients/${clientId}/wp/push`, { method: 'POST', body: { recordId: pg.recordId, reviewed: true, acceptedClaims: pg.acceptedClaims || [], confirm: true } });
+            if (r.ok) done++; else copyFailed.push({ title: pg.title, why: (r.refusals && r.refusals[0]) || r.error || (r.mismatches && r.mismatches.length ? `written, but ${r.mismatches.length} field(s) read back differently` : 'not pushed') });
+          } catch (err) { copyFailed.push({ title: pg.title, why: err.message }); }
+        }
+        const failed = copyFailed;
+        copyPlan = await api(`/api/clients/${clientId}/wp/copy-plan`).catch(() => copyPlan);
+        copyFailed = failed; copyNote = `${done} pushed${failed.length ? `, ${failed.length} not` : ''}.`;
+        toast(failed.length ? 'Not every page was pushed' : 'Copy pushed', failed.length ? 'bad' : undefined); drawSitePages();
       }
     } catch (err) { toast(err.message, 'bad'); }
   });

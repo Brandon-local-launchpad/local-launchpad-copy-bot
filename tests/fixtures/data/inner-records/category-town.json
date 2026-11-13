@@ -1,0 +1,259 @@
+{
+ "page": "category",
+ "VALIDATION": {
+  "status": "run",
+  "block": 0,
+  "flag": 8,
+  "issues": []
+ },
+ "CLAIMS": {
+  "for": "2026-10-27T15:15:34.834Z",
+  "at": "2026-10-27T15:18:05.509Z",
+  "status": "clear",
+  "first_review": 0,
+  "findings": [],
+  "rounds": []
+ },
+ "scope": "town",
+ "category": "Deck Builder",
+ "town": "Romsey",
+ "page_slug": "/locations/romsey/deck-builder",
+ "seo_title": "Deck Builder Romsey | Edens Edge Landscaping",
+ "meta_description": "Edens Edge Landscaping is a deck builder in Romsey offering fixed prices with no hidden costs. Get your free quote today.",
+ "breadcrumb": [
+  {
+   "name": "Home",
+   "url": "/"
+  },
+  {
+   "name": "Romsey",
+   "url": "/locations/romsey"
+  },
+  {
+   "name": "Deck Builder",
+   "url": null
+  }
+ ],
+ "cat_hero_h1": "Deck Builder Romsey",
+ "cat_hero_trust_line": "100+ Jobs Completed",
+ "cat_hero_intro": "[CV: company_name] is a deck builder in Romsey, building, repairing and restoring decks for homeowners right across the town. Our prices are fixed, with no hidden costs.",
+ "cat_hero_rating_line": "",
+ "buttons": [
+  "Get My Free Quote",
+  "Call [CV: phone]"
+ ],
+ "cat_services_h2": "Our Deck Builder Services in Romsey",
+ "cat_services_intro": "From a brand new deck to a tired old one that needs rescuing, we build, repair and restore decking for Romsey homeowners. Fencing and pergolas sit alongside it, so the whole back garden can be finished by one crew.",
+ "cards": [
+  {
+   "card_name": "Fencing",
+   "card_text": "A fence that leans or rattles loose only gets worse with each gale. Our [fencing](/services/fencing) work starts by setting out the boundary and taking out the old run. Close board or panels then go in, with a gate wherever you want one.",
+   "card_url": "/services/fencing",
+   "card_target": "base"
+  },
+  {
+   "card_name": "Composite decking",
+   "card_text": "Want a deck that doesn't need oiling every year? Composite boards are fitted to a frame built for them, with expansion gaps left so they don't buckle in the heat. That's what a [composite decking](/services/composite-decking) visit involves, edges and finishing included.",
+   "card_url": "/services/composite-decking",
+   "card_target": "base"
+  },
+  {
+   "card_name": "Decking restoration",
+   "card_text": "Cleaning, repairing and refinishing brings a tired deck back without starting again. Algae and grey weathering come off first, then soft boards are repaired and the deck dries before the finish goes on. Consider booking [decking restoration](/services/decking-restoration) while the frame is still sound.",
+   "card_url": "/services/decking-restoration",
+   "card_target": "base"
+  },
+  {
+   "card_name": "Decking installation",
+   "card_text": "Spring is when most people decide the garden needs somewhere to sit out. Every [decking installation](/services/decking-installation) begins with a braced frame built on firm supports. The boards go down with gaps left for drainage and movement, and the edges are finished off neatly.",
+   "card_url": "/services/decking-installation",
+   "card_target": "base"
+  },
+  {
+   "card_name": "Decking repairs",
+   "card_text": "Swapping boards without checking the joists underneath means the same fault comes back. For a [decking repairs](/services/decking-repairs) job we find the cause first. Then we replace soft boards, loose fixings or a rotted joist, and check the frame is stable.",
+   "card_url": "/services/decking-repairs",
+   "card_target": "base"
+  },
+  {
+   "card_name": "Pergolas",
+   "card_text": "A covered spot to sit gives the garden some structure and a place to enjoy it from spring onwards. With the [pergolas](/services/pergolas) we do, posts go on proper footings, then beams and rafters are fixed and braced. They can stand freely in the garden or be fixed against the house.",
+   "card_url": "/services/pergolas",
+   "card_target": "base"
+  }
+ ],
+ "cat_also_offered": "HIDDEN",
+ "cat_content_h2": "Local Decking for Romsey Homeowners",
+ "cat_content_body": "Deep plots behind the narrow fronted terraces of the old town suit a deck at the far end of the garden, and that's the kind of garden a deck builder in Romsey is often asked about. The cul de sacs of Whitenap have shorter gardens. A single deck off the kitchen door usually makes the most of them.\n\nFor a brand new deck we do [decking installation](/services/decking-installation), starting from a clear patch of lawn or an old patio. Where the frame is still sound, [decking restoration](/services/decking-restoration) saves starting again. If boards or joists have gone soft, [decking repairs](/services/decking-repairs) come first. Timber or composite is mostly a question of how much upkeep you'd like, and how much sun and shade the garden gets.\n\nA deck that's raised, or sits beside a lawn that slopes, is built differently from one laid flat on level ground. That's why we talk through where the deck will sit and how you'll step onto it from the house. Every deck here is our own work, from the streets around the old town to the estates on its edges.\n\nIf you'd like a patio to meet the deck, our [paving contractor](/locations/romsey/paving-contractor) work can lay one alongside it. Send us a message or call [CV: phone] about the deck you have in mind.",
+ "cat_block4_h2": "Common Decking Problems",
+ "block4": [
+  {
+   "card_title": "Water that sits where it shouldn't",
+   "card_body": "Rainwater lying on a patio next to the deck, or a lawn corner that stays soggy, usually points to a surface laid perfectly flat. With nothing to carry it away, the water stays put. The usual cure is lifting the surface and laying it again so it runs gently off towards a border or drain."
+  },
+  {
+   "card_title": "Surfaces that sink or rock",
+   "card_body": "A slab that rocks, a block that dips or a step that has dropped looks like a surface fault, but the movement starts underneath. Fill that was never pressed down keeps giving way under footsteps and rain. We take the surface up and rebuild the base in layers, each one firmed before the next goes on."
+  },
+  {
+   "card_title": "Timber that fails early",
+   "card_body": "On a deck, the first sign is often a board that feels spongy underfoot or a fixing that has popped up. Look underneath and the frame has usually been sitting on damp soil, with no airflow and no way for water to drain off. A sound frame is built to drain freely and breathe."
+  },
+  {
+   "card_title": "Damage that shows after a wet winter",
+   "card_body": "A deck that feels different underfoot after a wet winter often has a bounce or a slight lean that wasn't there in autumn. Water loosened the ground, then frost pushed the supports and fixings out of position. Come spring, we check the frame for level, look at each post and fixing, and press boards for any softness."
+  }
+ ],
+ "cat_block5_h2": "What Affects the Cost of Decking in Romsey",
+ "cat_cost_intro": "No two decks cost the same, because the size, the ground and the way in all change the work involved. The four things below explain most of the difference between one Romsey garden and the next.",
+ "block5": [
+  {
+   "card_title": "The size of the area",
+   "card_body": "Area moves the price more than anything. Every extra square metre needs more frame, more boards and more time to fit, so a big deck costs well above a compact one."
+  },
+  {
+   "card_title": "What is underneath",
+   "card_body": "Whatever sits under the deck changes the dig. Heavy clay, buried concrete, roots or an old base that has to come out all add time and waste to carry away, and the cost follows."
+  },
+  {
+   "card_title": "Getting to the garden",
+   "card_body": "Rear access, a narrow side path or nowhere close for a skip all slow the work. Boards, bags of concrete and spoil then travel by hand, and every extra metre carried is time that isn't spent building the deck."
+  },
+  {
+   "card_title": "The materials you choose",
+   "card_body": "Softwood, hardwood and composite boards are all priced differently, and composite generally costs more than softwood. A raised frame adds to the total too. Composite saves on oiling later, so weigh the upkeep you want against the cost on the day."
+  }
+ ],
+ "cat_cost_price_line": null,
+ "cat_reviews_show": false,
+ "cat_reviews_h2": "HIDDEN",
+ "reviews": [],
+ "cat_process_h2": "Your Free Quote in 3 Simple Steps",
+ "steps": [
+  {
+   "step_title": "Tell Us About Your Garden",
+   "step_body": "Ring [CV: phone] or send a message with the rough size, what you'd like built and a few photos of the garden if you have them."
+  },
+  {
+   "step_title": "We Price Your Job",
+   "step_body": "Your details are turned into a figure for the deck, fence or pergola you've asked about. Garden size, the ground and how materials reach it all shape that figure."
+  },
+  {
+   "step_title": "We Start on a Date That Suits You",
+   "step_body": "The start date is agreed with you in advance, so you know when work begins and can plan the garden around it."
+  }
+ ],
+ "cat_areas_h2": "Where We Provide Decking Across Romsey",
+ "cat_areas_intro": "Our team covers Romsey and the neighbourhoods around it, within the [CV: travel_distance] we travel inland and along the coast. Whichever part of town you're in, from the old streets to the estates on the edges, the same work is available to you.",
+ "cat_areas_links": [
+  {
+   "name": "Whitenap",
+   "url": null
+  },
+  {
+   "name": "Halterworth",
+   "url": null
+  },
+  {
+   "name": "Tadburn Valley",
+   "url": null
+  },
+  {
+   "name": "Tadburn Gardens",
+   "url": null
+  },
+  {
+   "name": "Great Woodley",
+   "url": null
+  },
+  {
+   "name": "Upper Cupernham and Winchester Road",
+   "url": null
+  },
+  {
+   "name": "Lower Cupernham and Fishlake Meadows",
+   "url": null
+  },
+  {
+   "name": "Romsey Old Town and riverside streets",
+   "url": null
+  },
+  {
+   "name": "Town Centre Outer Core and Priestlands",
+   "url": null
+  },
+  {
+   "name": "Harefield and Little Woodley",
+   "url": null
+  },
+  {
+   "name": "Woodley and Ganger",
+   "url": null
+  },
+  {
+   "name": "Crampmoor and Highwood",
+   "url": null
+  }
+ ],
+ "cat_areas_also_cover": [],
+ "cat_faq_h2": "Decking Questions Answered",
+ "faq_items": [
+  {
+   "faq_question": "How much does decking cost in Romsey?",
+   "faq_answer": "It depends on three things: size, ground and access. A bigger deck needs more frame and boards. Clay or old concrete adds to the dig, and a long carry from where we can park costs time. Quotes are free, and each one is built around your own garden rather than a standard rate.",
+   "doubt": "Price"
+  },
+  {
+   "faq_question": "Are you insured for decking work?",
+   "faq_answer": "Yes, we're insured up to £[CV: insurance_cover]. The cover is for the building work itself, from frames and boards to pergolas and fencing, and you're welcome to ask about it before any job goes ahead.",
+   "doubt": "Trust"
+  },
+  {
+   "faq_question": "What does your decking work include?",
+   "faq_answer": "We build new decks, repair and restore old ones, and add pergolas and fencing. A new deck is our [decking installation](/services/decking-installation) work, built on its own braced frame. Repairs deal with soft boards and joists, and restoration cleans and refinishes decking that's still sound.",
+   "doubt": "Fit"
+  },
+  {
+   "faq_question": "What happens when I ask for a quote?",
+   "faq_answer": "A quote starts with a message or call to us. Tell us where the deck would go and whether it's new, repaired or restored. We then look at what's involved and send a price back. Nothing is booked until you've seen it and agreed.",
+   "doubt": "Process"
+  },
+  {
+   "faq_question": "Can you do decking work in winter?",
+   "faq_answer": "Yes, much of it carries on through winter, weather permitting. Frames and fencing go ahead in dry spells on firm ground, and clearance does too. Frozen or waterlogged ground stops post holes and footings, and a finish only goes on dry timber. Anything that needs soil to take root, like turf, waits for milder weather.",
+   "doubt": "Timing"
+  }
+ ],
+ "cat_final_cta_h2": "Get a Free Decking Quote in Romsey",
+ "cat_final_cta_body": "Send the size of your garden and a photo or two, and we'll come back to you about the deck you have in mind.",
+ "cat_final_cta_trust_lines": [
+  "[CV: hours]"
+ ],
+ "meta": {
+  "page_type": "category",
+  "page_key": "/locations/romsey/deck-builder",
+  "scope": "town",
+  "town": "Romsey",
+  "generated_at": "2026-10-27T15:15:34.834Z",
+  "stand_ins": [],
+  "client_values": {
+   "company_name": "Edens Edge Landscaping",
+   "phone": "07850 412717",
+   "hours": "Monday to Saturday, 7am to 6pm",
+   "primary_category": "Landscaper",
+   "jobs_completed": "100",
+   "insurance_cover": "5m",
+   "differentiator_1": "Fixed Prices With No Hidden Costs",
+   "differentiator_1_sentence": "Fixed prices with no hidden costs",
+   "differentiator_2": "Family Run and Independent",
+   "differentiator_2_sentence": "Family Run and Independent",
+   "free_quotes": "yes",
+   "start_time": "same week",
+   "owner_name": "Ethan",
+   "business_type": "A",
+   "team_size": "4",
+   "travel_distance": "20 miles",
+   "jobs_wanted": "Landscape Gardener, Landscape Designer"
+  }
+ }
+}

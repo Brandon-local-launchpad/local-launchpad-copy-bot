@@ -4050,6 +4050,18 @@ const wpPages = (pool && pageMapApi) ? require('./wp/pages').createPagesService(
   pageRows: id => pageMapApi.store.saved(id),
   createLog: id => require('./wp/db-store').createDbStore(pool, id),
 }) : null;
+// Which inner pages are ready to have their copy pushed (wp/copy-plan.js): reads only. The screen pushes each ready
+// page through the page view's own push (wpService.push), so its checks all still run.
+const wpCopyPlan = (pool && pageMapApi) ? require('./wp/copy-plan').createCopyPlanService({
+  getSite: async id => {
+    const row = await require('./wp/db-store').getConnectionRow(pool, id);
+    if (!row || !row.app_password_enc) return null;
+    return { url: row.url, user: row.wp_user, appPassword: require('./wp/secrets').decrypt(row.app_password_enc, process.env.COPYBOT_SECRET_KEY), staging: !!row.staging };
+  },
+  pageRows: id => pageMapApi.store.saved(id),
+  latestRecords: (id, type) => v20Store.pages(id, type),
+  createLog: id => require('./wp/db-store').createDbStore(pool, id),
+}) : null;
 // After a site move (site-audit/launch.js): the day 7 check, then the rankings at 30, 60 and 90 days. Hourly.
 if (siteAudit) {
   const launchTick = () => siteAudit.launchTick().then(d => { if (d.length) console.log(`[site-audit] after launch: ${d.map(x => x.did).join(', ')}`); }).catch(e => console.error('[site-audit] after launch job:', e.message));
@@ -4519,6 +4531,7 @@ app.post('/api/clients/:clientId/wp/push', wpRoute(req => wpService.push(req.par
 app.post('/api/clients/:clientId/wp/rollback', wpRoute(req => wpService.rollback(req.params.clientId, req.body || {})));
 app.get('/api/clients/:clientId/wp/pages', wpRoute(req => { if (!wpPages) throw new Error('The page map is not set up.'); return wpPages.preview(req.params.clientId); }));
 app.post('/api/clients/:clientId/wp/pages', wpRoute(req => { if (!wpPages) throw new Error('The page map is not set up.'); return wpPages.run(req.params.clientId, req.body || {}); }));
+app.get('/api/clients/:clientId/wp/copy-plan', wpRoute(req => { if (!wpCopyPlan) throw new Error('The page map is not set up.'); return wpCopyPlan.plan(req.params.clientId); }));
 app.get('/api/clients/:clientId/wp/log', wpRoute(req => wpService.log(req.params.clientId)));
 app.put('/api/clients/:clientId/wp/claims-accepted', wpRoute(req => wpService.acceptClaims(req.params.clientId, req.body || {})));
 

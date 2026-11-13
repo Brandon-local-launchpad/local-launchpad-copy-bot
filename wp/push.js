@@ -30,8 +30,8 @@ function claimsRefusals(record, claims, acceptClaims) {
 }
 
 // Read back and compare with what was sent
-async function verify(site, pageId, payload, clientValues, fields) {
-  const page = await readPage(site, pageId);
+async function verify(site, pageId, payload, clientValues, fields, rest = 'pages') {
+  const page = await readPage(site, pageId, rest);
   const acf = page.acf && !Array.isArray(page.acf) ? page.acf : {};
   // A field the site left out entirely wasn't saved; one it returned with another value was changed on the way
   const mismatches = diffFields(acf, payload.acf, fields).filter(c => c.change !== 'same')
@@ -60,7 +60,7 @@ async function push({ record, recordId = null, site, store, reviewed = false, se
   const page = await type.wp.findPage(site, record);
   const metaKeys = Object.keys(dry.payload.meta);
   const before = {
-    site: site.url, pageId: page.id, pageType: type.id, seo,
+    site: site.url, pageId: page.id, rest: page.rest || 'pages', pageType: type.id, seo,
     acf: Object.fromEntries(type.wp.fields.map(([name, kind]) => [name, page.acf && page.acf[name] != null ? page.acf[name] : EMPTY[kind]])),
     meta: Object.fromEntries(metaKeys.map(k => [k, (page.meta || {})[k] || ''])),
     clientValues: fixedText ? null : await wpGet(site, '/llp-copybot/v1/client-values'),
@@ -69,7 +69,7 @@ async function push({ record, recordId = null, site, store, reviewed = false, se
 
   // 2. Write
   try {
-    await wpPost(site, `/wp/v2/pages/${page.id}`, { acf: dry.payload.acf, meta: dry.payload.meta });
+    await wpPost(site, `/wp/v2/${page.rest || 'pages'}/${page.id}`, { acf: dry.payload.acf, meta: dry.payload.meta });
     if (!fixedText) await wpPost(site, '/llp-copybot/v1/client-values', dry.clientValues);
   } catch (e) {
     await store.appendLog({ ...base, result: 'failed', error: e.message, snapshotId });
@@ -77,7 +77,7 @@ async function push({ record, recordId = null, site, store, reviewed = false, se
   }
 
   // 3. Verify, 4. log
-  const mismatches = await verify(site, page.id, dry.payload, dry.clientValues, type.wp.fields);
+  const mismatches = await verify(site, page.id, dry.payload, dry.clientValues, type.wp.fields, page.rest || 'pages');
   const result = mismatches.length ? 'written, read-back differs' : 'pushed';
   await store.appendLog({ ...base, result, snapshotId, summary: dry.summary, mismatches, ...(fixedText ? {} : { claims: claims.findings.length, acceptedClaims: !!acceptClaims }) });
   return { ok: !mismatches.length, result, snapshotId, mismatches, dry };
@@ -87,7 +87,7 @@ async function rollback({ snapshotId, site, store }) {
   const snap = await store.getSnapshot(snapshotId);
   if (!snap) return { ok: false, error: `No snapshot ${snapshotId}.` };
   if (snap.site !== site.url) return { ok: false, error: `Snapshot ${snapshotId} is for ${snap.site}, not ${site.url}.` };
-  await wpPost(site, `/wp/v2/pages/${snap.pageId}`, { acf: snap.acf, meta: snap.meta });
+  await wpPost(site, `/wp/v2/${snap.rest || 'pages'}/${snap.pageId}`, { acf: snap.acf, meta: snap.meta });
   // Values the site didn't have before are cleared. A fixed text push never touched them.
   let restore = null;
   if (snap.clientValues) {
@@ -95,7 +95,7 @@ async function rollback({ snapshotId, site, store }) {
     restore = { ...Object.fromEntries(Object.keys(now).map(k => [k, ''])), ...snap.clientValues };
     await wpPost(site, '/llp-copybot/v1/client-values', restore);
   }
-  const mismatches = await verify(site, snap.pageId, { acf: snap.acf, meta: snap.meta }, restore, getPageType(snap.pageType || 'homepage').wp.fields);
+  const mismatches = await verify(site, snap.pageId, { acf: snap.acf, meta: snap.meta }, restore, getPageType(snap.pageType || 'homepage').wp.fields, snap.rest || 'pages');
   await store.appendLog({ action: 'rollback', pageType: snap.pageType || 'homepage', site: site.url, page: snap.pageId, snapshotId, result: mismatches.length ? 'restored, read-back differs' : 'restored', mismatches });
   return { ok: !mismatches.length, mismatches };
 }
