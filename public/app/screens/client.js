@@ -8,12 +8,12 @@ import { tellBrandon, markDone } from '../tell-brandon.js';
 
 const TABS = [
   ['record', 'Record'], ['locations', 'Locations'], ['research', 'Research'], ['page-map', 'Page map'], ['pages', 'Pages'],
-  ['gbp', 'GBP'], ['gbp-posts', 'GBP Posts & Photos'], ['reviews', 'Reviews'], ['citations', 'Citations'], ['rankings', 'Rankings'], ['images', 'Images'], ['site-audit', 'Site audit'],
+  ['gbp', 'GBP'], ['gbp-posts', 'GBP Posts & Photos'], ['reviews', 'Reviews'], ['citations', 'Citations'], ['rankings', 'Rankings'], ['images', 'Images'], ['site-audit', 'Site audit'], ['cards', 'Review & Referral Cards'],
 ];
 const MODULES = {
   record: () => import('../tabs/record.js'), research: () => import('../tabs/research.js'), locations: () => import('../tabs/locations.js'), 'page-map': () => import('../tabs/pagemap.js'),
   pages: () => import('../tabs/pages.js'), gbp: () => import('../tabs/gbp.js'), 'gbp-posts': () => import('../tabs/gbp-posts.js'), reviews: () => import('../tabs/reviews.js'), citations: () => import('../tabs/citations.js'), rankings: () => import('../tabs/rankings.js'),
-  images: () => import('../tabs/images.js'), 'site-audit': () => import('../tabs/audit.js'),
+  images: () => import('../tabs/images.js'), 'site-audit': () => import('../tabs/audit.js'), cards: () => import('../tabs/cards.js'),
 };
 const STAGE_KIND = { Onboarding: 'none', Research: 'none', 'Page map': 'none', Pages: 'run', GBP: 'run', Live: 'ok' };
 

@@ -3288,6 +3288,20 @@ app.put('/api/clients/:clientId/v20-settings', async (req, res) => {
 // Without one, the uploaded page map and custom values CSVs are read as before.
 const { contextFromPageMap } = require('./v20-context-v3');
 const pageMapStore = (pool && filloutService) ? require('./page-map/store').createPageMapStore({ pool, filloutService }) : null;
+
+// ── Review & Referral Cards (card-brief/, 13 Nov 2026) ────────────────────────
+// The client tab that builds the /customer-revref-cards brief from the record. It reads the
+// record afresh each time, keeps its own fields and overrides in client_card_briefs, and never
+// writes to the record. Nothing is sent to Claude: a person copies the brief.
+if (pool) require('./card-brief/routes').mount(app, require('./card-brief/service').createCardBrief({
+  pool,
+  loadValues: async id => {
+    const { rows } = await pool.query(`SELECT content FROM client_assets WHERE client_id = $1 AND asset_type = 'client_values' ORDER BY uploaded_at DESC LIMIT 1`, [id]);
+    return rows.length ? require('./fillout/to-values').withoutUnconfirmed(JSON.parse(rows[0].content)) : {};
+  },
+  baseTown: async id => (filloutService ? ((await require('./page-map/store').inputsFor(filloutService, id)) || {}).baseTown || '' : ''),
+  pageRows: async id => (pageMapStore ? pageMapStore.saved(id) : []),
+}));
 async function loadV3Context(clientId, cv, niche) {
   if (!pageMapStore) return null;
   const rows = await pageMapStore.saved(clientId);
