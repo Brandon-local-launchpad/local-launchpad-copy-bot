@@ -61,7 +61,9 @@ process.env.REVIEW_REPLIES_POSTING = '1';
   const DC = require(path.join(root, 'drive/client.js'));
   const hues = [140, 95, 30, 200, 260, 10, 170, 60];
   const pic = id => { const n = [...String(id)].reduce((a, c) => a + c.charCodeAt(0), 0); const hue = hues[n % hues.length]; return Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="hsl(${hue},45%,62%)"/><stop offset="1" stop-color="hsl(${(hue + 40) % 360},40%,32%)"/></linearGradient></defs><rect width="800" height="600" fill="url(#g)"/><text x="40" y="560" font-family="sans-serif" font-size="44" fill="#fff" opacity=".85">${String(id).replace(/[^a-z0-9-]/gi, '')}</text></svg>`); };
-  DC.createDrive = () => ({ folder: async () => ({}), list: async () => [], download: async id => pic(id), thumbnail: async id => ({ bytes: pic(id), type: 'image/svg+xml' }), accessToken: async () => 'demo' });
+  // As JPEGs (13 Nov 2026), so the Images tab can use them: a real photo is a JPEG, and the tab shrinks what Drive gives it
+  const jpeg = (id, width) => require('sharp')(pic(id)).resize({ width }).jpeg({ quality: 82 }).toBuffer();
+  DC.createDrive = () => ({ folder: async () => ({}), list: async () => [], download: async id => jpeg(id, 2400), thumbnail: async id => ({ bytes: await jpeg(id, 480), type: 'image/jpeg' }), accessToken: async () => 'demo' });
 }
 delete process.env.GBP_PUBLISHING_ENABLED;
 
@@ -166,10 +168,18 @@ delete process.env.GBP_PUBLISHING_ENABLED;
   {
     const folderLink = 'https://drive.google.com/drive/folders/demoPhotos123';
     await pool.query(`UPDATE client_assets SET content=$2 WHERE client_id=$1 AND asset_type='client_values'`, [auditId, JSON.stringify({ company_name: 'Southampton Homes Ltd', live_domain: liveDomain, drive_photo_folder: folderLink, free_quotes: 'yes' })]);
-    const file = (label, i, kind = 'post') => ({ file_id: `${label.toLowerCase().replace(/\W+/g, '-')}-${i}`, kind, label, folder_id: `f-${label}`, name: `${label.toLowerCase().replace(/\W+/g, '-')}-${i}.jpeg`, mime_type: 'image/svg+xml', size_bytes: 900000 + i * 1000, width: 1600, height: 1200, md5: `m-${label}-${i}`, modified_at: null, web_link: '', problem: '' });
+    const file = (label, i, kind = 'post') => ({ file_id: `${label.toLowerCase().replace(/\W+/g, '-')}-${i}`, kind, label, folder_id: `f-${label}`, name: `${label.toLowerCase().replace(/\W+/g, '-')}-${i}.jpeg`, mime_type: 'image/jpeg', size_bytes: 900000 + i * 1000, width: 2400, height: 1800, md5: `m-${label}-${i}`, modified_at: null, web_link: '', problem: '' });
     const sets = { Fencing: 6, Trees: 5, Pergolas: 4, Patios: 3, Brand: 3 };
     const files = [...Object.entries(sets).flatMap(([l, n]) => Array.from({ length: n }, (_, i) => file(l, i + 1))), ...Array.from({ length: 8 }, (_, i) => ({ ...file('GBP Photos – Photo Drip', i + 1, 'drip') }))];
-    await require(path.join(root, 'drive/store.js')).createDriveStore(pool).saveRead(auditId, { folder_id: 'demoPhotos123', folder_name: 'Images from Southampton Homes', posts_found: true, drip_found: true, folders: Object.keys(sets).map(l => ({ label: l, id: `f-${l}` })), problems: [], notes: [], files });
+    await require(path.join(root, 'drive/store.js')).createDriveStore(pool).saveRead(auditId, { folder_id: 'demoPhotos123', folder_name: 'Images from Southampton Homes', posts_found: true, drip_found: true, folders: Object.keys(sets).map(l => ({ label: l, id: `f-${l}` })), problems: [], notes: [], files,
+      // The sort skill's photo notes (13 Nov 2026), so the Images tab has scores, heroes and alt text to pick from
+      photo_notes: { version: 1, sorted_on: '2026-11-13', labels: Object.keys(sets).filter(l => l !== 'Brand'), photos: files.map((f, n) => {
+        const i = Number(f.file_id.split('-').pop());
+        if (f.label === 'Brand') return { name: f.name, md5: '', folder: 'Posts/Brand', type: i === 1 ? 'team' : i === 2 ? 'van' : 'premises', service: '', score: 8 - i, hero: false, shows: i === 1 ? 'Two of the team beside the van.' : i === 2 ? 'The van parked on a drive.' : 'The yard with stacked timber.', staff_face: i === 1, pair: '' };
+        if (f.kind === 'drip') return { name: f.name, md5: '', folder: 'Photo Drip', type: i === 8 ? 'detail' : 'finished job', service: i <= 2 ? 'Fencing' : 'Unclear', score: 9 - (i % 4), hero: i % 3 === 0, shows: i <= 2 ? `A finished fence along a garden boundary, photo ${i}.` : `A finished garden with a lawn and planting, photo ${i}.`, staff_face: false, pair: '' };
+        const word = { Fencing: 'A closeboard fence with concrete posts', Trees: 'A pruned tree with the cuttings cleared', Pergolas: 'A timber pergola over a seating area', Patios: 'A sandstone patio with a step to the lawn' }[f.label];
+        return { name: f.name, md5: '', folder: `Posts/${f.label}`, type: i === 4 ? 'work in progress' : i === 5 ? 'before-after' : 'finished job', service: f.label, score: 10 - i, hero: i <= 2, shows: `${word}, photo ${i}.`, staff_face: false, pair: '' };
+      }) } });
     const ps = require(path.join(root, 'gbp-posts/store.js')).createPostStore(pool);
     const day = n => { const d = new Date(Date.now() + n * 86400000); return d.toISOString().slice(0, 10); };
     const body = [
