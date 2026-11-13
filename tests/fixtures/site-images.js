@@ -134,7 +134,9 @@ const CARDS = new Map([['/', ['/paving-contractor', '/fencing-contractor']], ['/
 
   const bare = pickImages({ rows: ROWS, photos: PHOTOS, notes: null, groups: GROUPS, cards: CARDS });
   const bHero = bare.pages.find(p => p.path === '/services/patios').slots[0];
-  chk('No notes: a hero is judged on shape, wide and 1600px or more, biggest first; the tall photo is never one', ['p1', 'p3', 'x3'].includes(bHero.pick) && !bare.pages.some(p => p.slots[0].pick === 'p6'), bHero.pick, 'a wide photo');
+  chk('No notes: a hero is judged on shape, wide and 1600px or more; the tall photo and the small one are never one', ['p1', 'p2', 'p3', 'p4', 'p5', 'x3'].includes(bHero.pick) && !bare.pages.some(p => ['p6', 'x2', 'x1'].includes(p.slots[0].pick)), bHero.pick, 'a wide photo');
+  const heroCount = {}; for (const p of pick.pages) { const hId = p.slots[0].pick; if (hId) heroCount[hId] = (heroCount[hId] || 0) + 1; }
+  chk('Pick: heroes are spread: with four hero photos across eight pages, none is the hero on more than three', Math.max(...Object.values(heroCount)) <= 3 && Object.keys(heroCount).length === 4, J(heroCount), 'spread');
   chk('No notes: nobody can say which Brand photo is the owner, so a person chooses; photos have no description', bare.pages[0].slots.find(s => s.slot === 'owner').pick === null && /Choose the owner photo/.test(bare.pages[0].slots.find(s => s.slot === 'owner').why) && bare.pages[0].slots.find(s => s.slot === 'owner').runners.length === 2 && bare.summary.no_description === bare.summary.usable, J(bare.pages[0].slots.find(s => s.slot === 'owner')), '');
   chk('Folders: the saved label wins, then a folder of the page\'s own name, then a folder whose words are all in the title', folderFor('Patio installation', ['Patios', 'Driveways'], GROUPS) === 'Patios' && folderFor('Driveways', ['Patios', 'Driveways'], null) === 'Driveways' && folderFor('Garden fencing', ['Fencing', 'Patios'], null) === 'Fencing' && folderFor('Tree surgery', ['Fencing', 'Patios'], null) === null, '', '');
 
@@ -261,8 +263,8 @@ const CARDS = new Map([['/', ['/paving-contractor', '/fencing-contractor']], ['/
 
   // Failures
   driveDown = true;
-  await images.choose(clientId, { identity: TOWN, slot: 'hero', file_id: '' });
-  await images.choose(clientId, { identity: TOWN, slot: 'content', file_id: 'p6' });
+  // A photo that has never been a hero, so its 1920px size has to be downloaded and uploaded
+  await images.choose(clientId, { identity: TOWN, slot: 'hero', file_id: 'p4' });
   await images.approve(clientId, { identity: TOWN, approved: true });
   const dead = await images.placePage(clientId, { identity: TOWN, confirm: true });
   driveDown = false;

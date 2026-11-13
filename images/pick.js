@@ -97,13 +97,21 @@ function pickImages({ rows = [], photos = [], notes = null, groups = null, cards
   };
   const what = r => (r.type === 'service' || r.type === 'town_service' ? ((serviceById.get(r.info && r.info.service_id) || r).title) : r.type === 'category' || r.type === 'location_category' ? r.title : 'this client');
 
+  // How often a photo has been used in each kind of slot, and in all. Counted per kind (13 Nov, on Edens Edge's
+  // real photos): counted in all, every gallery evened the counts out and one photo was the hero on 15 pages
   const uses = new Map();
+  const kindOf = slot => String(slot).split(':')[0];
+  const used = (kind, id) => uses.get(`${kind}|${id}`) || 0;
+  const bump = (slot, id) => { for (const k of [kindOf(slot), 'all']) uses.set(`${k}|${id}`, used(k, id) + 1); };
   const byRank = (a, b) => b.rank - a.rank;
-  // The least used first, so pages sharing photos don't all show the same one; then the best
-  const spread = (a, b) => ((uses.get(a.file_id) || 0) - (uses.get(b.file_id) || 0)) || byRank(a, b);
+  // The photo least used in this kind of slot first, so pages sharing photos don't all show the same hero; then
+  // the least used anywhere; then the best
+  const spreadFor = kind => (a, b) => (used(kind, a.file_id) - used(kind, b.file_id)) || (used('all', a.file_id) - used('all', b.file_id)) || byRank(a, b);
+  const spread = spreadFor('gallery');
   const order = ['homepage', 'category', 'service', 'location', 'location_category', 'town_service'];
   const out = [];
   const byId = new Map(all.map(p => [p.file_id, p]));
+  const basePicks = new Map();
   for (const r of pages.filter(p => order.includes(p.type)).sort((a, b) => order.indexOf(a.type) - order.indexOf(b.type))) {
     const identity = r.type === 'homepage' ? 'homepage' : identityOf(r);
     const pool = poolOf(r);
@@ -117,17 +125,22 @@ function pickImages({ rows = [], photos = [], notes = null, groups = null, cards
       const ids = n => list.slice(0, n).map(p => p.file_id);
       const c = chosen.has(slot) ? chosen.get(slot) : undefined;
       if (c === '') { slots.push({ slot, label, pick: null, runners: ids(RUNNERS), chosen: true, why: 'Left empty by hand.' }); return null; }
-      if (c !== undefined && held(c)) { uses.set(c, (uses.get(c) || 0) + 1); slots.push({ slot, label, pick: c, runners: ids(RUNNERS), chosen: true, why: '' }); return c; }
+      if (c !== undefined && held(c)) { bump(slot, c); slots.push({ slot, label, pick: c, runners: ids(RUNNERS), chosen: true, why: '' }); return c; }
       const pick = list[0] || null;
-      if (pick) { taken.add(pick.file_id); uses.set(pick.file_id, (uses.get(pick.file_id) || 0) + 1); }
+      if (pick) { taken.add(pick.file_id); bump(slot, pick.file_id); }
       // stale: a person's choice that is no longer in Drive, so the pick stands in
       slots.push({ slot, label, pick: pick ? pick.file_id : null, runners: list.slice(1, 1 + RUNNERS).map(p => p.file_id), why: pick ? '' : why, ...(c !== undefined ? { stale: true } : {}) });
       return pick ? pick.file_id : null;
     };
     const work = pool.filter(p => !PEOPLE.has(p.type));
-    put('hero', 'Hero background', work.filter(p => p.hero && (!p.type || p.type === 'finished job')), spread,
+    // A town page reuses its base page's photos, but not its hero or content image while there is another
+    const baseKey = r.type === 'town_service' ? `service:${r.info && r.info.service_id}` : r.type === 'location_category' ? `category:${r.info && r.info.category_key}` : null;
+    const base = (baseKey && basePicks.get(baseKey)) || {};
+    const notBase = (kind, id) => (a, b) => ((a.file_id === id) - (b.file_id === id)) || spreadFor(kind)(a, b);
+    const heroId = put('hero', 'Hero background', work.filter(p => p.hero && (!p.type || p.type === 'finished job')), notBase('hero', base.hero),
       pool.length ? `No photo of ${what(r)} suits a hero: it needs a wide, clean shot of the finished work, at least ${HERO_WIDTH}px across.` : `No photos of ${what(r)} yet.`);
-    put('content', 'Content image', work.filter(p => !p.type || p.type === 'finished job' || p.type === 'before-after'), spread, pool.length ? `No second photo of ${what(r)}.` : `No photos of ${what(r)} yet.`);
+    const contentId = put('content', 'Content image', work.filter(p => !p.type || p.type === 'finished job' || p.type === 'before-after'), notBase('content', base.content), pool.length ? `No second photo of ${what(r)}.` : `No photos of ${what(r)} yet.`);
+    if (r.type === 'service' || r.type === 'category') basePicks.set(identity, { hero: heroId, content: contentId });
     if (r.type !== 'service' && r.type !== 'town_service') {
       for (const target of cards.get(r.slug) || []) {
         const t = byPath.get(target);
