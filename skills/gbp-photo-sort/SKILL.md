@@ -17,6 +17,19 @@ One-time job at client signup. Turns a dump of client photos into LeadSnap conte
 - The client's business name.
 - **The Lead Snap service labels**, copied from the client's Lead Snap tab in Copybot: each label (one or two words, e.g. `Patios`) and the full service names behind it (e.g. `Patios: patio installation, patio cleaning, porcelain patios`). If the user hasn't given them, ask for them before Step 3. Never invent labels or rename them: the folder names must match the tab exactly, or the VA won't find them.
 
+## A client whose photos are already sorted: notes only
+
+If the client's photo folder already has `GBP Photos – Posts`, `GBP Photos – Photo Drip` and `GBP Photos – Rejected` from an earlier sort, and the user asks for the photo notes (or says the photos are already sorted), do **not** sort again. Sorting twice makes second copies of every photo and second folders with the same names.
+
+Instead:
+
+1. Do not create a folder, and do not copy, move or bin any photo.
+2. List the photos in each Posts subfolder, in `Brand` and in Photo Drip, with the Drive connector. The folder a photo is in now is its `folder`, and for a Posts subfolder its `service`: a person may have moved it since the sort, and they were right.
+3. Get the photos as in Step 1 (ask the user to download `GBP Photos – Posts` and `GBP Photos – Photo Drip` as zips), run the MD5 from Step 2, and review every photo by eye as in Step 3, for the score, hero, what it shows, staff face and type only.
+4. A Photo Drip photo gets a `service` label only when the work is clearly that service, otherwise `Unclear`. It stays in Photo Drip either way.
+5. Leave the Rejected folder out: no entries for it.
+6. Write `photo-notes.json` as in Step 6, and report as in Step 7, the photo notes line only.
+
 ## Step 1: Get the photos
 
 The Drive connector can list and copy files but cannot hand over 100+ images for viewing, and it **cannot move or rename existing files** (it only changes files it created). So:
