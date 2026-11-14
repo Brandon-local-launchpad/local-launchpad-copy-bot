@@ -14,6 +14,7 @@
 
 const OWNERS = require('./owners.json');
 const SOPS = require('./sops.json');
+const HAND = require('./hand-steps.json');
 
 const ROLES = Object.keys(OWNERS.roles);
 
@@ -25,28 +26,56 @@ function ownerOf(step) {
   return OWNERS.by_tab[step && step.tab] || OWNERS.default;
 }
 
-function sopOf(step) {
-  const s = SOPS.by_step[String((step && step.key) || '')] || SOPS.by_tab[step && step.tab];
-  if (!s) return null;
-  const doc = SOPS.docs[s.doc];
-  if (!doc) return null;
-  return { title: doc.title, section: s.section || '', url: doc.url + (s.anchor ? `#heading=${s.anchor}` : '') };
+// s: { doc, section, anchor } as the files write it
+function resolveSop(s) {
+  const doc = s && SOPS.docs[s.doc];
+  return doc ? { title: doc.title, section: s.section || '', url: doc.url + (s.anchor ? `#heading=${s.anchor}` : '') } : null;
 }
+const sopOf = step => resolveSop(SOPS.by_step[String((step && step.key) || '')] || SOPS.by_tab[step && step.tab]);
 
 function tag(needs) {
-  for (const n of needs || []) { n.owner = ownerOf(n); const sop = sopOf(n); if (sop) n.sop = sop; }
+  // A by hand step and a one off task arrive with their own owner (and SOP): those stand
+  for (const n of needs || []) { if (!n.owner) n.owner = ownerOf(n); if (n.sop === undefined) { const sop = sopOf(n); if (sop) n.sop = sop; } }
   return needs;
+}
+
+// ── Stage 2: the steps done by hand (hand-steps.json) and one off tasks ──
+// gates: what the Tracker knows is finished ({ record, page_map, pushed, ... }); ticks: { key: { by, at } }, the steps
+// a person has ticked. A step is offered when everything in its `after` is true, so the list is what can be done today.
+function handStepsOf(gates = {}, ticks = {}) {
+  const needs = [], done = [];
+  let later = 0;
+  for (const s of HAND.steps) {
+    const t = ticks[s.key];
+    if (t) { done.push({ key: `hand_${s.key}_done`, hand: s.key, text: `${s.text}: ticked done${t.by ? ` by ${t.by}` : ''}`, tab: s.tab, at: t.at || null }); continue; }
+    const ready = (s.after || []).every(g => (g.startsWith('hand:') ? !!ticks[g.slice(5)] : !!gates[g]));
+    if (ready) needs.push({ key: `hand_${s.key}`, hand: s.key, text: s.text, tab: s.tab, why: s.why || '', owner: s.role, sop: resolveSop(s.sop) });
+    else later++;
+  }
+  return { needs, done, later };
+}
+
+// tasks: a client's open one off tasks (team/service.js loadFacts). A task is its person's, else its role's.
+const day = d => String(d instanceof Date ? d.toISOString() : d || '').slice(0, 10);
+function taskSteps(tasks, now) {
+  const today = day(now || new Date());
+  return (tasks || []).map(t => {
+    const overdue = !!t.due && t.due < today;
+    return { key: `task_${t.id}`, task: t.id, text: t.text, tab: '', owner: t.role, person_id: t.person_id || null, person: t.person || '', due: t.due || '', urgent: overdue || undefined, sop: null,
+      why: `${t.by ? `Added by ${t.by}` : 'Added by hand'}${t.at ? ` on ${day(t.at)}` : ''}${t.person ? `, for ${t.person}` : ''}.${t.due ? ` ${overdue ? 'Was due' : 'Due'} ${t.due}.` : ''}` };
+  });
 }
 
 // rows: the dashboard's client rows (ui/dashboard.js). role: only that role's tasks; none = everyone's.
 // The longest quiet client first, the Tracker's own order inside a client.
-function tasksOf(rows, { role = '' } = {}) {
+function tasksOf(rows, { role = '', personId = null } = {}) {
   const blocks = [];
   for (const c of rows || []) {
     if (c.archived) continue;
-    const steps = ((c.tracker && c.tracker.needs) || []).map(n => ({ key: n.key, text: n.text, tab: n.tab, why: n.why || '', owner: n.owner || ownerOf(n), sop: n.sop || sopOf(n), urgent: !!n.urgent }));
+    const steps = ((c.tracker && c.tracker.needs) || []).map(n => ({ key: n.key, text: n.text, tab: n.tab, why: n.why || '', owner: n.owner || ownerOf(n), sop: n.sop || (n.sop === null ? null : sopOf(n)), urgent: !!n.urgent, hand: n.hand || undefined, tick: n.tick || undefined, task: n.task || undefined, person_id: n.person_id || undefined, due: n.due || undefined }));
     for (const a of c.brandon || []) steps.push({ key: 'ask', ask_id: a.id, text: `${a.reason}${a.note ? `: ${String(a.note).slice(0, 160)}` : ''}`, tab: '', why: `${a.by ? `Asked by ${a.by}` : 'Sent with Tell Brandon'}${a.at ? ` on ${String(a.at instanceof Date ? a.at.toISOString() : a.at).slice(0, 10)}` : ''}.`, owner: 'brandon', sop: null, urgent: false });
-    const mine = role ? steps.filter(s => s.owner === role) : steps;
+    // A one off task given to one person is that person's alone; everything else goes by the job
+    const mine = role ? steps.filter(s => (s.person_id ? s.person_id === personId : s.owner === role)) : steps;
     if (!mine.length) continue;
     blocks.push({ client_id: c.id, client: c.name, stage: c.stage || '', last_activity: c.last_activity || null, later: (c.tracker && c.tracker.later) || 0, steps: mine });
   }
@@ -61,5 +90,6 @@ function counts(blocks) {
 
 // Every step key the owners and SOP files name, for the fixture: a renamed Tracker step shows up there
 const namedSteps = () => [...new Set([...Object.keys(OWNERS.by_step), ...Object.keys(SOPS.by_step)])];
+const handStep = key => HAND.steps.find(s => s.key === key) || null;
 
-module.exports = { ROLES, ROLE_LABELS: OWNERS.roles, SEED_PEOPLE: OWNERS.seed_people, ownerOf, sopOf, tag, tasksOf, counts, namedSteps };
+module.exports = { ROLES, ROLE_LABELS: OWNERS.roles, SEED_PEOPLE: OWNERS.seed_people, HAND_STEPS: HAND.steps, HAND_GATES: HAND.gates, ownerOf, sopOf, tag, handStepsOf, handStep, taskSteps, tasksOf, counts, namedSteps };

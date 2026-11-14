@@ -100,6 +100,62 @@ console.log('\n=== FIXTURE: the task board (owners, SOPs, tasks per person, the 
   await S.seedPeople(pool);
   chk('People: a restart does not seed again once the list has been changed', (await team.list()).length === 5);
 
+  // ── Stage 2: the steps done by hand ──
+  const HAND = require(path.join(root, 'team/hand-steps.json'));
+  chk('By hand: every step has a real role, a tab with an owner, and gates the Tracker knows or another step',
+    HAND.steps.every(s => R.ROLES.includes(s.role) && OWNERS.by_tab[s.tab] && s.text && (s.after || []).every(g => (g.startsWith('hand:') ? HAND.steps.some(x => x.key === g.slice(5)) : HAND.gates.includes(g)))));
+  chk('By hand: no key twice', new Set(HAND.steps.map(s => s.key)).size === HAND.steps.length);
+  const hk = x => x.map(n => n.hand).join(',');
+  let hs = R.handStepsOf({}, {});
+  chk('By hand: nothing is offered before the record is ready', hs.needs.length === 0 && hs.later === HAND.steps.length, hk(hs.needs));
+  hs = R.handStepsOf({ record: true, place_id: true, page_map: true }, {});
+  chk('By hand: the record, the listing and the page map open the photos, the vault, the staging site and the cards', hk(hs.needs) === 'photos_drive,citations_vault,site_staging,cards_make', hk(hs.needs));
+  chk('By hand: each goes to its own person', hs.needs.map(n => n.owner).join(',') === 'brandon,citations,site,site');
+  chk('By hand: the photo step carries the photo sort SOP, the staging site none', /Photo Sort/.test(hs.needs[0].sop.section) && hs.needs[2].sop === null);
+  hs = R.handStepsOf({ record: true, page_map: true }, { photos_drive: { by: 'Brandon', at: '2026-11-14T10:00:00Z' }, site_staging: { by: 'Given', at: 'x' } });
+  chk('By hand: a ticked step opens the one after it (the photo sort, the templates) and moves to done', hk(hs.needs) === 'photo_sort,site_templates' && hs.done.map(d => d.text).join('|') === "Put the client's photos in their Drive folder: ticked done by Brandon|Build the staging site from the template and connect it to Copybot: ticked done by Given", hk(hs.needs) + ' / ' + hs.done.map(d => d.text).join('|'));
+  hs = R.handStepsOf({ record: true, page_map: true, pushed: true }, { site_staging: {}, site_templates: {}, site_check: {}, go_no_go: {} });
+  chk('By hand: the launch waits for the check, then go or no go', hk(hs.needs).includes('site_launch') && !hk(R.handStepsOf({ record: true, page_map: true, pushed: true }, { site_staging: {}, site_templates: {}, site_check: {} }).needs).includes('site_launch'));
+
+  // On the Tracker: only for a client loaded with them, after Copybot's own steps
+  const base = { niche_known: true, from_form: true, reviewed: true, form_at: 'x', missing: [], place_id: true, locations_run: true, locations_approved: true, map_pages: 3, now: '2026-11-14T12:00:00Z' };
+  chk('Tracker: a client loaded without the task board has no by hand steps', !trackerOf(base).needs.some(n => n.hand));
+  const th = trackerOf({ ...base, hand: { ticks: {} }, tasks: [{ id: 4, text: 'Ring Ethan about the price list', role: 'ops', person_id: 2, person: 'Ray', due: '2026-11-10', by: 'Brandon', at: '2026-11-09T09:00:00Z' }, { id: 5, text: 'Ask for the logo', role: 'site', due: '2026-11-20' }] });
+  chk('Tracker: the by hand steps follow Copybot\'s own, each with its owner', th.needs.filter(n => n.hand).map(n => `${n.hand}:${n.owner}`).join(',') === 'photos_drive:brandon,citations_vault:citations,site_staging:site,cards_make:site' && th.needs.findIndex(n => n.hand) > 0 && !th.needs.slice(th.needs.findIndex(n => n.hand)).some(n => !n.hand && !n.task), th.needs.map(n => n.key).join(','));
+  const t4 = th.needs.find(n => n.task === 4), t5 = th.needs.find(n => n.task === 5);
+  chk('Tracker: a one off task is its person\'s, says who added it, and is marked once overdue', t4 && t4.owner === 'ops' && t4.person_id === 2 && t4.urgent === true && t4.why === 'Added by Brandon on 2026-11-09, for Ray. Was due 2026-11-10.', t4 && t4.why);
+  chk('Tracker: a task not yet due is not urgent', t5 && !t5.urgent && / Due 2026-11-20\.$/.test(t5.why), t5 && t5.why);
+  chk('Tracker: a ticked by hand step is listed as done', trackerOf({ ...base, hand: { ticks: { photos_drive: { by: 'Brandon', at: 'x' } } } }).done.some(d => d.key === 'hand_photos_drive_done'));
+  const rows2 = [{ id: 'c1', name: 'Edens Edge', stage: 'Pages', last_activity: 'x', tracker: th, brandon: [] }];
+  chk('Tasks: a task given to Ray is Ray\'s, not another operations person\'s', R.tasksOf(rows2, { role: 'ops', personId: 2 })[0].steps.some(s => s.task === 4) && !(R.tasksOf(rows2, { role: 'ops', personId: 9 })[0] || { steps: [] }).steps.some(s => s.task === 4));
+  chk('Tasks: the by hand step keeps its key so the screen can tick it', R.tasksOf(rows2, { role: 'brandon' })[0].steps[0].hand === 'photos_drive');
+
+  // ── Stage 2 on pg-mem: ticks and tasks ──
+  const CID = '11111111-1111-4111-8111-111111111111';
+  await pool.query(`CREATE TABLE clients (id UUID PRIMARY KEY, name TEXT)`);
+  await pool.query(`INSERT INTO clients (id, name) VALUES ($1, 'Edens Edge')`, [CID]);
+  await team.tickStep(CID, 'photos_drive', { by: 'Brandon' });
+  let facts = await S.loadFacts(pool);
+  chk('Ticks: a ticked step is on the client\'s facts with who ticked it', facts.ticks.get(CID).photos_drive.by === 'Brandon');
+  await team.tickStep(CID, 'photos_drive', { done: false, by: 'Brandon' });
+  chk('Ticks: put back, it is open again, and the row is kept', !(await S.loadFacts(pool)).ticks.has(CID) && (await pool.query(`SELECT * FROM team_step_ticks`)).rows.length === 1);
+  await team.tickStep(CID, 'photos_drive', { by: 'Ray' });
+  chk('Ticks: ticked again is one row, with the new name', (await pool.query(`SELECT * FROM team_step_ticks`)).rows.length === 1 && (await S.loadFacts(pool)).ticks.get(CID).photos_drive.by === 'Ray');
+  chk('Ticks: a step that is not in the file is refused', /^404/.test(await refused(() => team.tickStep(CID, 'made_up', {}))));
+  chk('Ticks: a client that is not there is refused', /^404/.test(await refused(() => team.tickStep('22222222-2222-4222-8222-222222222222', 'photos_drive', {}))));
+  const ray = (await team.list()).find(p => p.name === 'Ray');
+  const made = await team.addTask(CID, { text: 'Ring Ethan about the price list', person_id: ray.id, due: '2026-11-20', by: 'Brandon' });
+  await team.addTask(CID, { text: 'Ask for the logo', role: 'site' });
+  facts = await S.loadFacts(pool);
+  chk('Tasks: a task for a person takes that person\'s job and name', made.role === 'ops' && facts.tasks.get(CID)[0].person === 'Ray' && facts.tasks.get(CID)[0].due === '2026-11-20' && facts.tasks.get(CID)[0].by === 'Brandon');
+  chk('Tasks: a task for a job has no person', facts.tasks.get(CID)[1].role === 'site' && facts.tasks.get(CID)[1].person_id === null);
+  chk('Tasks: no words, nobody, a person who has left, a bad date: all refused', /^400/.test(await refused(() => team.addTask(CID, { text: ' ', role: 'ops' }))) && /^400/.test(await refused(() => team.addTask(CID, { text: 'x' }))) && /^404/.test(await refused(() => team.addTask(CID, { text: 'x', person_id: cit1.id }))) && /^400/.test(await refused(() => team.addTask(CID, { text: 'x', role: 'ops', due: 'tomorrow' }))));
+  await team.doneTask(made.id, { by: 'Ray' });
+  chk('Tasks: Done takes it off the open list and keeps the row with who did it', (await S.loadFacts(pool)).tasks.get(CID).length === 1 && (await pool.query(`SELECT done_by FROM team_tasks WHERE id = $1`, [made.id])).rows[0].done_by === 'Ray');
+  await team.doneTask(made.id, { done: false });
+  chk('Tasks: put back, it is open again', (await S.loadFacts(pool)).tasks.get(CID).length === 2);
+  chk('Tasks: a task that is not there is a 404', /^404/.test(await refused(() => team.doneTask(999, {}))));
+
   console.log(`\n${pass + fail} checks: ${pass} passed, ${fail} failed`);
   process.exit(fail ? 1 : 0);
 })().catch(e => { console.error(e); process.exit(1); });

@@ -7,7 +7,7 @@
 
 import { h, attr, api, card, empty, failed, timeEl, plural, wire, toast } from '../ui.js';
 import { stepHref } from '../tracker.js';
-import { loadTeam, teamNow, me, ownerTag, sopLink, roleLabel } from '../team.js';
+import { loadTeam, teamNow, me, sopLink, roleLabel, isMine, stepOwnerTag, stepButtons, doneClick } from '../team.js';
 import { setUserName } from '../shell.js';
 import { markDone } from '../tell-brandon.js';
 
@@ -26,7 +26,7 @@ export async function render(root, params, ctx) {
 
   const stepLine = (b, s, withOwner) => {
     const where = s.key === 'ask' ? `/clients/${b.client_id}` : stepHref(b.client_id, s.tab);
-    return `<li class="${s.urgent ? 'first' : ''}"><a href="${attr(where)}" data-link>${h(s.text)}</a>${withOwner ? ` ${ownerTag(s.owner)}` : ''}${sopLink(s.sop) ? ` ${sopLink(s.sop)}` : ''}${s.key === 'ask' ? ` <button class="btn btn-ghost btn-xs" data-tb-done="${attr(s.ask_id)}">Done</button>` : ''}${s.why ? `<span class="sub">${h(s.why)}</span>` : ''}</li>`;
+    return `<li class="${s.urgent ? 'first' : ''}"><a href="${attr(where)}" data-link>${h(s.text)}</a>${withOwner ? ` ${stepOwnerTag(s)}` : ''}${stepButtons(b.client_id, s)}${sopLink(s.sop) ? ` ${sopLink(s.sop)}` : ''}${s.key === 'ask' ? ` <button class="btn btn-ghost btn-xs" data-tb-done="${attr(s.ask_id)}">Done</button>` : ''}${s.why ? `<span class="sub">${h(s.why)}</span>` : ''}</li>`;
   };
 
   const draw = () => {
@@ -38,9 +38,9 @@ export async function render(root, params, ctx) {
         ${card({ title: 'Who are you?', sub: 'Your list is the steps your job covers, on every client. You can change this on Settings.', body: `<div class="btn-row">${people().map(p => `<button class="btn btn-ghost" data-me="${attr(p.name)}">${h(p.name)}<span class="sub" style="margin-left:6px">${h(roleLabel(p.role))}</span></button>`).join('')}<a class="btn btn-ghost" href="/tasks?who=all" data-link>Just show everyone's</a></div>` })}`;
       return;
     }
-    const blocks = data.blocks.map(b => ({ ...b, steps: all ? b.steps : b.steps.filter(s => s.owner === person.role) })).filter(b => b.steps.length);
+    const blocks = data.blocks.map(b => ({ ...b, steps: all ? b.steps : b.steps.filter(s => isMine(s, person)) })).filter(b => b.steps.length);
     const total = blocks.reduce((n, b) => n + b.steps.length, 0);
-    const tabs = `<div class="tabs" id="who">${people().map(p => `<a class="tab${!all && person.id === p.id ? ' active' : ''}" href="/tasks?who=${p.id}" data-link>${h(p.name)}${mine && mine.id === p.id ? ' (you)' : ''} <span class="count">${data.counts[p.role] || 0}</span></a>`).join('')}<a class="tab${all ? ' active' : ''}" href="/tasks?who=all" data-link>Everyone <span class="count">${Object.values(data.counts).reduce((a, b) => a + b, 0)}</span></a></div>`;
+    const tabs = `<div class="tabs" id="who">${people().map(p => `<a class="tab${!all && person.id === p.id ? ' active' : ''}" href="/tasks?who=${p.id}" data-link>${h(p.name)}${mine && mine.id === p.id ? ' (you)' : ''} <span class="count">${data.blocks.reduce((n, b) => n + b.steps.filter(s => isMine(s, p)).length, 0)}</span></a>`).join('')}<a class="tab${all ? ' active' : ''}" href="/tasks?who=all" data-link>Everyone <span class="count">${data.blocks.reduce((n, b) => n + b.steps.length, 0)}</span></a></div>`;
     const title = all ? 'Everyone\'s tasks' : mine && mine.id === person.id ? 'My tasks' : `${person.name}'s tasks`;
     const sub = all ? 'Every step waiting on a person, with who does it' : `${roleLabel(person.role)}: the steps this job covers, on every client`;
     const body = blocks.length
@@ -61,6 +61,7 @@ export async function render(root, params, ctx) {
   const onClick = async e => {
     const pick = e.target.closest('[data-me]');
     if (pick) { setUserName(pick.dataset.me); toast(`This browser is ${pick.dataset.me}'s`); return draw(); }
+    if (await doneClick(e)) return load();
     const d = e.target.closest('[data-tb-done]');
     if (d) { d.disabled = true; try { await markDone(d.dataset.tbDone); await load(); } catch (err) { d.disabled = false; toast(err.message, 'bad'); } }
   };

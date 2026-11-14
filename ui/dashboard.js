@@ -208,6 +208,8 @@ async function loadDashboard({ pool, tradeFacts = null, runners = {}, homepageRu
 
   // Onboarding answers from GHL (ghl-onboarding/): the saved answers and the steps a person ticked Done
   const onboardingBy = await require('../ghl-onboarding/service').loadOnboardingFacts(pool).catch(() => new Map());
+  // The task board (team/service.js): the by hand steps a person has ticked and the open one off tasks; none where the tables are not made
+  const teamFacts = await require('../team/service').loadFacts(pool).catch(() => null);
   // Tell Brandon (brandon/service.js): what people have sent him that he has not marked done
   const brandonBy = new Map();
   for (const r of await soft(`SELECT id, client_id, reason, note, asked_by, created_at, emailed FROM brandon_asks WHERE done_at IS NULL ORDER BY created_at`)) { if (!brandonBy.has(r.client_id)) brandonBy.set(r.client_id, []); brandonBy.get(r.client_id).push({ id: r.id, reason: r.reason, note: r.note || '', by: r.asked_by || '', at: r.created_at, emailed: !!r.emailed }); }
@@ -316,6 +318,7 @@ async function loadDashboard({ pool, tradeFacts = null, runners = {}, homepageRu
       review_funnel: { site: wpSites.has(c.id), link: !!require('../review-funnel/rules').reviewLink(cv || {}).url, sent_at: funnelSent.get(c.id) || null, ...(feedbackBy.get(c.id) || { received: 0, unsent: 0 }) },
       citations: citeBy.get(c.id) || null, has_scans: hasScans, existing_site: existingSite, site_audit: siteAudit, running: runs,
       onboarding: onboardingBy.get(c.id) || null,
+      hand: teamFacts ? { ticks: teamFacts.ticks.get(c.id) || {} } : null, tasks: teamFacts ? teamFacts.tasks.get(c.id) || [] : [],
     });
     const firstAt = c.source === 'fillout' ? firstSubmission.get(c.id) || c.created_at : null;
     rows.push({
