@@ -130,7 +130,7 @@ function createTeam({ pool }) {
     return { id: rows[0].id, done };
   }
 
-  return { list, add, update, view: async () => ({ roles: R.ROLE_LABELS, people: await list() }), tickStep, addTask, doneTask };
+  return { list, add, update, view: async () => ({ roles: R.ROLE_LABELS, people: await list(), board: R.boardView() }), tickStep, addTask, doneTask };
 }
 
 function mountTeamApi(app, { team }) {
