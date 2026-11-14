@@ -9,6 +9,11 @@
     "citations_submit": { "doc": "relaunch", "section": "Phase X.5 Submit the Citations" },
     "citations_wait": { "doc": "relaunch", "section": "Phase X.5 Submit the Citations: Verification" },
     "auto_citations": { "doc": "relaunch", "section": "Phase X.7 Gap Check and Monthly Upkeep", "anchor": "h.1zp1k0jrqsi4" },
+    "cards_brief": { "doc": "relaunch", "section": "Phase X.9 Fill In the Brief", "anchor": "h.f59hoz2xfbze" },
+    "cards_proofs": { "doc": "relaunch", "section": "Phase X.11 Check the Proofs and Get Approval", "anchor": "h.y69gkace5vi0" },
+    "cards_approval": { "doc": "relaunch", "section": "Phase X.11 Check the Proofs and Get Approval", "anchor": "h.y69gkace5vi0" },
+    "cards_export": { "doc": "relaunch", "section": "Phase X.12 Export and Send to Print", "anchor": "h.b3f5k7nuvcxe" },
+    "cards_order": { "doc": "relaunch", "section": "Phase X.12 Export and Send to Print", "anchor": "h.b3f5k7nuvcxe" },
     "onb_domain": { "doc": "relaunch", "section": "Phase X.0 Buy the Customer's Domain" }
   },
   "by_tab": {

@@ -108,20 +108,22 @@ console.log('\n=== FIXTURE: the task board (owners, SOPs, tasks per person, the 
   const hk = x => x.map(n => n.hand).join(',');
   let hs = R.handStepsOf({}, {});
   chk('By hand: nothing is offered before the record is ready', hs.needs.length === 0 && hs.later === HAND.steps.length, hk(hs.needs));
-  hs = R.handStepsOf({ record: true, place_id: true, page_map: true }, {});
-  chk('By hand: the record, the listing and the page map open the photos, the vault, the staging site and the cards', hk(hs.needs) === 'photos_drive,citations_vault,site_staging,cards_make', hk(hs.needs));
-  chk('By hand: each goes to its own person', hs.needs.map(n => n.owner).join(',') === 'brandon,citations,site,site');
-  chk('By hand: the photo step carries the photo sort SOP, the staging site none', /Photo Sort/.test(hs.needs[0].sop.section) && hs.needs[2].sop === null);
-  hs = R.handStepsOf({ record: true, page_map: true }, { photos_drive: { by: 'Brandon', at: '2026-11-14T10:00:00Z' }, site_staging: { by: 'Given', at: 'x' } });
-  chk('By hand: a ticked step opens the one after it (the photo sort, the templates) and moves to done', hk(hs.needs) === 'photo_sort,site_templates' && hs.done.map(d => d.text).join('|') === "Put the client's photos in their Drive folder: ticked done by Brandon|Build the staging site from the template and connect it to Copybot: ticked done by Given", hk(hs.needs) + ' / ' + hs.done.map(d => d.text).join('|'));
-  hs = R.handStepsOf({ record: true, page_map: true, pushed: true }, { site_staging: {}, site_templates: {}, site_check: {}, go_no_go: {} });
-  chk('By hand: the launch waits for the check, then go or no go', hk(hs.needs).includes('site_launch') && !hk(R.handStepsOf({ record: true, page_map: true, pushed: true }, { site_staging: {}, site_templates: {}, site_check: {} }).needs).includes('site_launch'));
+  hs = R.handStepsOf({ record: true, place_id: true, page_map: true, site: true }, {});
+  chk('By hand: the record and the listing open the photos and the vault, the connected site the templates', hk(hs.needs) === 'photos_drive,citations_vault,site_templates', hk(hs.needs));
+  chk('By hand: each goes to its own person', hs.needs.map(n => n.owner).join(',') === 'brandon,citations,site');
+  chk('By hand: the photo step carries the photo sort SOP, the templates none', /Photo Sort/.test(hs.needs[0].sop.section) && hs.needs[2].sop === null);
+  chk('By hand: the templates wait for the site to be connected', !hk(R.handStepsOf({ record: true, page_map: true }, {}).needs).includes('site_templates'));
+  hs = R.handStepsOf({ record: true, site: true }, { photos_drive: { by: 'Brandon', at: '2026-11-14T10:00:00Z' }, site_templates: { by: 'Given', at: 'x' } });
+  chk('By hand: a ticked step opens the one after it (the photo sort) and moves to done', hk(hs.needs) === 'photo_sort' && hs.done.map(d => d.text).join('|') === "Put the client's photos in their Drive folder: ticked done by Brandon|Build the Elementor templates and bind them to the fields: ticked done by Given", hk(hs.needs) + ' / ' + hs.done.map(d => d.text).join('|'));
+  hs = R.handStepsOf({ record: true, site: true, pushed: true }, { site_templates: {}, site_check: {}, go_no_go: {} });
+  chk('By hand: the launch waits for the check, then go or no go', hk(hs.needs).includes('site_launch') && !hk(R.handStepsOf({ record: true, site: true, pushed: true }, { site_templates: {}, site_check: {} }).needs).includes('site_launch'));
+  chk('By hand: what Copybot can see for itself is no longer a tick (the site connection, the cards)', !HAND.steps.some(s => ['site_staging', 'cards_make', 'cards_order'].includes(s.key)));
 
   // On the Tracker: only for a client loaded with them, after Copybot's own steps
   const base = { niche_known: true, from_form: true, reviewed: true, form_at: 'x', missing: [], place_id: true, locations_run: true, locations_approved: true, map_pages: 3, now: '2026-11-14T12:00:00Z' };
   chk('Tracker: a client loaded without the task board has no by hand steps', !trackerOf(base).needs.some(n => n.hand));
   const th = trackerOf({ ...base, hand: { ticks: {} }, tasks: [{ id: 4, text: 'Ring Ethan about the price list', role: 'ops', person_id: 2, person: 'Ray', due: '2026-11-10', by: 'Brandon', at: '2026-11-09T09:00:00Z' }, { id: 5, text: 'Ask for the logo', role: 'site', due: '2026-11-20' }] });
-  chk('Tracker: the by hand steps follow Copybot\'s own, each with its owner', th.needs.filter(n => n.hand).map(n => `${n.hand}:${n.owner}`).join(',') === 'photos_drive:brandon,citations_vault:citations,site_staging:site,cards_make:site' && th.needs.findIndex(n => n.hand) > 0 && !th.needs.slice(th.needs.findIndex(n => n.hand)).some(n => !n.hand && !n.task), th.needs.map(n => n.key).join(','));
+  chk('Tracker: the by hand steps follow Copybot\'s own, each with its owner', th.needs.filter(n => n.hand).map(n => `${n.hand}:${n.owner}`).join(',') === 'photos_drive:brandon,citations_vault:citations' && th.needs.findIndex(n => n.hand) > 0 && !th.needs.slice(th.needs.findIndex(n => n.hand)).some(n => !n.hand && !n.task), th.needs.map(n => n.key).join(','));
   const t4 = th.needs.find(n => n.task === 4), t5 = th.needs.find(n => n.task === 5);
   chk('Tracker: a one off task is its person\'s, says who added it, and is marked once overdue', t4 && t4.owner === 'ops' && t4.person_id === 2 && t4.urgent === true && t4.why === 'Added by Brandon on 2026-11-09, for Ray. Was due 2026-11-10.', t4 && t4.why);
   chk('Tracker: a task not yet due is not urgent', t5 && !t5.urgent && / Due 2026-11-20\.$/.test(t5.why), t5 && t5.why);
@@ -129,6 +131,52 @@ console.log('\n=== FIXTURE: the task board (owners, SOPs, tasks per person, the 
   const rows2 = [{ id: 'c1', name: 'Edens Edge', stage: 'Pages', last_activity: 'x', tracker: th, brandon: [] }];
   chk('Tasks: a task given to Ray is Ray\'s, not another operations person\'s', R.tasksOf(rows2, { role: 'ops', personId: 2 })[0].steps.some(s => s.task === 4) && !(R.tasksOf(rows2, { role: 'ops', personId: 9 })[0] || { steps: [] }).steps.some(s => s.task === 4));
   chk('Tasks: the by hand step keeps its key so the screen can tick it', R.tasksOf(rows2, { role: 'brandon' })[0].steps[0].hand === 'photos_drive');
+
+  // ── Stage 3: the site build, the migration's last steps and the cards, from what Copybot already knows ──
+  const nk = t => t.needs.map(n => n.key).join(',');
+  const built = { ...base, map_pages: 6, pages: { total: 6, written: 6, records: 6, claims: 0, blocked: 0, failed: 0, approved: 6 }, gbp_done: true, prompts_done: true, has_scans: true, existing_site: false, connection: { status: 'connected', publishing_on: true }, citations: { scanned: 1, listed: 1, to_submit: 0, waiting: 0 } };
+  const sb0 = { connected: false, inner_total: 5, created: 0, pushed: 0, to_push: 6, images_approved: 0, images_placed: 0, legal_pushed: 0 };
+  chk('Site build: a client loaded without these facts keeps the one push line', trackerOf({ ...built, homepage_good: true }).needs.some(n => n.key === 'push' && n.text === 'Push the homepage to WordPress'));
+  let s3 = trackerOf({ ...built, site_build: sb0 });
+  chk('Site build: no site yet, so connecting it is the one step, and it is Given\'s', nk(s3) === 'site_connect' && s3.needs[0].owner === 'site', nk(s3));
+  s3 = trackerOf({ ...built, site_build: { ...sb0, connected: true } });
+  chk('Site build: connected, the pages to create, the copy to push and the legal pages open', nk(s3) === 'site_pages,push,legal' && s3.needs[0].text === 'Create 5 pages on the staging site' && s3.needs[1].text === 'Push the copy of 6 approved pages to the staging site', nk(s3) + ' / ' + s3.needs.map(n => n.text).join('|'));
+  chk('Site build: creating, pushing and the legal pages are all Given\'s', s3.needs.every(n => n.owner === 'site'), s3.needs.map(n => n.owner).join(','));
+  chk('Site build: the images wait for some copy to be on the site', !s3.needs.some(n => n.key === 'images_approve'));
+  s3 = trackerOf({ ...built, site_build: { connected: true, inner_total: 5, created: 5, pushed: 4, to_push: 2, images_approved: 3, images_placed: 1, legal_pushed: 3 } });
+  chk('Site build: part way, the copy left to push and the images left to approve and place are counted', nk(s3) === 'push,images_approve,images_place' && s3.needs.map(n => n.text).join('|') === 'Push the copy of 2 approved pages to the staging site|Pick and approve the images for 3 pages|Place the images of 2 approved pages on the staging site', s3.needs.map(n => n.text).join('|'));
+  chk('Site build: the images are Given\'s and carry the images SOP', s3.needs[1].owner === 'site' && s3.needs[1].sop.title === 'Phase X.8 Website Images SOP');
+  chk('Site build: what is finished is listed as done', ['site_connect', 'site_pages', 'pushed', 'images', 'images_placed', 'legal'].every(k => s3.done.some(d => d.key === k)), s3.done.map(d => d.key).join(','));
+  chk('Site build: more pages made than the map holds never reads as over', trackerOf({ ...built, site_build: { ...sb0, connected: true, created: 9 } }).done.find(d => d.key === 'site_pages').text === '5 of 5 pages made on the staging site');
+  s3 = trackerOf({ ...built, site_build: { connected: true, inner_total: 5, created: 5, pushed: 6, to_push: 0, images_approved: 6, images_placed: 6, legal_pushed: 3 } });
+  chk('Site build: everything made, pushed and placed leaves nothing for a person', nk(s3) === '', nk(s3));
+  chk('Site build: the connected site opens the Elementor templates as a by hand step', trackerOf({ ...built, hand: { ticks: {} }, site_build: { ...sb0, connected: true } }).needs.some(n => n.hand === 'site_templates'));
+
+  const old = { ...built, existing_site: true, site_audit: 'ok', site_build: { connected: true, inner_total: 5, created: 5, pushed: 6, to_push: 0, images_approved: 6, images_placed: 6, legal_pushed: 3 } };
+  s3 = trackerOf({ ...old, migration: { redirects_pushed: false, pre_launch: 'none', launched_at: null, day7_at: null } });
+  chk('Migration: the decisions approved, the redirects are next and the pre launch check waits for them', nk(s3) === 'redirects' && s3.needs[0].owner === 'ops' && s3.later >= 1, nk(s3));
+  s3 = trackerOf({ ...old, migration: { redirects_pushed: true, pre_launch: 'block', launched_at: null, day7_at: null } });
+  chk('Migration: a blocked pre launch check says to fix and run it again', nk(s3) === 'pre_launch' && /^Fix what the pre launch check blocked/.test(s3.needs[0].text), s3.needs.map(n => n.text).join('|'));
+  s3 = trackerOf({ ...old, migration: { redirects_pushed: true, pre_launch: 'ok', launched_at: '2026-11-20T09:00:00Z', day7_at: '2026-11-27T09:00:00Z' } });
+  chk('Migration: passed and launched, nothing for a person, and the launch and day 7 check are listed', nk(s3) === '' && ['redirects', 'pre_launch', 'launched', 'day7'].every(k => s3.done.some(d => d.key === k)), nk(s3));
+  chk('Migration: a new build has no redirect steps', !trackerOf({ ...built, migration: { redirects_pushed: false, pre_launch: 'none' } }).needs.some(n => ['redirects', 'pre_launch'].includes(n.key)));
+  chk('Migration: nothing before the URL decisions are approved', !trackerOf({ ...old, site_audit: 'wait', migration: { redirects_pushed: false, pre_launch: 'none' } }).needs.some(n => n.key === 'redirects'));
+
+  const done6 = { connected: true, inner_total: 5, created: 5, pushed: 6, to_push: 0, images_approved: 6, images_placed: 6, legal_pushed: 3 };
+  const cardsOf = c => trackerOf({ ...built, site_build: done6, cards: c });
+  s3 = cardsOf({ copied_at: null, signoff: {} });
+  chk('Cards: nothing copied yet, so the brief is the step, Given\'s, with its SOP, and the four after it wait', nk(s3) === 'cards_brief' && s3.needs[0].owner === 'site' && /X\.9/.test(s3.needs[0].sop.section) && s3.later === 4, `${nk(s3)} later ${s3.later}`);
+  chk('Cards: no card steps before the Google listing is confirmed', !trackerOf({ ...built, place_id: false, site_build: done6, cards: { copied_at: null, signoff: {} } }).needs.some(n => /^cards_/.test(n.key)));
+  s3 = cardsOf({ copied_at: '2026-11-14T10:00:00Z', signoff: {} });
+  chk('Cards: the brief copied, checking the proofs is next', nk(s3) === 'cards_proofs' && s3.done.some(d => d.key === 'cards_brief_done'), nk(s3));
+  s3 = cardsOf({ copied_at: 'x', signoff: { proofs_sent: { at: 'x', by: 'Given' } } });
+  chk('Cards: proofs sent, the client\'s approval is Brandon\'s', nk(s3) === 'cards_approval' && s3.needs[0].owner === 'brandon', nk(s3));
+  s3 = cardsOf({ copied_at: 'x', signoff: { proofs_sent: { at: 'x' }, client_approved: { at: 'x' } } });
+  chk('Cards: approved, the print files are Given\'s', nk(s3) === 'cards_export' && s3.needs[0].owner === 'site', nk(s3));
+  s3 = cardsOf({ copied_at: 'x', signoff: { proofs_sent: { at: 'x' }, client_approved: { at: 'x' }, pdfs_exported: { at: 'x' } } });
+  chk('Cards: exported, the order is Brandon\'s', nk(s3) === 'cards_order' && s3.needs[0].owner === 'brandon' && /X\.12/.test(s3.needs[0].sop.section), nk(s3));
+  s3 = cardsOf({ copied_at: 'x', signoff: { proofs_sent: { at: 'x' }, client_approved: { at: 'x' }, pdfs_exported: { at: 'x' }, sent_to_printer: { at: '2026-11-21T09:00:00Z' } } });
+  chk('Cards: sent to the printer, nothing left and all five listed as done', nk(s3) === '' && s3.done.filter(d => /^cards_/.test(d.key)).length === 5, nk(s3));
 
   // ── Stage 2 on pg-mem: ticks and tasks ──
   const CID = '11111111-1111-4111-8111-111111111111';
