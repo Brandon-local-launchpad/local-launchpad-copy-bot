@@ -108,7 +108,7 @@ export async function render(el, ctx) {
 
   // Crop (13 Nov, Brandon: the owner photo's framing): drag a box over the part to keep. The box is kept per slot,
   // so the same photo can be cut differently on another page, and the site gets the cropped picture.
-  const SHAPES = [['Free', 0], ['Square', 1], ['Portrait 4:5', 4 / 5], ['Landscape 3:2', 3 / 2], ['Wide 16:9', 16 / 9]];
+  const SHAPES = [['Free', 0], ['Owner photo 4:3', 4 / 3], ['Hero 16:9', 16 / 9], ['Landscape 3:2', 3 / 2], ['Square', 1], ['Portrait 4:5', 4 / 5]];
   const openCrop = (identity, slot) => {
     const page = S.pages.find(p => p.identity === identity), s = page.slots.find(x => x.slot === slot);
     let box = s.crop ? { ...s.crop } : null, ratio = 0, start = null;

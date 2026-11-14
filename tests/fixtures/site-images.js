@@ -295,7 +295,9 @@ const CARDS = new Map([['/', ['/paving-contractor', '/fencing-contractor']], ['/
   chk('Crop box: fractions of the photo, held inside it; a tiny box, a box of the whole photo and nonsense are no crop', J(PL.cleanCrop({ x: 0.25, y: 0.1, w: 0.5, h: 0.6 })) === J({ x: 0.25, y: 0.1, w: 0.5, h: 0.6 }) && J(PL.cleanCrop({ x: 0.8, y: 0.8, w: 0.6, h: 0.6 })) === J({ x: 0.8, y: 0.8, w: 0.2, h: 0.2 }) && PL.cleanCrop({ x: 0, y: 0, w: 0.01, h: 0.5 }) === null && PL.cleanCrop({ x: 0, y: 0, w: 1, h: 1 }) === null && PL.cleanCrop('x') === null && PL.cleanCrop(null) === null, J(PL.cleanCrop({ x: 0.8, y: 0.8, w: 0.6, h: 0.6 })), '');
   const cut = await PL.shrink(big, 'owner', { x: 0.25, y: 0.25, w: 0.5, h: 0.5 });
   const tall = await PL.shrink(big, 'owner', { x: 0.4, y: 0, w: 0.2, h: 1 });
-  chk('Shrink with a crop: only the box is kept, then sized for the slot; a narrow box is not blown up', cut.width === 800 && cut.height === 533 && tall.width === 600 && tall.height === 2000, J([cut.width, cut.height, tall.width, tall.height]), '800x533, 600x2000');
+  chk('Shrink with a crop: only the box is kept, then sized for the slot; a narrow box is not blown up', cut.width === 800 && cut.height === 533 && tall.width === 180 && tall.height === 600, J([cut.width, cut.height, tall.width, tall.height]), '800x533, 180x600');
+  const own = await PL.shrink(big, 'owner'), ownTall = await PL.shrink(await sharp({ create: { width: 1500, height: 2000, channels: 3, background: { r: 90, g: 90, b: 90 } } }).jpeg().toBuffer(), 'owner');
+  chk('Owner photo: cut to 800 x 600 whatever the photo\'s shape, a tall photo too', J([own.width, own.height]) === J([800, 600]) && J([ownTall.width, ownTall.height]) === J([800, 600]), J([[own.width, own.height], [ownTall.width, ownTall.height]]), '800x600');
 
   const U = createUploads(pool);
   const up0 = await U.add(clientId, { name: 'garden-steps-envato.jpg', bytes: huge, alt: '  Stone garden steps   between planted borders. ', source: 'stock', by: 'Brandon' });
