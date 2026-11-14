@@ -7,7 +7,7 @@
 
 import { h, attr, api, card, empty, failed, timeEl, plural, wire, toast } from '../ui.js';
 import { stepHref } from '../tracker.js';
-import { loadTeam, teamNow, me, sopLink, roleLabel, isMine, stepOwnerTag, stepButtons, doneClick } from '../team.js';
+import { loadTeam, teamNow, me, sopLink, roleLabel, isMine, stepOwnerTag, stepButtons, doneClick, waitTag } from '../team.js';
 import { setUserName } from '../shell.js';
 import { markDone } from '../tell-brandon.js';
 
@@ -26,7 +26,7 @@ export async function render(root, params, ctx) {
 
   const stepLine = (b, s, withOwner) => {
     const where = s.key === 'ask' ? `/clients/${b.client_id}` : stepHref(b.client_id, s.tab);
-    return `<li class="${s.urgent ? 'first' : ''}"><a href="${attr(where)}" data-link>${h(s.text)}</a>${withOwner ? ` ${stepOwnerTag(s)}` : ''}${stepButtons(b.client_id, s)}${sopLink(s.sop) ? ` ${sopLink(s.sop)}` : ''}${s.key === 'ask' ? ` <button class="btn btn-ghost btn-xs" data-tb-done="${attr(s.ask_id)}">Done</button>` : ''}${s.why ? `<span class="sub">${h(s.why)}</span>` : ''}</li>`;
+    return `<li class="${s.urgent ? 'first' : ''}"><a href="${attr(where)}" data-link>${h(s.text)}</a>${withOwner ? ` ${stepOwnerTag(s)}` : ''}${waitTag(s)}${stepButtons(b.client_id, s)}${sopLink(s.sop) ? ` ${sopLink(s.sop)}` : ''}${s.key === 'ask' ? ` <button class="btn btn-ghost btn-xs" data-tb-done="${attr(s.ask_id)}">Done</button>` : ''}${s.why ? `<span class="sub">${h(s.why)}</span>` : ''}</li>`;
   };
 
   const draw = () => {

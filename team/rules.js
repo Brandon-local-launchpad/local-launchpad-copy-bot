@@ -72,8 +72,8 @@ function tasksOf(rows, { role = '', personId = null } = {}) {
   const blocks = [];
   for (const c of rows || []) {
     if (c.archived) continue;
-    const steps = ((c.tracker && c.tracker.needs) || []).map(n => ({ key: n.key, text: n.text, tab: n.tab, why: n.why || '', owner: n.owner || ownerOf(n), sop: n.sop || (n.sop === null ? null : sopOf(n)), urgent: !!n.urgent, hand: n.hand || undefined, tick: n.tick || undefined, task: n.task || undefined, person_id: n.person_id || undefined, due: n.due || undefined }));
-    for (const a of c.brandon || []) steps.push({ key: 'ask', ask_id: a.id, text: `${a.reason}${a.note ? `: ${String(a.note).slice(0, 160)}` : ''}`, tab: '', why: `${a.by ? `Asked by ${a.by}` : 'Sent with Tell Brandon'}${a.at ? ` on ${String(a.at instanceof Date ? a.at.toISOString() : a.at).slice(0, 10)}` : ''}.`, owner: 'brandon', sop: null, urgent: false });
+    const steps = ((c.tracker && c.tracker.needs) || []).map(n => ({ key: n.key, text: n.text, tab: n.tab, why: n.why || '', owner: n.owner || ownerOf(n), sop: n.sop || (n.sop === null ? null : sopOf(n)), urgent: !!n.urgent, hand: n.hand || undefined, tick: n.tick || undefined, task: n.task || undefined, person_id: n.person_id || undefined, due: n.due || undefined, since: n.since || undefined }));
+    for (const a of c.brandon || []) steps.push({ key: 'ask', ask_id: a.id, text: `${a.reason}${a.note ? `: ${String(a.note).slice(0, 160)}` : ''}`, tab: '', why: `${a.by ? `Asked by ${a.by}` : 'Sent with Tell Brandon'}${a.at ? ` on ${String(a.at instanceof Date ? a.at.toISOString() : a.at).slice(0, 10)}` : ''}.`, owner: 'brandon', sop: null, urgent: false, since: a.at || undefined });
     // A one off task given to one person is that person's alone; everything else goes by the job
     const mine = role ? steps.filter(s => (s.person_id ? s.person_id === personId : s.owner === role)) : steps;
     if (!mine.length) continue;
