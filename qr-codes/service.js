@@ -4,7 +4,8 @@
 // One table (new, nothing else changed):
 //   client_qr_codes   one row per client: fields, the values typed on the QR codes subtab (the
 //                     review funnel link, the Temporary URL tick, and the overrides of record
-//                     values); checks, the last link check of the review funnel and the website
+//                     values); checks, the last link check of the review funnel and the website;
+//                     ticks, the Make in QR.io steps ticked, each with who and when
 // view(clientId): the record is read afresh every time, so a field always carries the current
 //   record value, except where a person has changed it on the tab.
 // check(clientId): the one call out, a GET of the review funnel and the website (links.js).
@@ -25,6 +26,7 @@ async function ensureQrTables(pool) {
       client_id  UUID PRIMARY KEY REFERENCES clients(id) ON DELETE CASCADE,
       fields     JSONB NOT NULL,
       checks     JSONB,
+      ticks      JSONB,
       updated_at TIMESTAMPTZ NOT NULL
     )`);
 }
@@ -46,15 +48,15 @@ function createQrCodes({ pool, loadValues, nicheLabel = async () => '', follow =
     return rows[0];
   }
   async function rowOf(clientId) {
-    const { rows } = await q(`SELECT fields, checks FROM client_qr_codes WHERE client_id = $1`, [clientId]);
-    return rows.length ? { fields: parse(rows[0].fields) || {}, checks: parse(rows[0].checks) || {} } : { fields: {}, checks: {} };
+    const { rows } = await q(`SELECT fields, checks, ticks FROM client_qr_codes WHERE client_id = $1`, [clientId]);
+    return rows.length ? { fields: parse(rows[0].fields) || {}, checks: parse(rows[0].checks) || {}, ticks: parse(rows[0].ticks) || {} } : { fields: {}, checks: {}, ticks: {} };
   }
   async function write(clientId, patch) {
     const next = { ...(await rowOf(clientId)), ...patch };
-    const params = [clientId, JSON.stringify(next.fields), JSON.stringify(next.checks), now().toISOString()];
+    const params = [clientId, JSON.stringify(next.fields), JSON.stringify(next.checks), JSON.stringify(next.ticks), now().toISOString()];
     const { rows } = await q(`SELECT 1 FROM client_qr_codes WHERE client_id = $1`, [clientId]);
-    if (rows.length) await q(`UPDATE client_qr_codes SET fields = $2, checks = $3, updated_at = $4 WHERE client_id = $1`, params);
-    else await q(`INSERT INTO client_qr_codes (client_id, fields, checks, updated_at) VALUES ($1, $2, $3, $4)`, params);
+    if (rows.length) await q(`UPDATE client_qr_codes SET fields = $2, checks = $3, ticks = $4, updated_at = $5 WHERE client_id = $1`, params);
+    else await q(`INSERT INTO client_qr_codes (client_id, fields, checks, ticks, updated_at) VALUES ($1, $2, $3, $4, $5)`, params);
   }
 
   // What the record gives today. The niche that cannot be read is left blank, never a failure of the tab.
@@ -69,7 +71,8 @@ function createQrCodes({ pool, loadValues, nicheLabel = async () => '', follow =
     const client = await clientOf(clientId);
     const row = await rowOf(clientId);
     const built = R.build({ record: await recordOf(client), saved: row.fields });
-    return { client: { id: client.id, name: client.name }, ...built, prepare: R.prepare({ fields: built.fields, temporary: built.website_temporary, checks: row.checks }) };
+    const prepare = R.prepare({ fields: built.fields, temporary: built.website_temporary, checks: row.checks });
+    return { client: { id: client.id, name: client.name }, ...built, prepare, make: R.make({ prepare, ticks: row.ticks }) };
   }
 
   // set: { key: value } typed on the tab; reset: [key] back to the record's value.
@@ -122,7 +125,22 @@ function createQrCodes({ pool, loadValues, nicheLabel = async () => '', follow =
     return view(clientId);
   }
 
-  return { view, save, check, checkedByHand };
+  // A Make in QR.io step ticked or unticked, with who and when. A step of a list that is still
+  // locked cannot be ticked; a tick can always be taken off.
+  async function tick(clientId, { id, ticked, by = '' } = {}) {
+    const v = await view(clientId);
+    const group = [v.make.folder, ...v.make.codes].find(g => g.steps.some(s => s.id === id));
+    if (!group) throw bad('That is not a step on the QR codes tab.');
+    const ticks = { ...(await rowOf(clientId)).ticks };
+    if (ticked === true) {
+      if (!group.unlocked) throw bad(group.message || 'These steps are locked.', 409);
+      ticks[id] = { at: now().toISOString(), by: str(by).slice(0, 120) };
+    } else delete ticks[id];
+    await write(clientId, { ticks });
+    return view(clientId);
+  }
+
+  return { view, save, check, checkedByHand, tick };
 }
 
 // Behind the login, like every client tab:
@@ -130,6 +148,7 @@ function createQrCodes({ pool, loadValues, nicheLabel = async () => '', follow =
 //   PUT  /api/clients/:id/qr-codes  { set, reset }        save values typed on the tab; reset puts a line back to the record's value
 //   POST /api/clients/:id/qr-codes/check  { keys, all }   fetch the review funnel and the website links
 //   POST /api/clients/:id/qr-codes/checked-by-hand { key, by }
+//   POST /api/clients/:id/qr-codes/tick { id, ticked, by }   a Make in QR.io step
 function mount(app, svc, { log = console } = {}) {
   const wrap = fn => async (req, res) => {
     try { res.json(await fn(req)); }
@@ -139,6 +158,7 @@ function mount(app, svc, { log = console } = {}) {
   app.get('/api/clients/:id/qr-codes', wrap(req => svc.view(req.params.id)));
   app.put('/api/clients/:id/qr-codes', wrap(req => svc.save(req.params.id, { set: body(req).set, reset: body(req).reset })));
   app.post('/api/clients/:id/qr-codes/check', wrap(req => svc.check(req.params.id, { keys: body(req).keys, all: body(req).all === true })));
+  app.post('/api/clients/:id/qr-codes/tick', wrap(req => svc.tick(req.params.id, { id: body(req).id, ticked: body(req).ticked === true, by: body(req).by || '' })));
   app.post('/api/clients/:id/qr-codes/checked-by-hand', wrap(req => svc.checkedByHand(req.params.id, { key: body(req).key, by: body(req).by || '' })));
 }
 

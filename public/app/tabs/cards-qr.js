@@ -6,7 +6,9 @@
 // WhatsApp message and link, and each code's link check. A value typed here stays on this tab only:
 // the Record tab is never changed. A field is saved when it is left; a value that is refused (a
 // Google link as the review funnel) is kept in the box with the reason. A link not yet checked is
-// checked as soon as the tab shows it; one Copybot cannot fetch can be passed by hand.
+// checked as soon as the tab shows it; one Copybot cannot fetch can be passed by hand. Then 2 Make in
+// QR.io (stage 3): the tick list a person follows in QR.io, each value inline with its own Copy, each
+// tick kept with who and when; a code's steps open only when its destination has passed.
 
 import { h, attr, api, card, toast, failed, pill, fmtDate, copyText } from '../ui.js';
 
@@ -69,6 +71,23 @@ export async function mount(el, ctx) {
     body: `${V.prepare.folder ? box('Folder name', V.prepare.folder) : '<div class="small" style="color:#b91c1c">Fill in the niche and the business name to get the folder name and the QR names.</div>'}${V.prepare.codes.map(code).join('')}`,
   });
 
+  // ── 2 Make in QR.io: the tick list. **bold** is a button in QR.io, {token} a value with its own Copy ──
+  const stepText = s => h(s.text).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\{(\w+)\}/g, (m, k) => {
+    const value = s.values[k] || '';
+    if (k === 'link') return `<a href="${attr(value)}" target="_blank" rel="noopener noreferrer">qr.io/dashboard</a>`;
+    return value ? `<code style="background:#f3f4f6;border-radius:4px;padding:1px 5px;font-size:12.5px;word-break:break-all">${h(value)}</code> <button type="button" class="btn btn-copy" data-qr="copy" data-text="${attr(value)}">Copy</button>` : '<span class="muted">(not ready yet)</span>';
+  });
+  const steps = g => `<ol style="list-style:none;margin:0;padding:0">${g.steps.map((s, i) => `<li style="margin-bottom:10px"><label style="display:flex;gap:10px;align-items:flex-start;font-size:14px;font-weight:400;color:${g.unlocked ? 'var(--text)' : 'var(--muted)'}">
+      <input type="checkbox" data-qr-tick="${attr(s.id)}"${s.ticked ? ' checked' : ''}${g.unlocked || s.ticked ? '' : ' disabled'} style="margin-top:3px">
+      <span><span class="muted">${i + 1}.</span> ${stepText(s)}${s.ticked ? `<div class="small muted">${s.by ? `${h(s.by)} · ` : ''}${h(fmtDate(s.at, true))}</div>` : ''}</span></label></li>`).join('')}</ol>`;
+  const group = (g, title, sub) => `<div data-qr-make="${attr(g.key || 'folder')}" data-unlocked="${g.unlocked ? '1' : '0'}" style="border-top:1px solid var(--border);padding-top:14px;margin-top:14px">
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px"><strong>${h(title)}</strong><span class="small muted">${h(sub)}</span>${pill(!g.unlocked ? '' : g.done === g.total ? 'ok' : g.done ? 'run' : '', !g.unlocked ? 'Locked' : `${g.done} of ${g.total} done`)}</div>
+    ${g.unlocked ? '' : `<div class="small" style="color:#b91c1c;margin-bottom:10px">${h(g.message)}</div>`}${steps(g)}</div>`;
+  const make = () => card({
+    title: '2 Make in QR.io', sub: 'A person does this in QR.io, in this order. Tick each step as you go',
+    body: `<div class="small muted">${V.make.done} of ${V.make.total} steps done</div>${group(V.make.folder, 'Once per client', 'the folder')}${V.make.codes.map(c => group(c, c.name, c.card)).join('')}`,
+  });
+
   // A link with no answer yet is fetched as soon as the tab shows it (keys: only those; all: again)
   const runCheck = async (body = {}) => {
     if (checking) return;
@@ -90,8 +109,8 @@ export async function mount(el, ctx) {
       body: `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:0 16px">${field('qr_niche_label')}${field('qr_business_name')}</div>
         ${field('review_funnel_url')}
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:0 16px">${field('whatsapp_number')}${field('website_url')}</div>`,
-    })}${prepare()}
-      <div class="small muted">Next to be built on this tab: 2 Make in QR.io, 3 Upload and check.</div></div>`;
+    })}${prepare()}${make()}
+      <div class="small muted">Next to be built on this tab: 3 Upload and check.</div></div>`;
     if (keep) {
       const n = el.querySelector(`[data-qf="${key}"]`);
       if (n) { n.value = keep.value; n.focus({ preventScroll: true }); try { n.setSelectionRange(keep.start, keep.end); } catch (_) { /* no selection */ } }
@@ -110,7 +129,14 @@ export async function mount(el, ctx) {
     draw(); autoCheck();
   };
 
-  el.addEventListener('change', e => {
+  el.addEventListener('change', async e => {
+    const tickId = e.target.dataset && e.target.dataset.qrTick;
+    if (tickId) {
+      e.target.disabled = true;
+      try { V = await api(`${url}/tick`, { method: 'POST', body: { id: tickId, ticked: e.target.checked, by: by() } }); }
+      catch (err) { console.error('[qr-codes]', err); toast(err.message, 'bad'); }
+      return draw();
+    }
     const key = e.target.dataset && e.target.dataset.qf;
     if (!key) return;
     save(key, e.target.type === 'checkbox' ? e.target.checked : e.target.value);

@@ -5,7 +5,8 @@
 // Temporary URL tick. Stage 2, Prepare: the folder name, the QR names, the fixed WhatsApp message
 // and its link, the link follower (links.js, on a fake fetch: no network), each code's state, the
 // link checks and the pass by hand. Brandon's tests 1 (the names and the link, word for word),
-// 2 (the landline), 3 (the Google link) and 5 (Smith & Son's) are marked.
+// 2 (the landline), 3 (the Google link) and 5 (Smith & Son's) are marked. Stage 3, Make in QR.io:
+// the tick list word for word, the values each step carries, what is locked, a tick's who and when.
 // Postgres in memory, a real express app on a local port. Nothing is sent anywhere.
 const path = require('path');
 const http = require('http');
@@ -24,7 +25,7 @@ const chk = (label, ok, got = '', want = '') => {
   if (ok) { console.log('✓ ' + label); pass++; }
   else    { console.log('✗ ' + label + '\n  got:  ' + (typeof got === 'string' ? got : JSON.stringify(got)) + '\n  want: ' + want); fail++; }
 };
-console.log('\n=== FIXTURE: the QR codes subtab (the fields, Prepare and the link checks) ===\n');
+console.log('\n=== FIXTURE: the QR codes subtab (the fields, Prepare, the link checks, the tick list) ===\n');
 
 // http.request, not fetch: a fixture that fetches its own server aborts at exit on Windows
 const call = (base, method, p, body) => new Promise((resolve, reject) => {
@@ -106,6 +107,20 @@ chk('[T2] A landline: Scan to Claim is locked with the mobile message and has no
 pr = R.prepare({ fields: R.build({ record: rec, saved: { qr_niche_label: '' } }).fields });
 chk('No niche: no folder, no names, every code locked', pr.folder === '' && pr.codes.every(c => c.state === 'locked' && c.qr_name === ''));
 chk('A link\'s answer: 200 passes; 404, an error, and a funnel that forwards to Google do not', R.linkResult('review', { status: 200, finalUrl: 'https://x.example/r' }).ok && /404, not 200/.test(R.linkResult('services', { status: 404, finalUrl: 'https://x.example' }).message) && /could not be checked: no answer in 10 seconds/.test(R.linkResult('services', { status: null, error: 'no answer in 10 seconds' }).message) && /straight to Google/.test(R.linkResult('review', { status: 200, finalUrl: 'https://g.page/r/Cx/review' }).message) && R.linkResult('services', { status: 200, finalUrl: 'https://www.google.com/' }).ok);
+
+// ── Stage 3: Make in QR.io ──
+const readyPrep = R.prepare({ fields: withFunnel({}).fields, checks: { review: okCheck('https://edensedge.example/review-us/'), services: okCheck('https://edensedge.example') } });
+let mk = R.make({ prepare: readyPrep, ticks: {} });
+chk('The tick list: 3 steps once per client, then 6 per code in the order Review Funnel, Scan to Claim, View Our Services', mk.folder.steps.length === 3 && mk.codes.map(c => `${c.name}:${c.steps.length}`).join(' ') === 'Review Funnel:6 Scan to Claim:6 View Our Services:6' && mk.total === 21 && mk.done === 0 && !mk.complete && R.stepIds().length === 21);
+chk('The step text is fixed, word for word', mk.folder.steps.map(s => s.text).join(' | ') === 'Open {link} (new tab). | Folders → **New Folder** → paste {folder} → **Save**. | Open the new folder.' && mk.codes[0].steps.map(s => s.text).join(' | ') === '**Create QR Code** → **Website URL**. | Paste {destination} → **Continue**. | Leave the design on default: no frame, no phrase, black → **Continue**. | Click the pencil next to "Untitled" → paste {qr_name}. | Three dots → **Move to folder** → {folder} → **Save**. | Download the QR as PNG or SVG and upload it below.' && mk.codes.every(c => c.steps.map(s => s.text).join() === mk.codes[0].steps.map(s => s.text).join()), mk.codes[0].steps.map(s => s.text));
+chk('Each step carries the values it names, so nothing is retyped', mk.folder.steps[0].values.link === 'https://qr.io/dashboard/' && mk.folder.steps[1].values.folder === "Landscapers-Eden's Edge" && mk.codes[1].steps[1].values.destination === EDENS_LINK && mk.codes[1].steps[3].values.qr_name === 'Landscapers Edens Edge Scan to Claim QR Code' && mk.codes[2].steps[4].values.folder === "Landscapers-Eden's Edge" && mk.codes[0].steps[1].values.destination === 'https://edensedge.example/review-us/' && Object.keys(mk.codes[0].steps[0].values).length === 0);
+chk('All three destinations passed: every list is open', mk.folder.unlocked && mk.codes.every(c => c.unlocked && c.message === ''));
+mk = R.make({ prepare: R.prepare({ fields: withFunnel({}).fields }), ticks: {} });
+chk('A code whose link is not checked yet is locked; Scan to Claim, on the number alone, is open', mk.codes.map(c => c.unlocked).join() === 'false,true,false' && /link has been checked/.test(mk.codes[0].message) && mk.folder.unlocked);
+mk = R.make({ prepare: pr, ticks: {} });
+chk('No niche: the folder steps and every code are locked', !mk.folder.unlocked && mk.codes.every(c => !c.unlocked) && /niche and the business name/.test(mk.folder.message));
+mk = R.make({ prepare: readyPrep, ticks: Object.fromEntries(R.stepIds().map(id => [id, { at: '2026-11-14T10:00:00.000Z', by: 'Ray' }])) });
+chk('Every step ticked: complete, each tick with who and when', mk.complete && mk.done === 21 && mk.codes[2].steps[5].by === 'Ray' && mk.codes[2].steps[5].at === '2026-11-14T10:00:00.000Z');
 
 // ── Following a link (a fake fetch: nothing leaves this machine) ──
 const fakeFetch = map => async (url, opts) => {
@@ -225,7 +240,23 @@ const WEB = {
     await put(edens, { set: { website_temporary: false }, reset: ['website_url'] });
     v = (await put(edens, { set: { whatsapp_number: '023 8000 0000' } })).json;
     chk('[T2] A landline through the routes: Scan to Claim locked, no link; the funnel carries on', v.prepare.codes[1].state === 'locked' && v.prepare.codes[1].destination === '' && v.prepare.codes[0].state === 'ready');
+    chk('[T2] The landline locks Scan to Claim\'s steps with the mobile message: a step cannot be ticked', !v.make.codes[1].unlocked && /Needs a UK mobile number/.test(v.make.codes[1].message) && await (async () => { const r = await post(edens, 'tick', { id: 'claim.create', ticked: true, by: 'Ray' }); return r.status === 409 && /Needs a UK mobile number/.test(r.json.error); })());
     await put(edens, { reset: ['whatsapp_number'] });
+
+    // Stage 3 through the routes: the ticks
+    clock = new Date('2026-11-14T12:00:00Z');
+    v = (await post(edens, 'tick', { id: 'folder.folder', ticked: true, by: 'Ray' })).json;
+    chk('A step ticked keeps who ticked it and when', v.make.folder.steps[1].ticked && v.make.folder.steps[1].by === 'Ray' && v.make.folder.steps[1].at === '2026-11-14T12:00:00.000Z' && v.make.done === 1 && v.make.folder.done === 1);
+    clock = new Date('2026-11-14T12:05:00Z');
+    v = (await post(edens, 'tick', { id: 'review.destination', ticked: true, by: 'Given' })).json;
+    chk('Ticks are kept per step, each with its own person and time', v.make.codes[0].steps[1].by === 'Given' && v.make.folder.steps[1].by === 'Ray' && v.make.done === 2);
+    chk('The ticks are saved for the client and survive a reload', (await get(edens)).make.done === 2 && (await get(other)).make.done === 0);
+    v = (await post(edens, 'tick', { id: 'folder.folder', ticked: false })).json;
+    chk('A tick can be taken off', !v.make.folder.steps[1].ticked && v.make.done === 1);
+    chk('A step that does not exist is refused', (await post(edens, 'tick', { id: 'review.nothing', ticked: true })).status === 400 && (await post(edens, 'tick', { id: '', ticked: true })).status === 400);
+    v = (await put(edens, { set: { website_url: 'https://changed.example' } })).json;
+    chk('A link changed after its steps were open: the code locks again until the new link is checked, and its ticks are kept', !v.make.codes[2].unlocked && (await post(edens, 'tick', { id: 'services.create', ticked: true, by: 'Ray' })).status === 409 && v.make.codes[0].steps[1].ticked);
+    await put(edens, { reset: ['website_url'] });
     const n = fetched.length;
     v = (await post(other, 'check')).json;
     chk('A client with nothing to check: nothing is fetched', fetched.length === n && v.prepare.codes.every(c => c.state === 'locked'));

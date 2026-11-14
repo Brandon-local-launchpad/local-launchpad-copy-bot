@@ -9,7 +9,8 @@
 // SOP "Client QR Codes (QR.io)".
 // Stage 1: the five fields at the top of the subtab. Stage 2, Prepare: the folder name, the three
 // QR names, the WhatsApp message and link, and whether each code's destination has passed its
-// check (code only, no model: the message is fixed text and is never reworded).
+// check (code only, no model: the message is fixed text and is never reworded). Stage 3, Make in
+// QR.io: the tick list a person follows, its step text fixed (the SOP's), each value inline.
 // Pure: no database, no network. qr-codes/service.js keeps the tab's own values.
 //   nicheWord        the niche label's text before the first "/"
 //   normaliseNumber  the WhatsApp number rule: 447 and nine digits, or not valid
@@ -24,6 +25,8 @@
 //   linkResult       what a followed link's answer means for its code
 //   prepare          the fields and the saved checks → the folder, and each code's name,
 //                    destination and state (ready, unchecked, failed or locked)
+//   make             prepare() and the saved ticks → the folder steps and each code's steps
+//   stepIds          every tick id there is: folder.<step>, <code>.<step>
 // A saved key among AUTO is an override of the record's value (a blank one included): it is
 // never written back to the Record tab.
 
@@ -202,4 +205,44 @@ function prepare({ fields = {}, temporary = false, checks = {} } = {}) {
   };
 }
 
-module.exports = { CODES, CHECKED, folderName, qrName, whatsappMessage, whatsappUrl, linkResult, prepare, AUTO, KEYS, LABELS, MOBILE_NEEDED, GOOGLE_REFUSED, nicheWord, looksPlural, normaliseNumber, isGoogleLink, isHttps, isLink, recordValues, clean, build };
+// ── Stage 3: Make in QR.io ──
+// The step text is fixed (Brandon's SOP). **bold** is a button or menu in QR.io; {token} is a
+// value shown inline with its own Copy, so nothing is retyped; {link} is the dashboard link.
+const DASHBOARD = 'https://qr.io/dashboard/';
+const FOLDER_STEPS = [
+  ['open', 'Open {link} (new tab).'],
+  ['folder', 'Folders → **New Folder** → paste {folder} → **Save**.'],
+  ['open_folder', 'Open the new folder.'],
+];
+const CODE_STEPS = [
+  ['create', '**Create QR Code** → **Website URL**.'],
+  ['destination', 'Paste {destination} → **Continue**.'],
+  ['design', 'Leave the design on default: no frame, no phrase, black → **Continue**.'],
+  ['name', 'Click the pencil next to "Untitled" → paste {qr_name}.'],
+  ['move', 'Three dots → **Move to folder** → {folder} → **Save**.'],
+  ['download', 'Download the QR as PNG or SVG and upload it below.'],
+];
+const stepIds = () => [...FOLDER_STEPS.map(([k]) => `folder.${k}`), ...CODES.flatMap(c => CODE_STEPS.map(([k]) => `${c.key}.${k}`))];
+
+// p: prepare(); ticks: { id: { at, by } }. The folder steps open once there is a folder name; a
+// code's steps open only when its destination has passed (state ready).
+function make({ prepare: p = { folder: '', codes: [] }, ticks = {} } = {}) {
+  const steps = (group, list, values) => list.map(([key, text]) => {
+    const id = `${group}.${key}`, t = ticks[id];
+    const used = Object.fromEntries((text.match(/\{(\w+)\}/g) || []).map(m => m.slice(1, -1)).map(k => [k, values[k] || '']));
+    return { id, text, values: used, ticked: !!t, ...(t ? { at: t.at, by: t.by || '' } : {}) };
+  });
+  const count = list => ({ done: list.filter(s => s.ticked).length, total: list.length });
+  const folderSteps = steps('folder', FOLDER_STEPS, { link: DASHBOARD, folder: p.folder });
+  const folder = { unlocked: !!p.folder, message: p.folder ? '' : 'Fill in the niche and the business name first.', steps: folderSteps, ...count(folderSteps) };
+  const codes = p.codes.map(c => {
+    const list = steps(c.key, CODE_STEPS, { destination: c.destination, qr_name: c.qr_name, folder: p.folder });
+    const unlocked = c.state === 'ready';
+    const message = unlocked ? '' : c.state === 'unchecked' ? 'Locked until its link has been checked.' : c.state === 'failed' ? `Locked: ${c.message}` : `Locked: ${c.message}`;
+    return { key: c.key, name: c.name, card: c.card, unlocked, message, steps: list, ...count(list) };
+  });
+  const all = [folder, ...codes];
+  return { folder, codes, done: all.reduce((n, g) => n + g.done, 0), total: all.reduce((n, g) => n + g.total, 0), complete: all.every(g => g.done === g.total) };
+}
+
+module.exports = { DASHBOARD, FOLDER_STEPS, CODE_STEPS, stepIds, make, CODES, CHECKED, folderName, qrName, whatsappMessage, whatsappUrl, linkResult, prepare, AUTO, KEYS, LABELS, MOBILE_NEEDED, GOOGLE_REFUSED, nicheWord, looksPlural, normaliseNumber, isGoogleLink, isHttps, isLink, recordValues, clean, build };
