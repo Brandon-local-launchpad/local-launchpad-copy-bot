@@ -204,6 +204,29 @@ console.log('\n=== FIXTURE: the task board (owners, SOPs, tasks per person, the 
   chk('Tasks: put back, it is open again', (await S.loadFacts(pool)).tasks.get(CID).length === 2);
   chk('Tasks: a task that is not there is a 404', /^404/.test(await refused(() => team.doneTask(999, {}))));
 
+  // ── The boards: the stage a step sits in, and the column of a person's own board ──
+  const BD = require(path.join(root, 'team/board.json'));
+  chk('Boards: the six stages are the dashboard\'s own', BD.stages.join(',') === require(path.join(root, 'ui/dashboard.js')).STAGES.join(','), BD.stages.join(','));
+  chk('Boards: every tab a Tracker step is done on has a stage', tabs.every(t => BD.stages.includes(BD.stage_by_tab[t])), tabs.filter(t => !BD.stage_by_tab[t]).join(','));
+  chk('Boards: every stage named for a step or a tab is one of the six', [...Object.values(BD.stage_by_tab), ...Object.values(BD.stage_by_step)].every(s => BD.stages.includes(s)));
+  chk('Boards: every job has columns, and every step a column names is a real step', R.ROLES.every(r => (BD.columns[r] || []).length) && Object.values(BD.columns).flat().flatMap(c => c.steps || []).every(k => real(k) || (k.startsWith('hand_') && HAND.steps.some(s => s.key === k.slice(5)))), Object.values(BD.columns).flat().flatMap(c => c.steps || []).filter(k => !real(k) && !(k.startsWith('hand_') && HAND.steps.some(s => s.key === k.slice(5)))).join(','));
+  const st = (key, tab) => R.stageOf({ key, tab });
+  chk('Boards: claims are in Pages, citations and reviews in GBP, the niche in Onboarding, the cards in Live', st('claims', 'pages') === 'Pages' && st('citations_submit', 'citations') === 'GBP' && st('reviews', 'reviews') === 'GBP' && st('niche', 'clients') === 'Onboarding' && st('cards_brief', 'cards') === 'Live');
+  chk('Boards: a step\'s own line beats its tab (the legal pages in Pages, the old site scan in Onboarding, go or no go in Live)', st('legal', 'record') === 'Pages' && st('audit_scan', 'site-audit') === 'Onboarding' && st('hand_go_no_go', 'pages') === 'Live');
+  chk('Boards: a one off task has no stage of its own', st('task_4', '') === null);
+  const col = (role, key, tab) => R.columnOf(role, { key, tab });
+  chk('Boards: Given\'s columns: the site, the push, the images, the legal pages, the cards, the launch', col('site', 'site_pages', 'pages') === 'Site build' && col('site', 'push', 'pages') === 'Copy push' && col('site', 'images_place', 'images') === 'Images' && col('site', 'legal', 'record') === 'Legal pages' && col('site', 'cards_export', 'cards') === 'Cards' && col('site', 'hand_site_launch', 'pages') === 'Launch');
+  chk('Boards: the citations columns: set-up, scan, submit, waiting', col('citations', 'hand_citations_vault', 'citations') === 'Set-up' && col('citations', 'citations_scan', 'citations') === 'Scan' && col('citations', 'citations_submit', 'citations') === 'Submit' && col('citations', 'citations_wait', 'citations') === 'Waiting on verification' && col('citations', 'auto_citations', 'citations') === 'Scan');
+  chk('Boards: Brandon\'s columns: asks, photos, cards, launch', col('brandon', 'ask', '') === 'Asked by the team' && col('brandon', 'hand_photos_drive', 'gbp-posts') === 'Photos' && col('brandon', 'cards_order', 'cards') === 'Cards' && col('brandon', 'hand_go_no_go', 'pages') === 'Launch');
+  chk('Boards: Ray\'s columns follow the tabs, and a one off task goes to Other tasks', col('ops', 'claims', 'pages') === 'Pages' && col('ops', 'batch', 'gbp-posts') === 'Posts and photos' && col('ops', 'audit', 'site-audit') === 'Old site' && col('ops', 'task_4', '') === 'Other tasks');
+  // No by hand step and no step the files name lands in Other tasks for its own owner
+  const strays = [...HAND.steps.map(s => ({ key: `hand_${s.key}`, tab: s.tab, owner: s.role })), ...R.namedSteps().filter(k => k !== 'onb_domain' || true).map(k => ({ key: k, tab: (k.startsWith('cards_') && 'cards') || (k.startsWith('citations_') && 'citations') || (k === 'auto_citations' && 'citations') || (k === 'ask' && '') || (k === 'legal' && 'record') || (k === 'onb_domain' && 'record') || 'pages' })).map(s => ({ ...s, owner: R.ownerOf(s) }))].filter(s => R.columnOf(s.owner, s) === BD.other);
+  chk('Boards: no by hand step and no named step falls into Other tasks', strays.length === 0, strays.map(s => `${s.key}:${s.owner}`).join(','));
+  const tb = trackerOf({ ...built, hand: { ticks: {} }, site_build: { ...sb0, connected: true }, cards: { copied_at: null, signoff: {} }, tasks: [{ id: 9, text: 'Ring the client', role: 'ops', person_id: 2, person: 'Ray' }] });
+  chk('Boards: every step on the Tracker carries its column, and its stage unless it is a one off task', tb.needs.every(n => n.column && (n.stage || n.task)) && tb.needs.find(n => n.key === 'site_pages').stage === 'Pages' && tb.needs.find(n => n.key === 'site_pages').column === 'Site build', tb.needs.filter(n => !n.column || !(n.stage || n.task)).map(n => n.key).join(','));
+  chk('Boards: a finished line carries its stage too', tb.done.length > 0 && tb.done.every(d => BD.stages.includes(d.stage)), tb.done.filter(d => !d.stage).map(d => d.key).join(','));
+  chk('Boards: the People list comes with the stages and each job\'s column names', (await team.view()).board.stages.length === 6 && (await team.view()).board.columns.site.join(',') === 'Site build,Copy push,Images,Legal pages,Cards,Launch' && (await team.view()).board.other === 'Other tasks');
+
   // ── Stage 4: how long a task has waited, and the morning email ──
   const B = require(path.join(root, 'team/board.js'));
   const d4 = B.diffLog([{ client_id: 'a', step_key: 'claims' }, { client_id: 'a', step_key: 'push' }], [{ client_id: 'a', key: 'claims' }, { client_id: 'b', key: 'claims' }]);

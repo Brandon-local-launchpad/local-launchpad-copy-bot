@@ -1,0 +1,62 @@
+{
+  "_note": "How the boards lay the Tracker's steps out (Brandon, 14 Nov 2026). `stages` are the six columns of the overall board and of one client's board: a step's stage is its own line in stage_by_step, else its tab's in stage_by_tab, else the stage its client is at (a one off task). `columns` are each person's own board, by job: a step goes in the column that names it in `steps`, else the first column that lists its tab in `tabs`, else `other`. A new column, or a step moved to another, is a line here, not code. The first set of columns is Claude's draft for Brandon, Ray and Given to change.",
+  "stages": ["Onboarding", "Research", "Page map", "Pages", "GBP", "Live"],
+  "stage_by_tab": {
+    "clients": "Onboarding",
+    "record": "Onboarding",
+    "locations": "Research",
+    "research": "Research",
+    "page-map": "Page map",
+    "pages": "Pages",
+    "trade-facts": "Pages",
+    "images": "Pages",
+    "gbp": "GBP",
+    "gbp-posts": "GBP",
+    "reviews": "GBP",
+    "rankings": "GBP",
+    "citations": "GBP",
+    "site-audit": "Live",
+    "cards": "Live"
+  },
+  "stage_by_step": {
+    "legal": "Pages",
+    "audit_scan": "Onboarding",
+    "audit": "Page map",
+    "hand_go_no_go": "Live",
+    "hand_site_launch": "Live"
+  },
+  "other": "Other tasks",
+  "columns": {
+    "ops": [
+      { "name": "Record", "tabs": ["clients", "record"] },
+      { "name": "Locations and research", "tabs": ["locations", "research"] },
+      { "name": "Page map", "tabs": ["page-map"] },
+      { "name": "Pages", "tabs": ["pages", "trade-facts"] },
+      { "name": "GBP", "tabs": ["gbp"] },
+      { "name": "Posts and photos", "tabs": ["gbp-posts"] },
+      { "name": "Reviews", "tabs": ["reviews"] },
+      { "name": "Rankings", "tabs": ["rankings"] },
+      { "name": "Old site", "tabs": ["site-audit"] }
+    ],
+    "site": [
+      { "name": "Site build", "steps": ["site_connect", "site_pages", "hand_site_templates", "onb_domain"] },
+      { "name": "Copy push", "steps": ["push", "hand_site_check"], "tabs": ["pages"] },
+      { "name": "Images", "tabs": ["images"] },
+      { "name": "Legal pages", "steps": ["legal"] },
+      { "name": "Cards", "tabs": ["cards"] },
+      { "name": "Launch", "steps": ["hand_site_launch"] }
+    ],
+    "citations": [
+      { "name": "Set-up", "steps": ["hand_citations_vault"] },
+      { "name": "Scan", "steps": ["citations_scan"], "tabs": ["citations"] },
+      { "name": "Submit", "steps": ["citations_submit"] },
+      { "name": "Waiting on verification", "steps": ["citations_wait"] }
+    ],
+    "brandon": [
+      { "name": "Asked by the team", "steps": ["ask"] },
+      { "name": "Photos", "steps": ["hand_photos_drive"] },
+      { "name": "Cards", "steps": ["cards_approval", "cards_order"], "tabs": ["cards"] },
+      { "name": "Launch", "steps": ["hand_go_no_go"] }
+    ]
+  }
+}

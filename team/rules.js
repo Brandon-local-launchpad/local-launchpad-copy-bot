@@ -15,6 +15,7 @@
 const OWNERS = require('./owners.json');
 const SOPS = require('./sops.json');
 const HAND = require('./hand-steps.json');
+const BOARD = require('./board.json');
 
 const ROLES = Object.keys(OWNERS.roles);
 
@@ -33,9 +34,22 @@ function resolveSop(s) {
 }
 const sopOf = step => resolveSop(SOPS.by_step[String((step && step.key) || '')] || SOPS.by_tab[step && step.tab]);
 
+// ── The boards (board.json): where a step sits ──
+// stageOf: the column of the overall board and of one client's board; null for a step with no tab (a one off task),
+// which the screen puts in the stage its client is at.
+const stageOf = step => BOARD.stage_by_step[String((step && step.key) || '')] || BOARD.stage_by_tab[step && step.tab] || null;
+// columnOf: the column of a person's own board, by their job: the column that names the step, else the first that
+// lists its tab, else Other tasks
+function columnOf(role, step) {
+  const cols = BOARD.columns[role] || [], key = String((step && step.key) || '');
+  const c = cols.find(x => (x.steps || []).includes(key)) || cols.find(x => (x.tabs || []).includes(step && step.tab));
+  return c ? c.name : BOARD.other;
+}
+const boardView = () => ({ stages: BOARD.stages, other: BOARD.other, columns: Object.fromEntries(Object.entries(BOARD.columns).map(([role, cols]) => [role, cols.map(c => c.name)])) });
+
 function tag(needs) {
   // A by hand step and a one off task arrive with their own owner (and SOP): those stand
-  for (const n of needs || []) { if (!n.owner) n.owner = ownerOf(n); if (n.sop === undefined) { const sop = sopOf(n); if (sop) n.sop = sop; } }
+  for (const n of needs || []) { if (!n.owner) n.owner = ownerOf(n); if (n.sop === undefined) { const sop = sopOf(n); if (sop) n.sop = sop; } const stage = stageOf(n); if (stage) n.stage = stage; n.column = columnOf(n.owner, n); }
   return needs;
 }
 
@@ -92,4 +106,4 @@ function counts(blocks) {
 const namedSteps = () => [...new Set([...Object.keys(OWNERS.by_step), ...Object.keys(SOPS.by_step)])];
 const handStep = key => HAND.steps.find(s => s.key === key) || null;
 
-module.exports = { ROLES, ROLE_LABELS: OWNERS.roles, SEED_PEOPLE: OWNERS.seed_people, HAND_STEPS: HAND.steps, HAND_GATES: HAND.gates, ownerOf, sopOf, tag, handStepsOf, handStep, taskSteps, tasksOf, counts, namedSteps };
+module.exports = { ROLES, ROLE_LABELS: OWNERS.roles, SEED_PEOPLE: OWNERS.seed_people, HAND_STEPS: HAND.steps, HAND_GATES: HAND.gates, BOARD, stageOf, columnOf, boardView, ownerOf, sopOf, tag, handStepsOf, handStep, taskSteps, tasksOf, counts, namedSteps };
