@@ -397,6 +397,17 @@ pre.block { background: #fafbfc; border: 1px solid var(--border); border-radius:
 .sop-link { font-size: 12px; color: var(--muted); text-decoration: underline; white-space: nowrap; }
 .sop-link:hover { color: var(--accent-ink); }
 .trk-list.tasks { max-height: none; }
-.people-row { display: grid; grid-template-columns: minmax(110px, 1fr) minmax(130px, 180px) auto; gap: 8px; align-items: center; padding: 6px 0; }
+.people-row { display: grid; grid-template-columns: minmax(90px, 1fr) minmax(120px, 160px) minmax(120px, 1.3fr) auto; gap: 8px; align-items: center; padding: 6px 0; }
 .people-row.off { opacity: .55; }
 .people-row .btn-row { flex-wrap: nowrap; }
+
+/* The board (the task board, stage 4): a column per stage, a card per client */
+.board { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(165px, 1fr); gap: 12px; overflow-x: auto; padding-bottom: 8px; align-items: start; }
+.board-col { background: var(--none-soft); border-radius: 12px; padding: 10px; min-height: 120px; }
+.board-col h3 { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 2px 4px 10px; display: flex; justify-content: space-between; }
+.board-card { display: block; background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; color: inherit; text-decoration: none; }
+.board-card:hover { border-color: var(--border-strong); text-decoration: none; }
+.board-card .name { font-weight: 600; font-size: 13.5px; display: block; margin-bottom: 4px; }
+.board-card .next { font-size: 12.5px; color: var(--text-2); display: block; margin: 6px 0 2px; }
+.board-card .tags { display: flex; gap: 4px; flex-wrap: wrap; }
+.board-card.quiet { opacity: .7; }

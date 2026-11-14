@@ -4,7 +4,7 @@
 
 import { h, timeEl, running } from './ui.js';
 import { waitingList } from './tell-brandon.js';
-import { stepOwnerTag, sopLink, stepButtons } from './team.js';
+import { stepOwnerTag, sopLink, stepButtons, waitTag } from './team.js';
 
 // Where a step is done: a client tab, or one of the app's own screens
 export const stepHref = (clientId, tab) => !tab ? `/clients/${clientId}` : tab === 'clients' ? '/clients' : tab === 'trade-facts' ? '/trade-facts' : `/clients/${clientId}/${tab}`;
@@ -12,7 +12,7 @@ export const stepHref = (clientId, tab) => !tab ? `/clients/${clientId}` : tab =
 // brandon: the client's asks still waiting on Brandon (row.brandon, brandon/service.js)
 export function trackerStrip(clientId, t, { open = true, brandon = [] } = {}) {
   const needs = t.needs.length
-    ? `<ol class="trk-list">${t.needs.map((n, i) => `<li class="${i === 0 ? 'first' : ''}"><a href="${stepHref(clientId, n.tab)}" data-link>${h(n.text)}</a> ${stepOwnerTag(n)}${stepButtons(clientId, n)}${sopLink(n.sop) ? ` ${sopLink(n.sop)}` : ''}${n.key === 'chase' ? ' <button class="btn btn-ghost btn-xs" data-chase>Open the message</button>' : ''}${n.tick ? ` <button class="btn btn-ghost btn-xs" data-onb-done="${h(n.tick)}">Done</button>` : ''}${n.why ? `<span class="sub">${h(n.why)}</span>` : ''}</li>`).join('')}</ol>`
+    ? `<ol class="trk-list">${t.needs.map((n, i) => `<li class="${i === 0 ? 'first' : ''}"><a href="${stepHref(clientId, n.tab)}" data-link>${h(n.text)}</a> ${stepOwnerTag(n)}${waitTag(n)}${stepButtons(clientId, n)}${sopLink(n.sop) ? ` ${sopLink(n.sop)}` : ''}${n.key === 'chase' ? ' <button class="btn btn-ghost btn-xs" data-chase>Open the message</button>' : ''}${n.tick ? ` <button class="btn btn-ghost btn-xs" data-onb-done="${h(n.tick)}">Done</button>` : ''}${n.why ? `<span class="sub">${h(n.why)}</span>` : ''}</li>`).join('')}</ol>`
     : `<p class="muted small">${t.running.length ? 'Nothing to do while this runs.' : 'Nothing is waiting on a person.'}</p>`;
   const done = t.done.length
     ? `<ul class="trk-list done">${t.done.map(d => `<li><a href="${stepHref(clientId, d.tab)}" data-link>${h(d.text)}</a>${d.auto ? ' <span class="tag accent">automatic</span>' : ''}${d.detail ? ` <span class="muted small">${h(d.detail)}</span>` : ''}${d.at ? ` <span class="muted small">${timeEl(d.at)}</span>` : ''}</li>`).join('')}</ul>`

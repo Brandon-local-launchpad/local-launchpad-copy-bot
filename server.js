@@ -4500,7 +4500,7 @@ uiRoutes.mountAppShell(app, path.join(__dirname, 'public'));
 // ── The automation chain (automation/runner.js, 10 Nov): for a client with Automation on, the next
 // step starts when the last has finished, through the app's own run routes, and stops at every approval.
 // The calls go to this server with the login cookie, so each step is exactly what its button does.
-let automation = null, automationNotifier = null, tellBrandon = null;
+let automation = null, automationNotifier = null, tellBrandon = null, teamBoard = null;
 if (pool) {
   const AU = require('./automation/runner');
   const loopback = (method, urlPath, body) => new Promise((resolve, reject) => {
@@ -4543,6 +4543,9 @@ if (pool) {
   // (else team@locallaunchpad.co.uk) through the same mailbox; WhatsApp from TELL_BRANDON_WHATSAPP
   tellBrandon = require('./brandon/service').createBrandon({ pool, log: text => console.log(text), dripState: id => (dripStateForBrandon ? dripStateForBrandon(id) : Promise.reject(new Error('publishing not wired'))), send: gmailForAuto.configured() ? m => (autoMail = autoMail || gmailForAuto.createGmail()).send(m) : null });
   require('./brandon/service').mountBrandonApi(app, { brandon: tellBrandon });
+  // The task board, stage 4 (team/board.js): how long each task has waited, and the morning email to each person on the
+  // People list with an email there. To the team only; TEAM_DIGEST_DISABLED=1 stops the email.
+  if (teamService) teamBoard = require('./team/board').createBoard({ pool, loadRows: autoRows, people: () => teamService.list(), log: text => console.log(text), send: gmailForAuto.configured() ? m => (autoMail = autoMail || gmailForAuto.createGmail()).send(m) : null });
 }
 // The Add client wizard (ui/intake.js): the website read (one fetch, one model call), Places, the merge, the create
 {
@@ -4855,6 +4858,14 @@ initDb().then(async () => {
     }
   }
   if (teamService) await require('./team/service').ensureTeamTables(pool).catch(err => console.error('[team] tables failed:', err.message));
+  // The task log every five minutes (the first ninety seconds after start), the morning email checked every minute
+  if (teamBoard) {
+    await require('./team/board').ensureBoardTables(pool).catch(err => console.error('[team] board tables failed:', err.message));
+    const logTick = () => teamBoard.tick().then(r => { if (r.opened || r.closed) console.log(`[team] tasks: ${r.opened} opened, ${r.closed} closed, ${r.open} open`); }).catch(err => console.error('[team] task log failed:', err.message));
+    setTimeout(logTick, 90000);
+    setInterval(logTick, 300000);
+    setInterval(() => teamBoard.digest().then(r => { if (r.sent) console.log(`[team] morning email: ${r.sent} sent`); }).catch(err => console.error('[team] morning email failed:', err.message)), 60000);
+  }
   // Tell Brandon: the alerts every 15 minutes (the first two minutes after start), the morning email checked every minute
   if (tellBrandon) {
     await require('./brandon/service').ensureBrandonTables(pool).catch(err => console.error('[brandon] tables failed:', err.message));

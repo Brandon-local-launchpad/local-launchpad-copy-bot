@@ -210,6 +210,8 @@ async function loadDashboard({ pool, tradeFacts = null, runners = {}, homepageRu
   const onboardingBy = await require('../ghl-onboarding/service').loadOnboardingFacts(pool).catch(() => new Map());
   // The task board (team/service.js): the by hand steps a person has ticked and the open one off tasks; none where the tables are not made
   const teamFacts = await require('../team/service').loadFacts(pool).catch(() => null);
+  // Stage 4 (team/board.js): when each open task opened, for "waiting 6 days"
+  const sinceBy = teamFacts ? await require('../team/board').loadSince(pool).catch(() => new Map()) : new Map();
   // The task board, stage 3: what Copybot already knows about the site build, the migration and the cards, a grouped
   // query each (a table a fixture has not made counts as nothing). Only read when the task board's own tables are there.
   const setsBy = rows => { const m = new Map(); for (const r of rows) { if (!m.has(r.client_id)) m.set(r.client_id, new Set()); m.get(r.client_id).add(r.v); } return m; };
@@ -342,6 +344,7 @@ async function loadDashboard({ pool, tradeFacts = null, runners = {}, homepageRu
       migration: teamFacts ? { redirects_pushed: sizeOf(redirectsPushed, c.id) > 0, pre_launch: preLaunch.get(c.id) || 'none', launched_at: (launchBy.get(c.id) || {}).launched_at || null, day7_at: (launchBy.get(c.id) || {}).day7_at || null } : null,
       cards: teamFacts ? cardsBy.get(c.id) || { copied_at: null, signoff: {} } : null,
     });
+    { const opened = sinceBy.get(c.id) || {}; for (const n of tracker.needs) if (opened[n.key]) n.since = opened[n.key]; }
     const firstAt = c.source === 'fillout' ? firstSubmission.get(c.id) || c.created_at : null;
     rows.push({
       id: c.id, name: c.name, niche_key: c.niche_key || 'other', niche: c.niche_label || c.trade || '', business_type: cv && cv.business_type ? cv.business_type : null,

@@ -33,6 +33,10 @@ export const stepOwnerTag = step => step.person_id && step.person ? `<span class
 // The Done button of a step only a person can close, and a task's due date
 export const stepButtons = (clientId, step) => `${step.due ? ` <span class="tag ${step.urgent ? 'block' : ''}">${step.urgent ? 'was due' : 'due'} ${h(step.due)}</span>` : ''}${step.hand ? ` <button class="btn btn-ghost btn-xs" data-hand-done="${attr(step.hand)}" data-client="${attr(clientId)}">Done</button>` : ''}${step.task ? ` <button class="btn btn-ghost btn-xs" data-task-done="${attr(step.task)}">Done</button>` : ''}`;
 
+// How long a task has waited (team/board.js keeps when it opened): nothing under a day, amber from 3 days, red from 7
+export const waitDays = step => (step && step.since ? Math.max(0, Math.floor((Date.now() - new Date(step.since).getTime()) / 86400000)) : 0);
+export const waitTag = step => { const d = waitDays(step); return d ? ` <span class="tag ${d >= 7 ? 'block' : d >= 3 ? 'wait' : ''}">waiting ${d} day${d === 1 ? '' : 's'}</span>` : ''; };
+
 // Handles a click on one of those buttons; true when it was one (the caller then reloads)
 export async function doneClick(e) {
   const hb = e.target.closest('[data-hand-done]'), tb = e.target.closest('[data-task-done]');

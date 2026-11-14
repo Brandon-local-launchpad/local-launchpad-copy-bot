@@ -204,6 +204,54 @@ console.log('\n=== FIXTURE: the task board (owners, SOPs, tasks per person, the 
   chk('Tasks: put back, it is open again', (await S.loadFacts(pool)).tasks.get(CID).length === 2);
   chk('Tasks: a task that is not there is a 404', /^404/.test(await refused(() => team.doneTask(999, {}))));
 
+  // ── Stage 4: how long a task has waited, and the morning email ──
+  const B = require(path.join(root, 'team/board.js'));
+  const d4 = B.diffLog([{ client_id: 'a', step_key: 'claims' }, { client_id: 'a', step_key: 'push' }], [{ client_id: 'a', key: 'claims' }, { client_id: 'b', key: 'claims' }]);
+  chk('Log: a task seen for the first time opens, one no longer there closes, one still there is left', d4.opened.map(t => t.client_id + t.key).join(',') === 'bclaims' && d4.closed.map(r => r.client_id + r.step_key).join(',') === 'apush');
+  chk('Waiting: whole days, nothing under a day, none without a date', B.daysWaiting('2026-11-10T09:00:00Z', '2026-11-14T08:00:00Z') === 3 && B.daysWaiting('2026-11-14T01:00:00Z', '2026-11-14T08:00:00Z') === 0 && B.daysWaiting(null) === null);
+
+  await B.ensureBoardTables(pool);
+  let clock = new Date('2026-11-10T09:00:00Z');
+  const sent = [];
+  let boardRows = [{ id: CID, name: 'Edens Edge', stage: 'Pages', last_activity: '2026-11-09T09:00:00Z', tracker: { needs: R.tag([{ key: 'claims', text: 'Accept or reject 2 claims', tab: 'pages' }, { key: 'citations_submit', text: 'Submit 20 directory listings', tab: 'citations' }]), later: 0 }, brandon: [{ id: 7, reason: 'Paid sites list for the client', note: '', by: 'Ray', at: '2026-11-09T10:00:00Z' }] }];
+  const board = B.createBoard({ pool, loadRows: async () => boardRows, people: () => team.list(), send: async m => { sent.push(m); }, env: { COPYBOT_URL: 'https://copybot.example/' }, now: () => clock });
+  let tk = await board.tick();
+  chk('Log: the first tick opens every task, the ask under its own id', tk.opened === 3 && tk.closed === 0 && (await pool.query(`SELECT step_key FROM team_task_log ORDER BY step_key`)).rows.map(r => r.step_key).join(',') === 'ask_7,citations_submit,claims', JSON.stringify(tk));
+  tk = await board.tick();
+  chk('Log: a second tick with nothing changed writes nothing', tk.opened === 0 && tk.closed === 0 && (await pool.query(`SELECT * FROM team_task_log`)).rows.length === 3);
+  clock = new Date('2026-11-13T09:00:00Z');
+  boardRows = [{ ...boardRows[0], tracker: { needs: R.tag([{ key: 'citations_submit', text: 'Submit 12 directory listings', tab: 'citations' }]), later: 0 } }];
+  tk = await board.tick();
+  const logRows = (await pool.query(`SELECT step_key, closed_at FROM team_task_log`)).rows;
+  chk('Log: a task done is closed with when, and its row is kept', tk.closed === 1 && logRows.length === 3 && !!logRows.find(r => r.step_key === 'claims').closed_at && !logRows.find(r => r.step_key === 'citations_submit').closed_at);
+  const since = await B.loadSince(pool);
+  chk('Waiting: the open task still carries the day it first opened, though its wording changed', new Date(since.get(CID).citations_submit).toISOString() === '2026-11-10T09:00:00.000Z' && !since.get(CID).claims);
+  boardRows = [{ ...boardRows[0], tracker: { needs: R.tag([{ key: 'citations_submit', text: 'Submit 12 directory listings', tab: 'citations', since: since.get(CID).citations_submit }, { key: 'claims', text: 'Accept or reject 1 claim', tab: 'pages' }]), later: 0 } }];
+  await board.tick();
+  chk('Log: a task that comes back opens a new row', (await pool.query(`SELECT * FROM team_task_log WHERE step_key = 'claims'`)).rows.length === 2);
+
+  // The morning email
+  const everyone = await team.list();
+  const alex = everyone.find(p => p.name === 'Alex'), brandonP = everyone.find(p => p.name === 'Brandon');
+  await team.update(ray.id, { email: 'ray@example.com' });
+  clock = new Date('2026-11-14T06:30:00Z');
+  chk('Email: nothing before 8am UK', (await board.digest()).why === 'before 8am' && sent.length === 0);
+  clock = new Date('2026-11-14T08:05:00Z');
+  let dg = await board.digest();
+  chk('Email: from 8am, one each to the people with an email and tasks (Ray and Alex; Brandon has no email)', dg.sent === 2 && sent.map(m => m.to).sort().join(',') === 'alex@example.com,ray@example.com', JSON.stringify(sent.map(m => m.to)));
+  const toRay = sent.find(m => m.to === 'ray@example.com'), toAlex = sent.find(m => m.to === 'alex@example.com');
+  chk('Email: Ray gets the claims and not the citations, with the client and the links', toRay.subject === 'Copybot: 1 task waiting on you' && /Morning Ray\./.test(toRay.text) && /Edens Edge\n {2}- Accept or reject 1 claim/.test(toRay.text) && !/directory/.test(toRay.text) && toRay.text.includes(`https://copybot.example/clients/${CID}`) && toRay.text.endsWith('Your list: https://copybot.example/tasks'), toRay.text);
+  chk('Email: the citations person gets the listings with how long they have waited', /- Submit 12 directory listings \(waiting 3 days\)/.test(toAlex.text), toAlex.text);
+  chk('Email: a second look the same day sends nothing more', (await board.digest()).sent === 0 && sent.length === 2);
+  await team.update(brandonP.id, { email: 'brandon@example.com' });
+  dg = await board.digest();
+  chk('Email: a person given an email later the same day gets theirs once (the ask sent with Tell Brandon)', dg.sent === 1 && /Paid sites list for the client/.test(sent[2].text) && (await board.digest()).sent === 0);
+  clock = new Date('2026-11-15T08:05:00Z');
+  boardRows = [{ ...boardRows[0], tracker: { needs: [], later: 0 }, brandon: [] }];
+  chk('Email: the next day with nothing waiting, nobody is written to', (await board.digest()).sent === 0 && sent.length === 3);
+  chk('Email: switched off, nothing is sent', (await B.createBoard({ pool, loadRows: async () => boardRows, people: () => team.list(), send: async m => { sent.push(m); }, env: { TEAM_DIGEST_DISABLED: '1' }, now: () => new Date('2026-11-16T09:00:00Z') }).digest()).why === 'switched off');
+  chk('Email: with no way to send, nothing is claimed', (await B.createBoard({ pool, loadRows: async () => boardRows, people: () => team.list(), send: null, now: () => new Date('2026-11-16T09:00:00Z') }).digest()).why === 'no way to send' && (await pool.query(`SELECT * FROM team_digests WHERE day = '2026-11-16'`)).rows.length === 0);
+
   console.log(`\n${pass + fail} checks: ${pass} passed, ${fail} failed`);
   process.exit(fail ? 1 : 0);
 })().catch(e => { console.error(e); process.exit(1); });
