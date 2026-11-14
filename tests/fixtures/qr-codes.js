@@ -7,6 +7,8 @@
 // link checks and the pass by hand. Brandon's tests 1 (the names and the link, word for word),
 // 2 (the landline), 3 (the Google link) and 5 (Smith & Son's) are marked. Stage 3, Make in QR.io:
 // the tick list word for word, the values each step carries, what is locked, a tick's who and when.
+// Stage 4, Upload and check: QR images made here and read by decode.js, the five steps on upload
+// with Brandon's test 4 (the bad uploads, each its own message), Re-check, a changed destination.
 // Postgres in memory, a real express app on a local port. Nothing is sent anywhere.
 const path = require('path');
 const http = require('http');
@@ -25,7 +27,7 @@ const chk = (label, ok, got = '', want = '') => {
   if (ok) { console.log('✓ ' + label); pass++; }
   else    { console.log('✗ ' + label + '\n  got:  ' + (typeof got === 'string' ? got : JSON.stringify(got)) + '\n  want: ' + want); fail++; }
 };
-console.log('\n=== FIXTURE: the QR codes subtab (the fields, Prepare, the link checks, the tick list) ===\n');
+console.log('\n=== FIXTURE: the QR codes subtab (the fields, Prepare, the link checks, the tick list, upload and check) ===\n');
 
 // http.request, not fetch: a fixture that fetches its own server aborts at exit on Windows
 const call = (base, method, p, body) => new Promise((resolve, reject) => {
@@ -260,6 +262,121 @@ const WEB = {
     const n = fetched.length;
     v = (await post(other, 'check')).json;
     chk('A client with nothing to check: nothing is fetched', fetched.length === n && v.prepare.codes.every(c => c.state === 'locked'));
+
+    // ── Stage 4: Upload and check. Real QR images made here (qrcode), read by decode.js; the links are faked ──
+    const QR = require('qrcode');
+    const sharp = require('sharp');
+    const D = require(path.join(root, 'qr-codes/decode.js'));
+    const png = text => QR.toBuffer(text, { margin: 2, width: 300 });
+    const svg = async text => Buffer.from(await QR.toString(text, { type: 'svg', margin: 1 }));
+    const sendFile = (id, slot, buffer, name, by = 'Ray') => new Promise((resolve, reject) => {
+      const boundary = '----fixture' + crypto.randomUUID();
+      const body = Buffer.concat([
+        Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="by"\r\n\r\n${by}\r\n--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="${name}"\r\nContent-Type: application/octet-stream\r\n\r\n`),
+        buffer, Buffer.from(`\r\n--${boundary}--\r\n`)]);
+      const u = new URL(`${url(id)}/upload/${slot}`, base);
+      const req = http.request({ hostname: u.hostname, port: u.port, path: u.pathname, method: 'POST', headers: { 'Content-Type': `multipart/form-data; boundary=${boundary}`, 'Content-Length': body.length } }, res => {
+        let text = ''; res.on('data', c => { text += c; });
+        res.on('end', () => { let json = null; try { json = JSON.parse(text); } catch (_) { /* not JSON */ } resolve({ status: res.statusCode, json }); });
+      });
+      req.on('error', reject); req.end(body);
+    });
+    const slotOf = (view, key) => view.upload.slots.find(s => s.key === key);
+
+    chk('A PNG and an SVG are told apart by what they are, not their name', D.kindOf(await png('x')) === 'png' && D.kindOf(await svg('x')) === 'svg' && D.kindOf(Buffer.from('<?xml version="1.0"?>\n<svg xmlns="http://www.w3.org/2000/svg"></svg>')) === 'svg' && D.kindOf(Buffer.from('%PDF-1.7')) === null && D.kindOf(Buffer.from('<html><svg></svg></html>')) === null && D.kindOf(Buffer.alloc(0)) === null);
+    chk('A code is read from a PNG and from an SVG', (await D.decode(await png('https://qr.io/r/AbC123'))) === 'https://qr.io/r/AbC123' && (await D.decode(await svg('https://qr.io/r/AbC123'))) === 'https://qr.io/r/AbC123');
+    chk('The long WhatsApp link is read back whole from a code', (await D.decode(await png(EDENS_LINK))) === EDENS_LINK);
+    const blank = await sharp({ create: { width: 300, height: 300, channels: 3, background: '#ffffff' } }).png().toBuffer();
+    chk('A picture with no code in it, a broken file and a file that is not a picture all read as nothing', (await D.decode(blank)) === null && (await D.decode(Buffer.concat([blank.subarray(0, 40), Buffer.from('garbage')]))) === null && (await D.decode(Buffer.from('just some text'))) === null);
+
+    const SHORT = { review: 'https://qr.io/r/rev111', claim: 'https://qr.io/r/cla222', services: 'https://qr.io/r/ser333' };
+    const hop = (...urls) => ({ status: 200, finalUrl: urls[urls.length - 1], hops: urls.map((u, i) => ({ url: u, status: i === urls.length - 1 ? 200 : 302 })) });
+    const WA_PAGE = 'https://api.whatsapp.com/send/?phone=447700900123&text=Hey+Eden%27s+Edge%2C+I%27ve+been+given+one+of+your+referral+cards+and+I%27d+like+to+claim+the+offer+on+it.+My+name+is+&type=phone_number&app_absent=0';
+    ANSWERS = {
+      [SHORT.review]: hop(SHORT.review, 'https://edensedge.example/review-us?utm_source=qr'),
+      [SHORT.claim]: hop(SHORT.claim, EDENS_LINK, WA_PAGE),
+      [SHORT.services]: hop(SHORT.services, 'https://edensedge.example/'),
+    };
+    v = (await post(edens, 'check')).json;
+    chk('Before any upload: three open, empty slots, in order', v.upload.slots.map(s => `${s.key}:${s.state}:${s.unlocked}`).join(' ') === 'review:empty:true claim:empty:true services:empty:true' && v.upload.ready === false, v.upload.slots);
+
+    // [T4] the bad uploads, each with its own message
+    let before4 = fetched.length;
+    let r4 = await sendFile(edens, 'review', blank, 'blank.png');
+    chk('[T4] An unreadable image: "Can\'t read this QR. Download it again from QR.io.", nothing fetched, no file kept', r4.status === 200 && slotOf(r4.json, 'review').state === 'failed' && slotOf(r4.json, 'review').message === 'Can\'t read this QR. Download it again from QR.io.' && fetched.length === before4 && (await call(base, 'GET', `${url(edens)}/file/review`)).status === 404, slotOf(r4.json, 'review'));
+    r4 = await sendFile(edens, 'review', Buffer.from('%PDF-1.7 not a picture'), 'code.pdf');
+    chk('[T4] A file that is not a PNG or SVG gets the same message', slotOf(r4.json, 'review').message === R.UNREADABLE);
+    r4 = await sendFile(edens, 'services', await png('https://edensedge.example/'), 'static.png');
+    chk('[T4] A static QR made straight from the link: amber, the static message, nothing fetched', slotOf(r4.json, 'services').state === 'static' && slotOf(r4.json, 'services').level === 'amber' && slotOf(r4.json, 'services').message === 'This is a static code. Its link can\'t be changed after printing. Recreate it in QR.io as a Website URL code.' && fetched.length === before4 && !r4.json.upload.ready, slotOf(r4.json, 'services'));
+    r4 = await sendFile(edens, 'claim', await svg(EDENS_LINK), 'static-wa.svg');
+    chk('A static code of the WhatsApp link is static too', slotOf(r4.json, 'claim').state === 'static');
+    r4 = await sendFile(edens, 'claim', await png(SHORT.review), 'review-in-claim.png');
+    chk('[T4] A code in the wrong slot says which: "This code goes to the review funnel, not WhatsApp. Move it to the Review Funnel slot."', slotOf(r4.json, 'claim').state === 'failed' && slotOf(r4.json, 'claim').message === 'This code goes to the review funnel, not WhatsApp. Move it to the Review Funnel slot.' && fetched[fetched.length - 1] === SHORT.review, slotOf(r4.json, 'claim'));
+    r4 = await sendFile(edens, 'review', await png('WIFI:S:EdensEdge;T:WPA;P:secret;;'), 'wifi.png');
+    chk('A code that holds text, not a link, says so', /holds text, not a link/.test(slotOf(r4.json, 'review').message));
+
+    // The three real codes
+    clock = new Date('2026-11-14T13:00:00Z');
+    const reviewPng = await png(SHORT.review);
+    r4 = await sendFile(edens, 'review', reviewPng, 'Landscapers Edens Edge Review Funnel QR Code.png', 'Given');
+    chk('The wrong-slot code moved to its own slot passes: green, "Checked: goes to" the funnel (trailing slash and query ignored)', slotOf(r4.json, 'review').state === 'ok' && slotOf(r4.json, 'review').level === 'green' && slotOf(r4.json, 'review').message === 'Checked: goes to https://edensedge.example/review-us/' && slotOf(r4.json, 'review').short_url === SHORT.review && slotOf(r4.json, 'review').checked_at === '2026-11-14T13:00:00.000Z' && slotOf(r4.json, 'review').by === 'Given', slotOf(r4.json, 'review'));
+    const got = await new Promise((resolve, reject) => { const u = new URL(`${url(edens)}/file/review`, base); http.get({ hostname: u.hostname, port: u.port, path: u.pathname }, res => { const parts = []; res.on('data', c => parts.push(c)); res.on('end', () => resolve({ status: res.statusCode, type: res.headers['content-type'], csp: res.headers['content-security-policy'], body: Buffer.concat(parts) })); }).on('error', reject); });
+    chk('The checked file is kept and comes back byte for byte, as a picture only', got.status === 200 && got.type === 'image/png' && got.body.equals(reviewPng) && /sandbox/.test(got.csp));
+    r4 = await sendFile(edens, 'services', reviewPng, 'again.png');
+    chk('[T4] The same file in a second slot is refused, naming the slot it is in', slotOf(r4.json, 'services').state === 'failed' && /same file as the one in the Review Funnel slot/.test(slotOf(r4.json, 'services').message), slotOf(r4.json, 'services'));
+    r4 = await sendFile(edens, 'services', await svg(SHORT.review), 'again.svg');
+    chk('[T4] The same short link in a different file is refused too', /already in the Review Funnel slot/.test(slotOf(r4.json, 'services').message));
+    r4 = await sendFile(edens, 'claim', await svg(SHORT.claim), 'claim.svg');
+    chk('Scan to Claim from an SVG: wa.me then api.whatsapp.com/send, the phone and the message match', slotOf(r4.json, 'claim').state === 'ok' && slotOf(r4.json, 'claim').message === 'Checked: goes to WhatsApp 447700900123 with the claim message' && slotOf(r4.json, 'claim').file.kind === 'svg', slotOf(r4.json, 'claim'));
+    r4 = await sendFile(edens, 'services', await png(SHORT.services), 'services.png');
+    chk('[T1] Three QR.io codes uploaded: all green', r4.json.upload.ready === true && r4.json.upload.slots.every(s => s.state === 'ok' && s.level === 'green'), r4.json.upload.slots);
+    chk('Each slot keeps its file, its short link and the date checked', JSON.stringify(v = await get(edens)) && v.upload.slots.map(s => s.short_url).join() === Object.values(SHORT).join() && v.upload.slots.every(s => s.file && s.file.kept && s.checked_at));
+
+    // WhatsApp mismatches
+    ANSWERS['https://qr.io/r/othernum'] = hop('https://qr.io/r/othernum', 'https://wa.me/447999000111?text=Hey');
+    ANSWERS['https://qr.io/r/othermsg'] = hop('https://qr.io/r/othermsg', 'https://wa.me/447700900123?text=Hello%20there');
+    ANSWERS['https://qr.io/r/elsewhere'] = hop('https://qr.io/r/elsewhere', 'https://someone-else.example/page');
+    ANSWERS['https://qr.io/r/dead'] = { status: null, finalUrl: 'https://qr.io/r/dead', hops: [], error: 'no answer in 10 seconds' };
+    r4 = await sendFile(edens, 'claim', await png('https://qr.io/r/othernum'), 'n.png');
+    chk('A WhatsApp code for another number says which number', /opens WhatsApp for 447999000111, not 447700900123/.test(slotOf(r4.json, 'claim').message) && !r4.json.upload.ready);
+    r4 = await sendFile(edens, 'claim', await png('https://qr.io/r/othermsg'), 'm.png');
+    chk('A WhatsApp code with another message says so', /different message/.test(slotOf(r4.json, 'claim').message));
+    r4 = await sendFile(edens, 'claim', await png('https://qr.io/r/elsewhere'), 'e.png');
+    chk('A code that lands somewhere else says where', slotOf(r4.json, 'claim').message === 'This code goes to someone-else.example/page, not WhatsApp.', slotOf(r4.json, 'claim').message);
+    r4 = await sendFile(edens, 'claim', await png('https://qr.io/r/dead'), 'd.png');
+    chk('A short link that does not answer says why', /could not be followed: no answer in 10 seconds/.test(slotOf(r4.json, 'claim').message));
+    r4 = await sendFile(edens, 'claim', await svg(SHORT.claim), 'claim.svg');
+    chk('The right code uploaded again replaces the bad one: all green again', r4.json.upload.ready === true);
+
+    // Re-check and a changed destination
+    v = (await put(edens, { set: { review_funnel_url: 'https://edensedge.example/reviews-new/' } })).json;
+    v = (await post(edens, 'check')).json;
+    chk('The destination changed after the check: the slot is amber and no longer counts until Re-check', slotOf(v, 'review').state === 'stale' && slotOf(v, 'review').level === 'amber' && /destination has changed/.test(slotOf(v, 'review').message) && !v.upload.ready, slotOf(v, 'review'));
+    clock = new Date('2026-11-14T14:00:00Z');
+    v = (await post(edens, 'upload/review/recheck')).json;
+    chk('Re-check with the code still pointing at the old link: red, saying where it goes', slotOf(v, 'review').state === 'failed' && slotOf(v, 'review').message === 'This code goes to edensedge.example/review-us, not the review funnel (edensedge.example/reviews-new).' && slotOf(v, 'review').checked_at === '2026-11-14T14:00:00.000Z', slotOf(v, 'review').message);
+    ANSWERS[SHORT.review] = hop(SHORT.review, 'https://edensedge.example/reviews-new/');
+    v = (await post(edens, 'upload/review/recheck')).json;
+    chk('The destination changed in QR.io, then Re-check: green again with no new upload', slotOf(v, 'review').state === 'ok' && v.upload.ready && slotOf(v, 'review').file.name === 'Landscapers Edens Edge Review Funnel QR Code.png');
+    chk('A slot with no readable code cannot be re-checked', (await post(other, 'upload/review/recheck')).status === 409);
+
+    // A website that forwards to www: the code landing on www still counts
+    ANSWERS['https://edensedge.example'] = { status: 200, finalUrl: 'https://www.edensedge.example/', hops: [] };
+    await post(edens, 'check', { keys: ['services'], all: true });
+    ANSWERS[SHORT.services] = hop(SHORT.services, 'https://www.edensedge.example/');
+    v = (await post(edens, 'upload/services/recheck')).json;
+    chk('A site that forwards to www: a code landing on www matches, because Prepare saw the link land there', slotOf(v, 'services').state === 'ok', slotOf(v, 'services'));
+
+    // Locked slots, remove, bad slot
+    v = (await put(edens, { set: { whatsapp_number: '023 8000 0000' } })).json;
+    chk('[T2] The landline locks the Scan to Claim slot: an upload is refused with the mobile message', !slotOf(v, 'claim').unlocked && await (async () => { const x = await sendFile(edens, 'claim', await svg(SHORT.claim), 'c.svg'); return x.status === 409 && /Needs a UK mobile number/.test(x.json.error); })());
+    v = (await put(edens, { reset: ['whatsapp_number'] })).json;
+    chk('The number put back: the slot\'s code counts again', slotOf(v, 'claim').state === 'ok' && v.upload.ready);
+    v = (await call(base, 'DELETE', `${url(edens)}/upload/claim`)).json;
+    chk('Remove empties the slot and deletes its file', slotOf(v, 'claim').state === 'empty' && slotOf(v, 'claim').file === null && !v.upload.ready && (await call(base, 'GET', `${url(edens)}/file/claim`)).status === 404);
+    chk('A slot that does not exist is refused', (await sendFile(edens, 'nonsense', reviewPng, 'x.png')).status === 400 && (await call(base, 'DELETE', `${url(edens)}/upload/nonsense`)).status === 400);
+    await sendFile(edens, 'claim', await svg(SHORT.claim), 'claim.svg');
+    await put(edens, { set: { review_funnel_url: 'https://edensedge.example/review-us/' } });
 
     chk('A key that is not a field is refused', (await put(edens, { set: { company_name: 'X' } })).status === 400);
     chk('Nothing the tab did touched Client Values', JSON.stringify(VALUES) === before);

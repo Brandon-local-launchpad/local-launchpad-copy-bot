@@ -11,6 +11,7 @@
 // QR names, the WhatsApp message and link, and whether each code's destination has passed its
 // check (code only, no model: the message is fixed text and is never reworded). Stage 3, Make in
 // QR.io: the tick list a person follows, its step text fixed (the SOP's), each value inline.
+// Stage 4, Upload and check: what an uploaded code's link means for the slot it was put in.
 // Pure: no database, no network. qr-codes/service.js keeps the tab's own values.
 //   nicheWord        the niche label's text before the first "/"
 //   normaliseNumber  the WhatsApp number rule: 447 and nine digits, or not valid
@@ -27,6 +28,11 @@
 //                    destination and state (ready, unchecked, failed or locked)
 //   make             prepare() and the saved ticks → the folder steps and each code's steps
 //   stepIds          every tick id there is: folder.<step>, <code>.<step>
+//   samePlace        two links with the same host and path (trailing slash and query ignored)
+//   whatsappOf       the phone and message a wa.me or api.whatsapp.com/send link carries
+//   judge            a decoded code, where it lands, the slot → ok, static or failed, and why
+//   duplicateOf      the checked slot that already holds this file or this short link
+//   uploads          prepare() and the saved slot results → the three slots as the tab shows them
 // A saved key among AUTO is an override of the record's value (a blank one included): it is
 // never written back to the Record tab.
 
@@ -245,4 +251,110 @@ function make({ prepare: p = { folder: '', codes: [] }, ticks = {} } = {}) {
   return { folder, codes, done: all.reduce((n, g) => n + g.done, 0), total: all.reduce((n, g) => n + g.total, 0), complete: all.every(g => g.done === g.total) };
 }
 
-module.exports = { DASHBOARD, FOLDER_STEPS, CODE_STEPS, stepIds, make, CODES, CHECKED, folderName, qrName, whatsappMessage, whatsappUrl, linkResult, prepare, AUTO, KEYS, LABELS, MOBILE_NEEDED, GOOGLE_REFUSED, nicheWord, looksPlural, normaliseNumber, isGoogleLink, isHttps, isLink, recordValues, clean, build };
+// ── Stage 4: Upload and check ──
+const UNREADABLE = 'Can\'t read this QR. Download it again from QR.io.';
+const STATIC = 'This is a static code. Its link can\'t be changed after printing. Recreate it in QR.io as a Website URL code.';
+// What each code's destination is called in a message
+const NOUN = { review: 'the review funnel', claim: 'WhatsApp', services: 'the website' };
+const codeName = key => (CODES.find(c => c.key === key) || {}).name || key;
+
+// host and path, lower-cased host, no trailing slash, no query: '' for what is not a link
+function place(url) {
+  try { const u = new URL(str(url)); return /^https?:$/.test(u.protocol) ? `${u.hostname.toLowerCase().replace(/\.$/, '')}${u.pathname.replace(/\/+$/, '')}` : ''; } catch (_) { return ''; }
+}
+const samePlace = (a, b) => !!place(a) && place(a) === place(b);
+
+// wa.me/{phone}?text=… (exact: the message as the code carries it), or the page it forwards to,
+// api.whatsapp.com/send?phone=…&text=… (WhatsApp may tidy the message on the way)
+function whatsappOf(url) {
+  try {
+    const u = new URL(str(url)), host = u.hostname.toLowerCase();
+    if (host === 'wa.me' || host === 'www.wa.me') {
+      const phone = u.pathname.replace(/^\/+|\/+$/g, '');
+      return /^\d+$/.test(phone) ? { phone, text: u.searchParams.get('text') || '', exact: true } : null;
+    }
+    if (/(^|\.)whatsapp\.com$/.test(host) && /^\/send\/?$/.test(u.pathname)) return { phone: (u.searchParams.get('phone') || '').replace(/\D/g, ''), text: u.searchParams.get('text') || '', exact: false };
+  } catch (_) { /* not a link */ }
+  return null;
+}
+
+// What each code should land on, from prepare(): the link, and for a fetched link where the
+// link itself ended up when Prepare checked it (a site that forwards to www, say)
+function targetsOf(p = { codes: [] }) {
+  const out = {};
+  for (const c of p.codes) {
+    if (!c.destination) continue;
+    if (c.key === 'claim') { const w = whatsappOf(c.destination); if (w) out.claim = { url: c.destination, phone: w.phone, text: w.text }; }
+    else out[c.key] = { url: c.destination, final: (c.check && c.check.final_url) || '' };
+  }
+  return out;
+}
+// Does any of these links (the hops of a chain, in order) reach this code's destination?
+function reaches(key, target, urls) {
+  if (!target) return false;
+  if (key === 'claim') return urls.map(whatsappOf).filter(Boolean).some(w => w.phone === target.phone && (w.exact ? w.text === target.text : w.text.trimEnd() === target.text.trimEnd()));
+  return urls.some(u => samePlace(u, target.url) || (target.final && samePlace(u, target.final)));
+}
+
+// slot: review, claim or services; decoded: the text in the code; chain: links.js follow() of it
+// (not needed for a static code or text that is not a link); p: prepare().
+// → { state: 'ok' | 'static' | 'failed', level, message, short_url, final_url }
+function judge({ slot, decoded = '', chain = null, prepare: p } = {}) {
+  const out = (state, level, message, extra = {}) => ({ state, level, message, short_url: '', final_url: '', ...extra });
+  if (!isLink(decoded)) return out('failed', 'red', 'This QR holds text, not a link. Download it again from QR.io.');
+  const targets = targetsOf(p), keys = CODES.map(c => c.key);
+  // Step 2: a QR.io code holds a short link. One that holds a destination itself is static.
+  if (keys.some(k => reaches(k, targets[k], [decoded])) || whatsappOf(decoded)) return out('static', 'amber', STATIC, { final_url: decoded });
+  if (!chain) return out('failed', 'red', 'The short link has not been followed yet. Press Re-check.', { short_url: decoded });
+  const urls = [...(chain.hops || []).map(h => h.url), chain.finalUrl].filter(Boolean);
+  const done = { short_url: decoded, final_url: chain.finalUrl || '' };
+  // Step 3: where it lands against what this slot expects
+  if (reaches(slot, targets[slot], urls)) return out('ok', 'green', `Checked: goes to ${slot === 'claim' ? `WhatsApp ${targets.claim.phone} with the claim message` : targets[slot].url}`, done);
+  // Step 4: another code's destination
+  const other = keys.find(k => k !== slot && reaches(k, targets[k], urls));
+  if (other) return out('failed', 'red', `This code goes to ${NOUN[other]}, not ${NOUN[slot]}. Move it to the ${codeName(other)} slot.`, done);
+  if (slot === 'claim' && targets.claim) {
+    const w = urls.map(whatsappOf).filter(Boolean)[0];
+    if (w && w.phone !== targets.claim.phone) return out('failed', 'red', `This code opens WhatsApp for ${w.phone || 'no number'}, not ${targets.claim.phone}. Make it again from the link in Prepare.`, done);
+    if (w) return out('failed', 'red', 'This code opens WhatsApp with a different message. Make it again from the link in Prepare.', done);
+  }
+  if (chain.error && urls.length <= 1) return out('failed', 'red', `The code's link could not be followed: ${chain.error}.`, done);
+  const landed = place(chain.finalUrl) || chain.finalUrl || 'nowhere';
+  return out('failed', 'red', `This code goes to ${landed}, not ${NOUN[slot]}${slot === 'claim' ? '' : ` (${place(targets[slot] ? targets[slot].url : '')})`}.${chain.error ? ` The check stopped early: ${chain.error}.` : ''}`, done);
+}
+
+// Step 5: the same file or the same short link cannot be in two slots. Only a slot that passed
+// counts, so a code put in the wrong slot can be moved to the right one.
+function duplicateOf({ slot, sha256 = '', decoded = '', saved = {} } = {}) {
+  for (const c of CODES) {
+    const o = saved[c.key];
+    if (c.key === slot || !o || o.state !== 'ok') continue;
+    if (sha256 && o.sha256 === sha256) return { key: c.key, message: `This is the same file as the one in the ${c.name} slot. Each slot needs its own code.` };
+    if (decoded && o.decoded === decoded) return { key: c.key, message: `This code is already in the ${c.name} slot. Each slot needs its own code.` };
+  }
+  return null;
+}
+
+// p: prepare(); saved: { review, claim, services }, each the last upload's result. A slot opens
+// when its destination has passed. A code checked against a destination that has since changed
+// is stale: amber, and it no longer counts until Re-check.
+function uploads({ prepare: p = { codes: [] }, saved = {} } = {}) {
+  const slots = p.codes.map(c => {
+    const u = saved[c.key] || null;
+    const unlocked = c.state === 'ready';
+    const base = { key: c.key, name: c.name, card: c.card, unlocked, locked_message: unlocked ? '' : c.state === 'unchecked' ? 'Locked until its link has been checked.' : `Locked: ${c.message}`, expects: c.destination };
+    if (!u) return { ...base, state: 'empty', level: 'grey', message: unlocked ? 'No code uploaded yet.' : '', file: null, short_url: '', final_url: '', checked_at: null, by: '', can_recheck: false };
+    const stale = u.state === 'ok' && u.expected !== c.destination;
+    return {
+      ...base,
+      state: stale ? 'stale' : u.state, level: stale ? 'amber' : u.level,
+      message: stale ? 'The destination has changed since this code was checked. Press Re-check.' : u.message,
+      file: u.name ? { name: u.name, kind: u.kind || '', kept: !!u.kept } : null,
+      short_url: u.short_url || '', final_url: u.final_url || '', checked_at: u.checked_at || null, by: u.by || '',
+      can_recheck: unlocked && !!u.kept && isLink(u.decoded || ''),
+    };
+  });
+  return { slots, ready: slots.length === CODES.length && slots.every(s => s.state === 'ok') };
+}
+
+module.exports = { UNREADABLE, STATIC, NOUN, place, samePlace, whatsappOf, targetsOf, reaches, judge, duplicateOf, uploads, DASHBOARD, FOLDER_STEPS, CODE_STEPS, stepIds, make, CODES, CHECKED, folderName, qrName, whatsappMessage, whatsappUrl, linkResult, prepare, AUTO, KEYS, LABELS, MOBILE_NEEDED, GOOGLE_REFUSED, nicheWord, looksPlural, normaliseNumber, isGoogleLink, isHttps, isLink, recordValues, clean, build };
