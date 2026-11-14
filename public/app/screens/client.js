@@ -5,6 +5,7 @@
 import { h, attr, api, status, pill, dot, timeEl, toast, confirm, tag, dialog } from '../ui.js';
 import { trackerStrip } from '../tracker.js';
 import { tellBrandon, markDone } from '../tell-brandon.js';
+import { addTaskDialog, doneClick } from '../team.js';
 
 const TABS = [
   ['record', 'Record'], ['locations', 'Locations'], ['research', 'Research'], ['page-map', 'Page map'], ['pages', 'Pages'],
@@ -121,6 +122,12 @@ export async function render(root, params, ctx) {
     if (e.target.closest('#trkTell')) return tellBrandon({ clientId, clientName: client.name, place: 'client', tab: location.pathname.split('/')[3] || '', by: row.assigned_to || '', onSent: () => reloadTracker().catch(() => {}) });
     const d = e.target.closest('[data-tb-done]');
     if (d) { try { await markDone(d.dataset.tbDone, row.assigned_to || ''); await reloadTracker(); } catch (err) { toast(err.message, 'bad'); } }
+    return undefined;
+  });
+  // The task board (public/app/team.js): Done on a step only a person can close, and Add a task
+  trkEl.addEventListener('click', async e => {
+    if (e.target.closest('#trkTask')) return addTaskDialog({ clientId, clientName: client.name, onAdded: () => reloadTracker().catch(() => {}) });
+    if (await doneClick(e)) await reloadTracker().catch(() => {});
     return undefined;
   });
   trkEl.addEventListener('change', async e => {

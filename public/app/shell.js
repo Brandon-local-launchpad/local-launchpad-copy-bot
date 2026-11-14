@@ -108,5 +108,6 @@ window.addEventListener('popstate', route);
 
 // Sign out posts the form (the cookie is cleared server side); nothing else to do here.
 // The People list is read once before the first screen, so every step can show who does it (team.js)
-loadTeam().catch(() => {}).then(route);
+// (three seconds at most: a slow answer never holds the first screen back, the names fill in on the next one)
+Promise.race([loadTeam(), new Promise(ok => setTimeout(ok, 3000))]).catch(() => {}).then(route);
 export { api, toast };

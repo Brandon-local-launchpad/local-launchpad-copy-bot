@@ -1,6 +1,6 @@
 # Task board inside Copybot: the plan (14 Nov 2026)
 
-**Stage 1 is built and live (14 Nov):** the People list, an owner on every Tracker step, the SOP link where one exists, and the My tasks screen. Stages 2 to 4 below are not built. Brandon's answers of 14 Nov are in "Owners" and "Decisions".
+**Stages 1 and 2 are built and live (14 Nov).** Stage 1: the People list, an owner on every Tracker step, the SOP link where one exists, and the My tasks screen. Stage 2: the steps done by hand (`team/hand-steps.json`, a first list of 11 to chop and change), each opened by the step before it and ticked Done, and one off tasks added on a client for a person, with an optional due date. Stages 3 and 4 below are not built, nor are logins. Brandon's answers of 14 Nov are in "Owners" and "Decisions".
 
 ## The idea in one paragraph
 
@@ -85,7 +85,7 @@ Each stage has its own fixture and is merged when it passes. No stage changes wh
 1. **Answered (14 Nov): separate logins for Brandon, Ray and the citations team, sorted after.** Stage 1 uses a name picked once per browser. Logins are their own stage; say what each login may see (the citations login: the Citations tab only?).
 2. **Answered (14 Nov): the owner table above.** Two guesses in it to confirm.
 3. **Ray's citations person:** on the list as "Citations team" for now; rename on Settings, or add a name each.
-4. **The by hand steps:** is my list right, and what is missing? Given and Ray will know theirs better than I do.
+4. **The by hand steps:** the first list is live (photos into Drive, the photo sort, GBP onto Google, the NAP check and vault, the staging site, the Elementor templates, the staging check, go or no go, launch, making the cards, ordering the cards). Is it right, and what is missing? Given and Ray will know theirs better than I do.
 5. **Answered (14 Nov): the SOPs are Google Docs.** `team/sops.json` links the Re-Launch 2026 SOP (citations X.3 to X.7, the domain, the cards) and the Website Images SOP. No SOP is linked yet for: the record, locations, research, the page map, pages, GBP, posts, reviews, rankings and the site audit (the site audit and rank scan SOPs are files in the repo, not Google Docs).
 6. **Morning email:** yes or no.
 7. **The board's columns:** the nine phases above, or yours.

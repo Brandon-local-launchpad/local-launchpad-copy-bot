@@ -11,7 +11,7 @@
 // `next` is the first need, the one line the clients table shows.
 
 const { stepsOf: onboardingSteps } = require('../ghl-onboarding/rules');
-const { tag: tagOwners } = require('../team/rules');
+const { tag: tagOwners, handStepsOf, taskSteps } = require('../team/rules');
 const plural = (n, one, many) => `${n} ${n === 1 ? one : many || one + 's'}`;
 
 function trackerOf(f) {
@@ -126,6 +126,16 @@ function trackerOf(f) {
     for (const d of ob.done) did(d.key, d.text, 'record', d.at);
     for (const n of ob.needs) { const step = { key: n.key, text: n.text, tab: 'record', why: n.why, tick: n.kind, urgent: n.urgent || undefined }; if (n.urgent) needs.unshift(step); else needs.push(step); }
   }
+
+  // ── The task board, stage 2 (team/): the steps done outside Copybot, each opened by what comes before it and ticked
+  // Done by a person, and the one off tasks added on the client. Nothing for a client loaded without them (f.hand). ──
+  if (f.hand) {
+    const hs = handStepsOf({ record: recordReady, place_id: !!f.place_id, locations: !!f.locations_approved, page_map: !!f.map_pages, pages: pagesDone, pushed: !!f.pushed, gbp: !!f.gbp_done, prompts: !!f.prompts_done }, f.hand.ticks || {});
+    for (const d of hs.done) done.push(d);
+    for (const n of hs.needs) needs.push(n);
+    later += hs.later;
+  }
+  for (const t of taskSteps(f.tasks, f.now)) needs.push(t);
 
   // A line Copybot did through the chain says so, with when (and the cost where the step knows it)
   const UPKEEP_DONE = { competitors: 'Google competitors checked again', citations: 'Directories scanned again', posts: 'Next post batch drafted' };

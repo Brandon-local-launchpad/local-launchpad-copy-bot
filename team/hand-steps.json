@@ -1,0 +1,17 @@
+{
+  "_note": "The steps done outside Copybot, which it cannot see finished: a person ticks each Done on the Tracker (the task board, stage 2; Brandon, 14 Nov 2026). A step opens when everything in `after` is true: a gate the Tracker knows (record, place_id, locations, page_map, pages, pushed, gbp, prompts) or another step here ticked (hand:<key>). A new step is a line here, not code. This first list is Claude's, from the SOPs: Brandon, Given and Ray chop and change it.",
+  "gates": ["record", "place_id", "locations", "page_map", "pages", "pushed", "gbp", "prompts"],
+  "steps": [
+    { "key": "photos_drive", "role": "brandon", "tab": "gbp-posts", "after": ["record"], "text": "Put the client's photos in their Drive folder", "why": "The photos come to Brandon on WhatsApp. The photo sort, the posts and the website images all start from this folder.", "sop": { "doc": "relaunch", "section": "Phase X - Customer Photo Sort" } },
+    { "key": "photo_sort", "role": "ops", "tab": "gbp-posts", "after": ["hand:photos_drive"], "text": "Sort the client's photos in Claude", "why": "It makes the Posts and Photo Drip folders and photo-notes.json, which the Images tab needs.", "sop": { "doc": "relaunch", "section": "Phase X - Customer Photo Sort" } },
+    { "key": "gbp_paste", "role": "ops", "tab": "gbp", "after": ["gbp"], "text": "Put the GBP description, services and products on the Google profile", "why": "Copybot writes them; a person pastes them into Google." },
+    { "key": "citations_vault", "role": "citations", "tab": "citations", "after": ["record", "place_id"], "text": "Check the NAP against the GBP and make the client's 1Password vault", "why": "Nothing is submitted until the record matches the GBP character for character.", "sop": { "doc": "relaunch", "section": "Phase X.3 Citations Setup" } },
+    { "key": "site_staging", "role": "site", "tab": "pages", "after": ["page_map"], "text": "Build the staging site from the template and connect it to Copybot", "why": "The plugin installed, the field groups in, the site saved on the Pages tab." },
+    { "key": "site_templates", "role": "site", "tab": "pages", "after": ["hand:site_staging"], "text": "Build the Elementor templates and bind them to the fields", "why": "One template for each kind of page." },
+    { "key": "site_check", "role": "site", "tab": "pages", "after": ["pushed", "hand:site_templates"], "text": "Check every pushed page on staging reads and looks right", "why": "The copy, the images, the links and the forms." },
+    { "key": "go_no_go", "role": "brandon", "tab": "pages", "after": ["hand:site_check"], "text": "Go or no go for launch", "why": "Given has checked the staging site." },
+    { "key": "site_launch", "role": "site", "tab": "pages", "after": ["hand:go_no_go"], "text": "Connect the domain and put the site live", "why": "Brandon has said go." },
+    { "key": "cards_make", "role": "site", "tab": "cards", "after": ["record", "place_id"], "text": "Make the review and referral cards and send the print files to Brandon", "why": "Given makes the files; Brandon places the order.", "sop": { "doc": "relaunch", "section": "Phase X.8 Review & Referral Cards", "anchor": "h.4fzlmj6ceyjb" } },
+    { "key": "cards_order", "role": "brandon", "tab": "cards", "after": ["hand:cards_make"], "text": "Order the review and referral cards from the printer", "why": "The print files are ready.", "sop": { "doc": "relaunch", "section": "Phase X.12 Export and Send to Print", "anchor": "h.b3f5k7nuvcxe" } }
+  ]
+}
