@@ -411,3 +411,11 @@ pre.block { background: #fafbfc; border: 1px solid var(--border); border-radius:
 .board-card .next { font-size: 12.5px; color: var(--text-2); display: block; margin: 6px 0 2px; }
 .board-card .tags { display: flex; gap: 4px; flex-wrap: wrap; }
 .board-card.quiet { opacity: .7; }
+
+/* One client's board: a column per person, a card per step */
+.board.people { grid-auto-columns: minmax(185px, 1fr); }
+.board-card.task .name { font-weight: 500; }
+.board-card.task .name:hover { text-decoration: underline; }
+.board-card.task.urgent { border-left: 3px solid var(--block, #dc2626); }
+.board-card.task .tags { align-items: center; margin-top: 6px; }
+.board-col.done { background: transparent; border: 1px dashed var(--border-strong); }
