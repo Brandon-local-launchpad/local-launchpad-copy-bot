@@ -31,7 +31,7 @@ console.log('\n=== FIXTURE: the task board (owners, SOPs, tasks per person, the 
 
   // The files name real Tracker steps and cover every tab a step is done on
   const src = fs.readFileSync(path.join(root, 'ui/tracker.js'), 'utf8');
-  const real = k => k === 'ask' || /^onb_(domain|gbp|facebook|instagram)$/.test(k) || /^auto_/.test(k) || src.includes(`need('${k}'`);
+  const real = k => k === 'ask' || /^onb_(domain|gbp|facebook|instagram)(_done)?$/.test(k) || /^auto_/.test(k) || src.includes(`'${k}'`);
   const stale = R.namedSteps().filter(k => !real(k));
   chk('Every step named in owners.json and sops.json is a step the Tracker has', stale.length === 0, stale.join(', '));
   const tabs = [...new Set([...src.matchAll(/need\('[a-z_]+'.*?[`'], '([a-z-]+)'(?:,|\);)/g)].map(m => m[1]))];
@@ -226,6 +226,24 @@ console.log('\n=== FIXTURE: the task board (owners, SOPs, tasks per person, the 
   chk('Boards: every step on the Tracker carries its column, and its stage unless it is a one off task', tb.needs.every(n => n.column && (n.stage || n.task)) && tb.needs.find(n => n.key === 'site_pages').stage === 'Pages' && tb.needs.find(n => n.key === 'site_pages').column === 'Site build', tb.needs.filter(n => !n.column || !(n.stage || n.task)).map(n => n.key).join(','));
   chk('Boards: a finished line carries its stage too', tb.done.length > 0 && tb.done.every(d => BD.stages.includes(d.stage)), tb.done.filter(d => !d.stage).map(d => d.key).join(','));
   chk('Boards: the People list comes with the stages and each job\'s column names', (await team.view()).board.stages.length === 6 && (await team.view()).board.columns.site.join(',') === 'Site build,Copy push,Images,Legal pages,Cards,Launch' && (await team.view()).board.other === 'Other tasks');
+
+  // ── The Done columns: whose area a finished line is in ──
+  const fullDone = trackerOf({ ...built, pushed: 6, hand: { ticks: { photos_drive: { by: 'Brandon', at: '2026-11-12T09:00:00Z' }, site_templates: { by: 'Given', at: 'x' } } },
+    site_build: { connected: true, inner_total: 5, created: 5, pushed: 6, to_push: 0, images_approved: 6, images_placed: 6, legal_pushed: 3 },
+    cards: { copied_at: 'x', signoff: { proofs_sent: { at: 'x' }, client_approved: { at: 'x' }, pdfs_exported: { at: 'x' }, sent_to_printer: { at: 'x' } } },
+    tasks_done: [{ id: 4, text: 'Ring Ethan about the price list', role: 'ops', person_id: 2, done_by: 'Ray', done_at: '2026-11-13T09:00:00Z' }] });
+  const ownerOfDone = k => (fullDone.done.find(d => d.key === k) || {}).owner;
+  chk('Done: every finished line has an owner', fullDone.done.length > 10 && fullDone.done.every(d => R.ROLES.includes(d.owner)), fullDone.done.filter(d => !d.owner).map(d => d.key).join(','));
+  chk('Done: the site, the pages on it, the pushed copy, the images and the legal pages are Given\'s', ['site_connect', 'site_pages', 'pushed', 'images', 'images_placed', 'legal'].every(k => ownerOfDone(k) === 'site'), ['site_connect', 'site_pages', 'pushed', 'images', 'images_placed', 'legal'].map(k => `${k}:${ownerOfDone(k)}`).join(','));
+  chk('Done: the written pages and the GBP output are Ray\'s, though Copybot wrote them', ownerOfDone('pages') === 'ops' && ownerOfDone('gbp') === 'ops');
+  chk('Done: the cards Given made are Given\'s, the approval and the order Brandon\'s', ownerOfDone('cards_brief_done') === 'site' && ownerOfDone('cards_export_done') === 'site' && ownerOfDone('cards_approval_done') === 'brandon' && ownerOfDone('cards_order_done') === 'brandon');
+  chk('Done: a ticked by hand step is its own person\'s', ownerOfDone('hand_photos_drive_done') === 'brandon' && ownerOfDone('hand_site_templates_done') === 'site');
+  const td = fullDone.done.find(d => d.key === 'task_4_done');
+  chk('Done: a finished one off task is listed with who did it, for its person', td && td.text === 'Ring Ethan about the price list: done by Ray' && td.owner === 'ops' && td.person_id === 2 && td.at === '2026-11-13T09:00:00Z', JSON.stringify(td));
+  chk('Done: a client loaded without finished tasks has none listed', !trackerOf(built).done.some(d => /^task_/.test(d.key)));
+  await team.doneTask(made.id, { by: 'Ray' });
+  const fd = (await S.loadFacts(pool)).tasksDone.get(CID);
+  chk('Done: the finished one off tasks are loaded for the dashboard, with who and when', fd.length === 1 && fd[0].text === 'Ring Ethan about the price list' && fd[0].done_by === 'Ray' && !!fd[0].done_at && (await S.loadFacts(pool)).tasks.get(CID).every(t => t.id !== made.id));
 
   // ── Stage 4: how long a task has waited, and the morning email ──
   const B = require(path.join(root, 'team/board.js'));

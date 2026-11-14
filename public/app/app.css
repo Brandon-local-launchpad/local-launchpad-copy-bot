@@ -426,3 +426,9 @@ pre.block { background: #fafbfc; border: 1px solid var(--border); border-radius:
 .board-done a { color: var(--muted); text-decoration: none; padding-left: 14px; position: relative; }
 .board-done a::before { content: ''; position: absolute; left: 2px; top: 5px; width: 6px; height: 6px; border-radius: 50%; background: var(--ok); }
 .board-done a:hover { color: var(--text-2); }
+
+/* The Done column on a client's board and on a person's board */
+.board-card.done { padding: 8px 10px; }
+.board-card.done .tags { margin-top: 5px; align-items: center; }
+.board-card.done .next::before { content: ''; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--ok); margin-right: 6px; }
+.board.stages { grid-auto-columns: minmax(140px, 1fr); }

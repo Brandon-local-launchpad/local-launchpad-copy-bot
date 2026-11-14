@@ -336,7 +336,7 @@ async function loadDashboard({ pool, tradeFacts = null, runners = {}, homepageRu
       review_funnel: { site: wpSites.has(c.id), link: !!require('../review-funnel/rules').reviewLink(cv || {}).url, sent_at: funnelSent.get(c.id) || null, ...(feedbackBy.get(c.id) || { received: 0, unsent: 0 }) },
       citations: citeBy.get(c.id) || null, has_scans: hasScans, existing_site: existingSite, site_audit: siteAudit, running: runs,
       onboarding: onboardingBy.get(c.id) || null,
-      hand: teamFacts ? { ticks: teamFacts.ticks.get(c.id) || {} } : null, tasks: teamFacts ? teamFacts.tasks.get(c.id) || [] : [],
+      hand: teamFacts ? { ticks: teamFacts.ticks.get(c.id) || {} } : null, tasks: teamFacts ? teamFacts.tasks.get(c.id) || [] : [], tasks_done: teamFacts ? teamFacts.tasksDone.get(c.id) || [] : [],
       // Stage 3 (ui/tracker.js): the site build, the migration's last steps and the cards. A pushed page is counted by its
       // entry on the site, so the pages still to push are the approved ones less those (never below nothing).
       site_build: teamFacts ? { connected: wpSites.has(c.id), inner_total: pages.filter(p => p.type !== 'homepage').length, created: sizeOf(pagesMade, c.id), pushed: sizeOf(copyPushed, c.id),

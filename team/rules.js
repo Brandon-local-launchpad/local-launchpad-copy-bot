@@ -45,6 +45,14 @@ function columnOf(role, step) {
   const c = cols.find(x => (x.steps || []).includes(key)) || cols.find(x => (x.tabs || []).includes(step && step.tab));
   return c ? c.name : BOARD.other;
 }
+// A finished line's place on the boards: whose area it is in (the Done column of that person's board) and its stage.
+// A line Copybot did by itself still has an owner: the person whose work it stands in for.
+function tagDone(done) {
+  for (const d of done || []) { if (!d.owner) d.owner = ownerOf(d); const stage = stageOf(d); if (stage) d.stage = stage; }
+  return done;
+}
+// tasks: a client's finished one off tasks (team/service.js loadFacts) as Done lines
+const doneTasks = tasks => (tasks || []).map(t => ({ key: `task_${t.id}_done`, text: `${t.text}: done${t.done_by ? ` by ${t.done_by}` : ''}`, tab: '', at: t.done_at || null, owner: t.role, person_id: t.person_id || undefined }));
 const boardView = () => ({ stages: BOARD.stages, other: BOARD.other, columns: Object.fromEntries(Object.entries(BOARD.columns).map(([role, cols]) => [role, cols.map(c => c.name)])) });
 
 function tag(needs) {
@@ -61,7 +69,7 @@ function handStepsOf(gates = {}, ticks = {}) {
   let later = 0;
   for (const s of HAND.steps) {
     const t = ticks[s.key];
-    if (t) { done.push({ key: `hand_${s.key}_done`, hand: s.key, text: `${s.text}: ticked done${t.by ? ` by ${t.by}` : ''}`, tab: s.tab, at: t.at || null }); continue; }
+    if (t) { done.push({ key: `hand_${s.key}_done`, hand: s.key, text: `${s.text}: ticked done${t.by ? ` by ${t.by}` : ''}`, tab: s.tab, at: t.at || null, owner: s.role }); continue; }
     const ready = (s.after || []).every(g => (g.startsWith('hand:') ? !!ticks[g.slice(5)] : !!gates[g]));
     if (ready) needs.push({ key: `hand_${s.key}`, hand: s.key, text: s.text, tab: s.tab, why: s.why || '', owner: s.role, sop: resolveSop(s.sop) });
     else later++;
@@ -106,4 +114,4 @@ function counts(blocks) {
 const namedSteps = () => [...new Set([...Object.keys(OWNERS.by_step), ...Object.keys(SOPS.by_step)])];
 const handStep = key => HAND.steps.find(s => s.key === key) || null;
 
-module.exports = { ROLES, ROLE_LABELS: OWNERS.roles, SEED_PEOPLE: OWNERS.seed_people, HAND_STEPS: HAND.steps, HAND_GATES: HAND.gates, BOARD, stageOf, columnOf, boardView, ownerOf, sopOf, tag, handStepsOf, handStep, taskSteps, tasksOf, counts, namedSteps };
+module.exports = { ROLES, ROLE_LABELS: OWNERS.roles, SEED_PEOPLE: OWNERS.seed_people, HAND_STEPS: HAND.steps, HAND_GATES: HAND.gates, BOARD, stageOf, columnOf, boardView, tagDone, doneTasks, ownerOf, sopOf, tag, handStepsOf, handStep, taskSteps, tasksOf, counts, namedSteps };
