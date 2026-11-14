@@ -27,7 +27,8 @@ const HINT = {
   whatsapp_number: 'The client\'s mobile with WhatsApp on it. A landline will not work.',
 };
 
-export async function mount(el, ctx) {
+// onStatus(status): called after every draw, so the Cards tab can keep the subtab's dot current
+export async function mount(el, ctx, { onStatus = null } = {}) {
   const url = `/api/clients/${ctx.clientId}/qr-codes`;
   let V = null, checking = false, busySlot = null;
   const by = () => { try { return localStorage.getItem('ll_user') || ''; } catch (_) { return ''; } };   // the name the shell keeps
@@ -146,6 +147,7 @@ export async function mount(el, ctx) {
   function draw() {
     const a = document.activeElement, key = a && el.contains(a) && a.dataset ? a.dataset.qf : null;
     const keep = key && a.type !== 'checkbox' ? { value: a.value, start: a.selectionStart, end: a.selectionEnd } : null;
+    if (onStatus && V.status) onStatus(V.status);
     el.innerHTML = `<div class="stack">${card({
       title: 'QR code details', sub: 'Filled from the client record. What you change here stays on this tab: the Record tab is never changed',
       body: `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:0 16px">${field('qr_niche_label')}${field('qr_business_name')}</div>

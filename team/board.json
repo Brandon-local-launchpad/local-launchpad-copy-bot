@@ -55,7 +55,7 @@
     "brandon": [
       { "name": "Asked by the team", "steps": ["ask"] },
       { "name": "Photos", "steps": ["hand_photos_drive"] },
-      { "name": "Cards", "steps": ["cards_approval", "cards_order"], "tabs": ["cards"] },
+      { "name": "Cards", "steps": ["qr_codes", "qr_codes_done", "cards_approval", "cards_order"], "tabs": ["cards"] },
       { "name": "Launch", "steps": ["hand_go_no_go"] }
     ]
   }

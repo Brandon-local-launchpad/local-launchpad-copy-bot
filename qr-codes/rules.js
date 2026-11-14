@@ -12,6 +12,7 @@
 // check (code only, no model: the message is fixed text and is never reworded). Stage 3, Make in
 // QR.io: the tick list a person follows, its step text fixed (the SOP's), each value inline.
 // Stage 4, Upload and check: what an uploaded code's link means for the slot it was put in.
+// Stage 5: the status (the subtab's dot and the Tracker's two lines) and what the card Brief takes.
 // Pure: no database, no network. qr-codes/service.js keeps the tab's own values.
 //   nicheWord        the niche label's text before the first "/"
 //   normaliseNumber  the WhatsApp number rule: 447 and nine digits, or not valid
@@ -33,6 +34,10 @@
 //   judge            a decoded code, where it lands, the slot → ok, static or failed, and why
 //   duplicateOf      the checked slot that already holds this file or this short link
 //   uploads          prepare() and the saved slot results → the three slots as the tab shows them
+//   status           the record and the saved row → started, prepare_ready, upload_ready,
+//                    temporary, failed, and the dot: none, wait, block or ok
+//   handoff          what the card Brief takes: the funnel link always; once all three codes
+//                    are checked, the two referral links and the three files' names
 // A saved key among AUTO is an override of the record's value (a blank one included): it is
 // never written back to the Record tab.
 
@@ -357,4 +362,40 @@ function uploads({ prepare: p = { codes: [] }, saved = {} } = {}) {
   return { slots, ready: slots.length === CODES.length && slots.every(s => s.state === 'ok') };
 }
 
-module.exports = { UNREADABLE, STATIC, NOUN, place, samePlace, whatsappOf, targetsOf, reaches, judge, duplicateOf, uploads, DASHBOARD, FOLDER_STEPS, CODE_STEPS, stepIds, make, CODES, CHECKED, folderName, qrName, whatsappMessage, whatsappUrl, linkResult, prepare, AUTO, KEYS, LABELS, MOBILE_NEEDED, GOOGLE_REFUSED, nicheWord, looksPlural, normaliseNumber, isGoogleLink, isHttps, isLink, recordValues, clean, build };
+// ── Stage 5: the status and the hand-off ──
+// record: recordValues(); row: { fields, checks, ticks, uploads } as saved, or null for a client
+// with nothing saved. The dot: grey not started, amber waiting on a person, red a failed check,
+// green all three codes checked.
+function status({ record = {}, row = null } = {}) {
+  const r = row || {};
+  const built = build({ record, saved: r.fields || {} });
+  const p = prepare({ fields: built.fields, temporary: built.website_temporary, checks: r.checks || {} });
+  const u = uploads({ prepare: p, saved: r.uploads || {} });
+  const started = !!row && [r.fields, r.checks, r.ticks, r.uploads].some(o => o && Object.keys(o).length);
+  const failed = p.codes.some(c => c.state === 'failed') || u.slots.some(s => s.state === 'failed');
+  const checkedAt = u.slots.map(s => s.checked_at).filter(Boolean).sort().pop() || null;
+  return {
+    started, prepare_ready: p.ready, upload_ready: u.ready, temporary: built.website_temporary, failed, checked_at: u.ready ? checkedAt : null,
+    dot: u.ready ? 'ok' : failed ? 'block' : started ? 'wait' : 'none',
+    built, prepare: p, upload: u,
+  };
+}
+
+// What the card Brief takes from a status(). The review card's QR is the Review Funnel code, so
+// its link is the funnel, never the Google review link. The files are named by their QR names.
+function handoff(st) {
+  const v = k => (st.built.fields[k] && !st.built.fields[k].problem ? st.built.fields[k].value : '');
+  const code = k => st.prepare.codes.find(c => c.key === k) || {};
+  const slot = k => st.upload.slots.find(s => s.key === k) || {};
+  const USE = { review: 'Review card QR', claim: 'Referral QR 1 (Scan to claim)', services: 'Referral QR 2 (View our services)' };
+  return {
+    funnel: v('review_funnel_url'), ready: st.upload_ready, dot: st.dot,
+    claim_link: st.upload_ready ? code('claim').destination : '',
+    services_link: st.upload_ready ? code('services').destination : '',
+    files: st.upload_ready ? CODES.map(c => ({ key: c.key, use: USE[c.key], name: fileName(code(c.key).qr_name, slot(c.key).file) })) : [],
+  };
+}
+// "Landscapers Edens Edge Review Funnel QR Code.png": the QR name, with the file's own type
+const fileName = (qrName, file) => `${line(qrName).replace(/[\\/:*?"<>|]+/g, ' ').replace(/\s+/g, ' ').trim() || 'QR Code'}.${file && file.kind === 'svg' ? 'svg' : 'png'}`;
+
+module.exports = { status, handoff, fileName, UNREADABLE, STATIC, NOUN, place, samePlace, whatsappOf, targetsOf, reaches, judge, duplicateOf, uploads, DASHBOARD, FOLDER_STEPS, CODE_STEPS, stepIds, make, CODES, CHECKED, folderName, qrName, whatsappMessage, whatsappUrl, linkResult, prepare, AUTO, KEYS, LABELS, MOBILE_NEEDED, GOOGLE_REFUSED, nicheWord, looksPlural, normaliseNumber, isGoogleLink, isHttps, isLink, recordValues, clean, build };

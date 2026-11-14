@@ -14,6 +14,8 @@
 // check(clientId): a GET of the review funnel and the website (links.js).
 // upload(clientId, slot, file): the code is read (decode.js), then its short link is followed
 //   (links.js) and judged against the slot (rules.js judge). These two are the only calls out.
+// handoff(clientId): what the card Brief takes (card-brief/service.js asks for it on every view).
+// nicheLabelOf: the niche label for a clients row, shared with the dashboard's Tracker facts.
 // Nothing here writes to Client Values or any other part of the record.
 
 const R = require('./rules');
@@ -24,6 +26,21 @@ const crypto = require('crypto');
 const str = v => (v == null ? '' : String(v)).trim();
 const bad = (m, status = 400, extra = {}) => Object.assign(new Error(m), { status }, extra);
 const parse = v => (v == null ? null : typeof v === 'string' ? JSON.parse(v) : v);
+
+// The niche the client is sorted into; one not sorted yet: the niche its old trade name means
+function nicheLabelOf({ niche_key = '', trade = '' } = {}) {
+  const N = require('../fillout/niches');
+  const key = niche_key || N.suggestedNicheKey(trade);
+  return key && key !== 'other' ? N.nicheLabel(key) : '';
+}
+
+// The Tracker's facts for one client (ui/dashboard.js): client is its clients row, cv its Client
+// Values as stored, row its client_qr_codes row parsed, or null. Pure: nothing is read here.
+function factsFor({ client = {}, cv = {}, row = null } = {}) {
+  const values = require('../fillout/to-values').withoutUnconfirmed(cv || {});
+  const st = R.status({ record: R.recordValues({ cv: values, clientName: client.name, nicheLabel: nicheLabelOf(client) }), row });
+  return { started: st.started, prepare_ready: st.prepare_ready, upload_ready: st.upload_ready, temporary: st.temporary, failed: st.failed, checked_at: st.checked_at, dot: st.dot };
+}
 
 async function ensureQrTables(pool) {
   // Already there: nothing to do (the tests' in-memory Postgres refuses a second CREATE TABLE IF NOT EXISTS)
@@ -68,7 +85,7 @@ function createQrCodes({ pool, loadValues, nicheLabel = async () => '', follow =
   }
   async function rowOf(clientId) {
     const { rows } = await q(`SELECT fields, checks, ticks, uploads FROM client_qr_codes WHERE client_id = $1`, [clientId]);
-    return rows.length ? { fields: parse(rows[0].fields) || {}, checks: parse(rows[0].checks) || {}, ticks: parse(rows[0].ticks) || {}, uploads: parse(rows[0].uploads) || {} } : { fields: {}, checks: {}, ticks: {}, uploads: {} };
+    return rows.length ? { exists: true, fields: parse(rows[0].fields) || {}, checks: parse(rows[0].checks) || {}, ticks: parse(rows[0].ticks) || {}, uploads: parse(rows[0].uploads) || {} } : { exists: false, fields: {}, checks: {}, ticks: {}, uploads: {} };
   }
   async function write(clientId, patch) {
     const next = { ...(await rowOf(clientId)), ...patch };
@@ -89,9 +106,9 @@ function createQrCodes({ pool, loadValues, nicheLabel = async () => '', follow =
   async function view(clientId) {
     const client = await clientOf(clientId);
     const row = await rowOf(clientId);
-    const built = R.build({ record: await recordOf(client), saved: row.fields });
-    const prepare = R.prepare({ fields: built.fields, temporary: built.website_temporary, checks: row.checks });
-    return { client: { id: client.id, name: client.name }, ...built, prepare, make: R.make({ prepare, ticks: row.ticks }), upload: R.uploads({ prepare, saved: row.uploads }) };
+    const st = R.status({ record: await recordOf(client), row: row.exists ? row : null });
+    return { client: { id: client.id, name: client.name }, ...st.built, prepare: st.prepare, make: R.make({ prepare: st.prepare, ticks: row.ticks }), upload: st.upload,
+      status: { dot: st.dot, started: st.started, prepare_ready: st.prepare_ready, upload_ready: st.upload_ready, temporary: st.temporary, failed: st.failed } };
   }
 
   // set: { key: value } typed on the tab; reset: [key] back to the record's value.
@@ -232,15 +249,24 @@ function createQrCodes({ pool, loadValues, nicheLabel = async () => '', follow =
     return view(clientId);
   }
 
-  // The uploaded code as a file: { name, kind, buffer }
-  async function file(clientId, slot) {
-    await clientOf(clientId);
-    const { rows } = await q(`SELECT name, kind, data FROM client_qr_files WHERE client_id = $1 AND slot = $2`, [clientId, str(slot)]);
-    if (!rows.length) throw bad('There is no code in this slot.', 404);
-    return { name: rows[0].name, kind: rows[0].kind, buffer: Buffer.from(rows[0].data, 'base64') };
+  // What the card Brief takes: the funnel link, and once all three codes are checked the two
+  // referral links and the three files
+  async function handoff(clientId) {
+    const client = await clientOf(clientId);
+    const row = await rowOf(clientId);
+    return R.handoff(R.status({ record: await recordOf(client), row: row.exists ? row : null }));
   }
 
-  return { view, save, check, checkedByHand, tick, upload, recheck, removeUpload, file };
+  // The uploaded code as a file: { name, kind, buffer, download: the name it is saved under }
+  async function file(clientId, slot) {
+    const v = await view(clientId);
+    const { rows } = await q(`SELECT name, kind, data FROM client_qr_files WHERE client_id = $1 AND slot = $2`, [clientId, str(slot)]);
+    if (!rows.length) throw bad('There is no code in this slot.', 404);
+    const code = v.prepare.codes.find(c => c.key === str(slot)) || {};
+    return { name: rows[0].name, kind: rows[0].kind, buffer: Buffer.from(rows[0].data, 'base64'), download: R.fileName(code.qr_name || rows[0].name.replace(/\.[a-z]+$/i, ''), { kind: rows[0].kind }) };
+  }
+
+  return { view, save, check, checkedByHand, tick, upload, recheck, removeUpload, file, handoff };
 }
 
 // Behind the login, like every client tab:
@@ -275,7 +301,7 @@ function mount(app, svc, { log = console } = {}) {
     try {
       const f = await svc.file(req.params.id, req.params.slot);
       res.set({ 'Content-Type': f.kind === 'svg' ? 'image/svg+xml' : 'image/png', 'Content-Security-Policy': "default-src 'none'; style-src 'unsafe-inline'; sandbox", 'X-Content-Type-Options': 'nosniff', 'Cache-Control': 'private, no-store' });
-      if (req.query.download) res.attachment(f.name);
+      if (req.query.download) res.attachment(f.download);
       res.send(f.buffer);
     } catch (err) { if (!err.status || err.status >= 500) log.error('[qr-codes]', err.message); res.status(err.status || 500).json({ error: err.message }); }
   });
@@ -283,4 +309,4 @@ function mount(app, svc, { log = console } = {}) {
   app.post('/api/clients/:id/qr-codes/checked-by-hand', wrap(req => svc.checkedByHand(req.params.id, { key: body(req).key, by: body(req).by || '' })));
 }
 
-module.exports = { createQrCodes, ensureQrTables, mount };
+module.exports = { createQrCodes, ensureQrTables, mount, nicheLabelOf, factsFor };

@@ -1,5 +1,7 @@
 # Brief for Claude Code: "Review & Referral Cards" tab in CopyBot
 
+> **Changed 14 Nov 2026 (QR codes subtab, `docs/current-build/QR_Codes_Subtab_Brief.md`):** section 3's first line is now "Review Us funnel link (review card QR)", filled from the QR codes subtab, not the Google review link. Once all three QR codes are checked there, the three links are the checked codes' destinations and "QR files supplied?" is "yes" with the three file names. The rest of this brief stands.
+
 ## What this is for
 
 Local Launchpad makes every client a matched print kit: an A5 Google review card and an 85 × 55 mm referral card. Claude makes the cards with a skill called `/customer-revref-cards`, which takes a filled-in client brief. Today the brief is filled in by hand, and details get missed. On the last run the contact name, mobile and both referral links were all missing.

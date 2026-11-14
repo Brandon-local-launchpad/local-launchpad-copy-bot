@@ -9,6 +9,7 @@
 // the tick list word for word, the values each step carries, what is locked, a tick's who and when.
 // Stage 4, Upload and check: QR images made here and read by decode.js, the five steps on upload
 // with Brandon's test 4 (the bad uploads, each its own message), Re-check, a changed destination.
+// Stage 5: the dot, what the card Brief takes, the two Tracker lines and who does them.
 // Postgres in memory, a real express app on a local port. Nothing is sent anywhere.
 const path = require('path');
 const http = require('http');
@@ -27,7 +28,7 @@ const chk = (label, ok, got = '', want = '') => {
   if (ok) { console.log('✓ ' + label); pass++; }
   else    { console.log('✗ ' + label + '\n  got:  ' + (typeof got === 'string' ? got : JSON.stringify(got)) + '\n  want: ' + want); fail++; }
 };
-console.log('\n=== FIXTURE: the QR codes subtab (the fields, Prepare, the link checks, the tick list, upload and check) ===\n');
+console.log('\n=== FIXTURE: the QR codes subtab (the fields, Prepare, the link checks, the tick list, upload and check, the hand-off) ===\n');
 
 // http.request, not fetch: a fixture that fetches its own server aborts at exit on Windows
 const call = (base, method, p, body) => new Promise((resolve, reject) => {
@@ -377,6 +378,43 @@ const WEB = {
     chk('A slot that does not exist is refused', (await sendFile(edens, 'nonsense', reviewPng, 'x.png')).status === 400 && (await call(base, 'DELETE', `${url(edens)}/upload/nonsense`)).status === 400);
     await sendFile(edens, 'claim', await svg(SHORT.claim), 'claim.svg');
     await put(edens, { set: { review_funnel_url: 'https://edensedge.example/review-us/' } });
+
+    // ── Stage 5: the status, the hand-off to the card Brief, the Tracker ──
+    const { trackerOf } = require(path.join(root, 'ui/tracker.js'));
+    const T = require(path.join(root, 'team/rules.js'));
+    const rowNow = async id => { const x = (await pool.query(`SELECT fields, checks, ticks, uploads FROM client_qr_codes WHERE client_id = $1`, [id])).rows[0]; const pj = y => (typeof y === 'string' ? JSON.parse(y) : y) || {}; return x ? { fields: pj(x.fields), checks: pj(x.checks), ticks: pj(x.ticks), uploads: pj(x.uploads) } : null; };
+    const factsNow = async id => S.factsFor({ client: { name: 'x', niche_key: null, trade: 'Landscaper Gardener' }, cv: VALUES[id], row: await rowNow(id) });
+    const qrLines = f => { const t = trackerOf({ niche_known: true, missing: [], place_id: true, qr: f }); return { needs: t.needs.filter(n => /^qr_/.test(n.key)), done: t.done.filter(d => /^qr_/.test(d.key)) }; };
+
+    chk('The dot is grey for a client with nothing saved: not started, no Tracker line', (await get(other)).status.dot === 'none' && R.status({ record: R.recordValues({}), row: null }).dot === 'none' && qrLines(await factsNow(other)).needs.length === 0 && qrLines(null).needs.length === 0);
+    chk('The niche falls back to the old trade name for a client not sorted yet', S.nicheLabelOf({ niche_key: null, trade: 'Landscaper Gardener' }) === 'Landscapers/Gardeners' && S.nicheLabelOf({ niche_key: 'other', trade: '' }) === '' && S.nicheLabelOf({ niche_key: null, trade: 'Wizard' }) === '');
+    v = (await post(edens, 'check')).json;
+    chk('The funnel link was put back after its code was checked: amber, waiting on a person', v.status.dot === 'wait' && !v.status.upload_ready && v.status.prepare_ready, v.status);
+    let lines = qrLines(await factsNow(edens));
+    chk('Prepare has passed and the codes are not all checked: "Make the 3 QR codes in QR.io" is open, Brandon\'s by default', lines.needs.map(n => n.text).join() === 'Make the 3 QR codes in QR.io' && lines.needs[0].tab === 'cards' && T.ownerOf({ key: 'qr_codes', tab: 'cards' }) === 'brandon', lines);
+    let hand = await svc.handoff(edens);
+    chk('Not all checked: the Brief gets the funnel link and nothing else', hand.funnel === 'https://edensedge.example/review-us/' && hand.ready === false && hand.claim_link === '' && hand.files.length === 0 && hand.dot === 'wait', hand);
+    ANSWERS['https://qr.io/r/bad'] = hop('https://qr.io/r/bad', 'https://someone-else.example/');
+    v = (await sendFile(edens, 'review', await png('https://qr.io/r/bad'), 'bad.png')).json;
+    chk('A failed check turns the dot red', v.status.dot === 'block' && v.status.failed && (await factsNow(edens)).dot === 'block');
+    ANSWERS[SHORT.review] = hop(SHORT.review, 'https://edensedge.example/review-us/');
+    clock = new Date('2026-11-14T15:00:00Z');
+    v = (await sendFile(edens, 'review', reviewPng, 'review.png')).json;
+    chk('All three checked: the dot is green', v.status.dot === 'ok' && v.status.upload_ready && v.upload.ready, v.status);
+    lines = qrLines(await factsNow(edens));
+    chk('The Tracker task closes itself: nothing to do, and "The 3 QR codes made in QR.io and checked" is done with the date', lines.needs.length === 0 && lines.done.length === 1 && lines.done[0].key === 'qr_codes_done' && lines.done[0].at === '2026-11-14T15:00:00.000Z', lines);
+    hand = await svc.handoff(edens);
+    chk('All three checked: the Brief gets the two referral links and the three files, named by their QR names with the file\'s own type', hand.ready && hand.claim_link === EDENS_LINK && hand.services_link === 'https://edensedge.example' && hand.files.map(f => `${f.use}: ${f.name}`).join(' | ') === 'Review card QR: Landscapers Edens Edge Review Funnel QR Code.png | Referral QR 1 (Scan to claim): Landscapers Edens Edge Scan to Claim QR Code.svg | Referral QR 2 (View our services): Landscapers Edens Edge View Our Services QR Code.png', hand);
+    const dl = await new Promise((resolve, reject) => { const u = new URL(`${url(edens)}/file/claim?download=1`, base); http.get({ hostname: u.hostname, port: u.port, path: u.pathname + u.search }, res => { res.resume(); res.on('end', () => resolve(res.headers['content-disposition'])); }).on('error', reject); });
+    chk('A file downloads under its QR name', /Landscapers Edens Edge Scan to Claim QR Code\.svg/.test(dl), dl);
+    const CBR = require(path.join(root, 'card-brief/rules.js'));
+    const cardBrief = CBR.build({ record: CBR.recordValues({ cv: VALUES[edens], clientName: 'x', qr: hand }), saved: {}, qr: hand });
+    chk('[T1] The card Brief with the hand-off: the funnel on the review card line, the WhatsApp link, "QR files supplied? yes", and its placeholders for the three links gone', cardBrief.brief.includes('- Review Us funnel link (review card QR): https://edensedge.example/review-us/\n') && cardBrief.brief.includes(`- "Scan to claim" link (referral QR 1): ${EDENS_LINK.trimEnd()}\n`) && cardBrief.brief.includes('- QR files supplied? yes — 3 files attached.') && !cardBrief.readiness.missing.some(m => CBR.QR_LINES.includes(m.key)), cardBrief.readiness);
+    v = (await put(edens, { set: { website_temporary: true } })).json;
+    lines = qrLines(await factsNow(edens));
+    chk('Temporary URL ticked: its own Tracker line opens, and stays while the codes are otherwise done', lines.needs.map(n => n.text).join() === 'Update the View Our Services QR destination once the domain is live' && lines.done.length === 1 && T.ownerOf({ key: 'qr_services_url', tab: 'cards' }) === T.ownerOf({ key: 'anything', tab: 'cards' }), lines);
+    v = (await put(edens, { set: { website_temporary: false } })).json;
+    chk('Unticked by hand: the line closes', qrLines(await factsNow(edens)).needs.length === 0);
 
     chk('A key that is not a field is refused', (await put(edens, { set: { company_name: 'X' } })).status === 400);
     chk('Nothing the tab did touched Client Values', JSON.stringify(VALUES) === before);

@@ -42,6 +42,8 @@
     "site_connect": "site",
     "site_pages": "site",
     "legal": "site",
+    "qr_codes": "brandon",
+    "qr_codes_done": "brandon",
     "cards_approval": "brandon",
     "cards_order": "brandon",
     "onb_domain": "site",
