@@ -318,6 +318,11 @@ function judge({ slot, decoded = '', chain = null, prepare: p } = {}) {
   // Step 4: another code's destination
   const other = keys.find(k => k !== slot && reaches(k, targets[k], urls));
   if (other) return out('failed', 'red', `This code goes to ${NOUN[other]}, not ${NOUN[slot]}. Move it to the ${codeName(other)} slot.`, done);
+  // A code that forwards to Google (seen on the first real QR.io code, 14 Nov: qr.codes → g.page/r/…/review).
+  // On the review card that is the mistake the funnel exists to stop: 1 to 3 star customers would go straight to Google.
+  const google = urls.slice(1).find(isGoogleLink);
+  if (google && slot === 'review') return out('failed', 'red', `This code goes straight to Google (${place(google)}), not the Review Us funnel. In QR.io, change its destination to the funnel link, then press Re-check.`, done);
+  if (google) return out('failed', 'red', `This code goes to Google (${place(google)}), not ${NOUN[slot]}.`, done);
   if (slot === 'claim' && targets.claim) {
     const w = urls.map(whatsappOf).filter(Boolean)[0];
     if (w && w.phone !== targets.claim.phone) return out('failed', 'red', `This code opens WhatsApp for ${w.phone || 'no number'}, not ${targets.claim.phone}. Make it again from the link in Prepare.`, done);

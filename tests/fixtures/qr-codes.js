@@ -345,6 +345,9 @@ const WEB = {
     r4 = await sendFile(edens, 'claim', await png('https://qr.io/r/elsewhere'), 'e.png');
     chk('A code that lands somewhere else says where', slotOf(r4.json, 'claim').message === 'This code goes to someone-else.example/page, not WhatsApp.', slotOf(r4.json, 'claim').message);
     r4 = await sendFile(edens, 'claim', await png('https://qr.io/r/dead'), 'd.png');
+    // The first real QR.io code (Brandon, 14 Nov): a qr.codes short link that forwards to a Google review link and on to Google's sign in
+    const REAL = hop('https://qr.codes/6uigw0', 'https://g.page/r/CXCDhacGpClwEBM/review', 'https://search.google.com/local/writereview?placeid=ChIJx', 'https://accounts.google.com/v3/signin/identifier?continue=x');
+    chk('A review code that forwards straight to a Google review link says so, and what to change in QR.io', R.judge({ slot: 'review', decoded: 'https://qr.codes/6uigw0', chain: REAL, prepare: v.prepare }).message === 'This code goes straight to Google (g.page/r/CXCDhacGpClwEBM/review), not the Review Us funnel. In QR.io, change its destination to the funnel link, then press Re-check.' && R.judge({ slot: 'review', decoded: 'https://qr.codes/6uigw0', chain: REAL, prepare: v.prepare }).state === 'failed' && R.judge({ slot: 'services', decoded: 'https://qr.codes/6uigw0', chain: REAL, prepare: v.prepare }).message === 'This code goes to Google (g.page/r/CXCDhacGpClwEBM/review), not the website.', R.judge({ slot: 'review', decoded: 'https://qr.codes/6uigw0', chain: REAL, prepare: v.prepare }).message);
     chk('A short link that does not answer says why', /could not be followed: no answer in 10 seconds/.test(slotOf(r4.json, 'claim').message));
     r4 = await sendFile(edens, 'claim', await svg(SHORT.claim), 'claim.svg');
     chk('The right code uploaded again replaces the bad one: all green again', r4.json.upload.ready === true);
