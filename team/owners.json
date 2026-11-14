@@ -1,0 +1,41 @@
+{
+  "_note": "Who does each Tracker step (Brandon, 14 Nov 2026). A step's owner is its own line in by_step, else its prefix in by_prefix, else the tab it is done on in by_tab, else the default. A change of owner is a line here, not code. The roles are jobs, not people: the People list on Settings says who holds each one.",
+  "roles": {
+    "ops": "Operations",
+    "site": "Site and images",
+    "citations": "Citations",
+    "brandon": "Brandon"
+  },
+  "seed_people": [
+    { "name": "Brandon", "role": "brandon" },
+    { "name": "Ray", "role": "ops" },
+    { "name": "Given", "role": "site" },
+    { "name": "Citations team", "role": "citations" }
+  ],
+  "default": "ops",
+  "by_tab": {
+    "clients": "ops",
+    "record": "ops",
+    "locations": "ops",
+    "research": "ops",
+    "page-map": "ops",
+    "pages": "ops",
+    "trade-facts": "ops",
+    "gbp": "ops",
+    "gbp-posts": "ops",
+    "reviews": "ops",
+    "rankings": "ops",
+    "site-audit": "ops",
+    "citations": "citations",
+    "images": "site",
+    "cards": "site"
+  },
+  "by_prefix": {
+    "onb_": "ops"
+  },
+  "by_step": {
+    "push": "site",
+    "onb_domain": "site",
+    "ask": "brandon"
+  }
+}

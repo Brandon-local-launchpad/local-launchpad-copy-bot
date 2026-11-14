@@ -11,6 +11,7 @@
 // `next` is the first need, the one line the clients table shows.
 
 const { stepsOf: onboardingSteps } = require('../ghl-onboarding/rules');
+const { tag: tagOwners } = require('../team/rules');
 const plural = (n, one, many) => `${n} ${n === 1 ? one : many || one + 's'}`;
 
 function trackerOf(f) {
@@ -135,6 +136,9 @@ function trackerOf(f) {
     if (line && !line.auto) { line.auto = true; line.at = s.finished_at || line.at; if (s.detail) line.detail = s.detail; }
     else if (!BY_STEP[s.step]) done.push({ key: 'auto_' + s.step, text: UPKEEP_DONE[s.step] || s.label, tab: s.tab || 'pages', at: s.finished_at, auto: true, detail: s.detail || undefined });
   }
+
+  // The task board (team/rules.js): who does each step, and the SOP it is done from
+  tagOwners(needs);
 
   return { done, needs, later, running: f.running || [], next: needs[0] || null, automation: { enabled: !!auto.enabled, waiting: auto.waiting || null, stopped: auto.steps.some(s => s.status === 'failed') } };
 }

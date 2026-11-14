@@ -4493,6 +4493,9 @@ uiRoutes.mountUiApi(app, { pool, tradeFacts, runners: () => ({ category: categor
 if (pool && filloutService) require('./fillout/chase').mountChaseApi(app, { chase: require('./fillout/chase').createChase({ pool, filloutService }) });
 // Onboarding answers from GHL (ghl-onboarding/): the Record tab's card, the Done ticks, the Dashboard's unmatched list
 if (ghlOnboarding) ghlOnboardingRoutes.mountApi(app, ghlOnboarding);
+// The task board's People list (team/service.js): who holds each job; the owners themselves are team/owners.json
+const teamService = pool ? require('./team/service').createTeam({ pool }) : null;
+require('./team/service').mountTeamApi(app, { team: teamService });
 uiRoutes.mountAppShell(app, path.join(__dirname, 'public'));
 // ── The automation chain (automation/runner.js, 10 Nov): for a client with Automation on, the next
 // step starts when the last has finished, through the app's own run routes, and stops at every approval.
@@ -4851,6 +4854,7 @@ initDb().then(async () => {
       }, 60000);
     }
   }
+  if (teamService) await require('./team/service').ensureTeamTables(pool).catch(err => console.error('[team] tables failed:', err.message));
   // Tell Brandon: the alerts every 15 minutes (the first two minutes after start), the morning email checked every minute
   if (tellBrandon) {
     await require('./brandon/service').ensureBrandonTables(pool).catch(err => console.error('[brandon] tables failed:', err.message));

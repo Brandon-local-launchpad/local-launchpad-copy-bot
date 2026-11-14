@@ -1,0 +1,19 @@
+{
+  "_note": "The SOP each Tracker step is done from (14 Nov 2026). A step's SOP is its own line in by_step, else its tab's in by_tab; a step with neither has no SOP yet and is listed as such on Settings. A new SOP is a line here, not code. `doc` names an entry in docs; `section` is what to look for in it; `anchor` is the Google Doc heading id when the heading has one.",
+  "docs": {
+    "relaunch": { "title": "Re-Launch 2026 SOP", "url": "https://docs.google.com/document/d/1plRNcvz8Cu32p8_teXQ_YhFtXvwQmIOLj8_adMzd_yw/edit" },
+    "images": { "title": "Phase X.8 Website Images SOP", "url": "https://docs.google.com/document/d/1g9_kiRjqIpoA9Vl8FNWoThR1o3ELGbPzOqgBtIUZB80/edit" }
+  },
+  "by_step": {
+    "citations_scan": { "doc": "relaunch", "section": "Phase X.4 Scan the Customer's Listings" },
+    "citations_submit": { "doc": "relaunch", "section": "Phase X.5 Submit the Citations" },
+    "citations_wait": { "doc": "relaunch", "section": "Phase X.5 Submit the Citations: Verification" },
+    "auto_citations": { "doc": "relaunch", "section": "Phase X.7 Gap Check and Monthly Upkeep", "anchor": "h.1zp1k0jrqsi4" },
+    "onb_domain": { "doc": "relaunch", "section": "Phase X.0 Buy the Customer's Domain" }
+  },
+  "by_tab": {
+    "citations": { "doc": "relaunch", "section": "Phase X.3 Citations Setup" },
+    "images": { "doc": "images", "section": "Website Images" },
+    "cards": { "doc": "relaunch", "section": "Phase X.8 Review & Referral Cards", "anchor": "h.4fzlmj6ceyjb" }
+  }
+}

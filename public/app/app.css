@@ -388,3 +388,15 @@ pre.block { background: #fafbfc; border: 1px solid var(--border); border-radius:
 .queue-who .sub { display: block; color: var(--muted); font-size: 12.5px; }
 @media (max-width: 700px) { .trk-cols, .queue-row { grid-template-columns: 1fr; } }
 .trk-auto { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 10px 20px; border-top: 1px solid var(--border); background: var(--accent-soft); }
+
+/* The task board (14 Nov 2026): who does a step, the SOP link, the My tasks list */
+.tag.owner { background: var(--accent-soft); color: var(--accent-ink); }
+.tag.owner.r-site { background: #e7f6ec; color: #15803d; }
+.tag.owner.r-citations { background: #fdf3e3; color: #b45309; }
+.tag.owner.r-brandon { background: #f1e8ff; color: #6d28d9; }
+.sop-link { font-size: 12px; color: var(--muted); text-decoration: underline; white-space: nowrap; }
+.sop-link:hover { color: var(--accent-ink); }
+.trk-list.tasks { max-height: none; }
+.people-row { display: grid; grid-template-columns: minmax(110px, 1fr) minmax(130px, 180px) auto; gap: 8px; align-items: center; padding: 6px 0; }
+.people-row.off { opacity: .55; }
+.people-row .btn-row { flex-wrap: nowrap; }
