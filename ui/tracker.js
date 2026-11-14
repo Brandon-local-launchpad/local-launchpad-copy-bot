@@ -11,7 +11,7 @@
 // `next` is the first need, the one line the clients table shows.
 
 const { stepsOf: onboardingSteps } = require('../ghl-onboarding/rules');
-const { tag: tagOwners, handStepsOf, taskSteps, stageOf } = require('../team/rules');
+const { tag: tagOwners, handStepsOf, taskSteps, tagDone, doneTasks } = require('../team/rules');
 const plural = (n, one, many) => `${n} ${n === 1 ? one : many || one + 's'}`;
 
 function trackerOf(f) {
@@ -180,6 +180,7 @@ function trackerOf(f) {
     later += hs.later;
   }
   for (const t of taskSteps(f.tasks, f.now)) needs.push(t);
+  for (const d of doneTasks(f.tasks_done)) done.push(d);
 
   // A line Copybot did through the chain says so, with when (and the cost where the step knows it)
   const UPKEEP_DONE = { competitors: 'Google competitors checked again', citations: 'Directories scanned again', posts: 'Next post batch drafted' };
@@ -193,8 +194,9 @@ function trackerOf(f) {
 
   // The task board (team/rules.js): who does each step, and the SOP it is done from
   tagOwners(needs);
-  // The boards (team/board.json): the stage a finished line sits under on its client's board
-  for (const d of done) { const stage = stageOf(d); if (stage) d.stage = stage; }
+  // The boards (team/board.json): whose Done column a finished line goes in, and its stage
+
+  tagDone(done);
 
   return { done, needs, later, running: f.running || [], next: needs[0] || null, automation: { enabled: !!auto.enabled, waiting: auto.waiting || null, stopped: auto.steps.some(s => s.status === 'failed') } };
 }

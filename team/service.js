@@ -53,7 +53,10 @@ async function loadFacts(pool) {
   for (const r of (await pool.query(`SELECT client_id, step_key, done_by, done_at FROM team_step_ticks WHERE done = TRUE`)).rows) { if (!ticks.has(r.client_id)) ticks.set(r.client_id, {}); ticks.get(r.client_id)[r.step_key] = { by: r.done_by || '', at: r.done_at }; }
   const names = new Map((await pool.query(`SELECT id, name FROM team_people`)).rows.map(p => [p.id, p.name]));
   for (const r of (await pool.query(`SELECT id, client_id, text, role, person_id, due, created_by, created_at FROM team_tasks WHERE done_at IS NULL ORDER BY id`)).rows) { if (!tasks.has(r.client_id)) tasks.set(r.client_id, []); tasks.get(r.client_id).push({ id: r.id, text: r.text, role: r.role, person_id: r.person_id || null, person: names.get(r.person_id) || '', due: r.due || '', by: r.created_by || '', at: r.created_at }); }
-  return { ticks, tasks };
+  // The finished one off tasks, the newest first: the Done column of the boards
+  const tasksDone = new Map();
+  for (const r of (await pool.query(`SELECT id, client_id, text, role, person_id, done_by, done_at FROM team_tasks WHERE done_at IS NOT NULL ORDER BY done_at DESC`)).rows) { if (!tasksDone.has(r.client_id)) tasksDone.set(r.client_id, []); tasksDone.get(r.client_id).push({ id: r.id, text: r.text, role: r.role, person_id: r.person_id || null, done_by: r.done_by || '', done_at: r.done_at }); }
+  return { ticks, tasks, tasksDone };
 }
 
 // The four Brandon named, once, on an empty table: after that the list is the team's to change

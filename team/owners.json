@@ -35,6 +35,10 @@
   },
   "by_step": {
     "push": "site",
+    "pushed": "site",
+    "cards_approval_done": "brandon",
+    "cards_order_done": "brandon",
+    "onb_domain_done": "site",
     "site_connect": "site",
     "site_pages": "site",
     "legal": "site",

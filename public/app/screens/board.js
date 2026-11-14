@@ -4,7 +4,9 @@
 //   /board?who=<id>      one person: columns for that person's own work (team/board.json
 //                        `columns`, by job), a card per client in each column it has a step in
 //   /board/<client id>   one client: the same six stage columns, each open step a card in the
-//                        stage it belongs to, tagged with who does it; what is done underneath
+//                        stage it belongs to, tagged with who does it; then a Done column
+// The person and client views end in a Done column: what is finished, in that person's area
+// (team/rules.js tagDone gives each finished line its owner) or on that client.
 // Nobody moves a card: the stage, the column and the steps come with the dashboard row
 // (ui/dashboard.js, ui/tracker.js, team/rules.js), so a card goes when its step is done.
 
@@ -63,14 +65,25 @@ export async function render(root, params, ctx) {
         ${steps.slice(0, 3).map(s => `<span class="next">${h(s.text)}</span>`).join('')}${steps.length > 3 ? `<span class="next muted">and ${steps.length - 3} more</span>` : ''}
         <span class="tags">${waitChip(steps)}${steps.some(s => s.urgent) ? '<span class="tag block">urgent</span>' : ''}</span></a>`).join(''));
     }).join('');
+    // Done: what is finished in this person's area on every client, the newest first, then the undated
+    const fin = clients.flatMap(c => ((c.tracker && c.tracker.done) || []).filter(d => isMine(d, who)).map(d => ({ c, d })))
+      .sort((a, b) => (b.d.at ? new Date(b.d.at).getTime() : 0) - (a.d.at ? new Date(a.d.at).getTime() : 0));
+    const SHOW = 40;
+    const doneCol = column('Done', fin.length, `${fin.slice(0, SHOW).map(({ c, d }) => doneCard(c, d, false)).join('')}${fin.length > SHOW ? `<p class="muted small" style="margin:4px">and ${fin.length - SHOW} older</p>` : ''}`, 'done');
     root.innerHTML = `<div class="ph"><div class="ph-title"><h1>${h(who.name)}'s board</h1><div class="ph-meta">${h(roleLabel(who.role))} · ${h(plural(total, 'step'))} on ${h(plural(clients.filter(c => mine.get(c.id).length).length, 'client'))} · a client shows in each column it has something waiting in</div></div>
         <div class="ph-actions">${picker('')}</div></div>
       ${tabs(who)}
-      <div class="board">${cols}</div>
+      <div class="board">${cols}${doneCol}</div>
       ${total ? '' : `<p class="muted" style="margin-top:12px">Nothing is waiting on ${h(who.name)}.</p>`}`;
   };
 
-  // ── One client: the six stages, each open step a card in its stage with who does it ──
+  // A finished line in a Done column: what was done, by Copybot or a person, and when. On a client's board it says
+  // whose area it was in; on a person's board, which client.
+  const doneCard = (c, d, withOwner) => `<a class="board-card quiet done" href="${attr(stepHref(c.id, d.tab))}" data-link>
+      <span class="next" style="margin:0">${h(d.text)}</span>
+      <span class="tags">${withOwner ? stepOwnerTag(d) : `<span class="tag">${h(c.name)}</span>`}${d.auto ? '<span class="tag accent">automatic</span>' : ''}${d.at ? `<span class="small muted">${timeEl(d.at)}</span>` : ''}</span></a>`;
+
+  // ── One client: the six stages, each open step a card in its stage with who does it, then Done ──
   const taskCard = (c, s) => {
     const where = s.key === 'ask' ? `/clients/${c.id}` : stepHref(c.id, s.tab);
     return `<div class="board-card task${s.urgent ? ' urgent' : ''}"><a class="name" href="${attr(where)}" data-link>${h(s.text)}</a>
@@ -86,13 +99,12 @@ export async function render(root, params, ctx) {
     const at = x => (stages.includes(x.stage) ? x.stage : stages.includes(c.stage) ? c.stage : stages[0]);
     const steps = stepsOf(c), done = t.done || [];
     const cols = stages.map(stage => {
-      const open = steps.filter(s => at(s) === stage), fin = done.filter(d => at(d) === stage);
-      const body = `${open.map(s => taskCard(c, s)).join('')}${fin.length ? `<div class="board-done"><span class="small muted">Done</span>${fin.map(d => `<a href="${attr(stepHref(c.id, d.tab))}" data-link>${h(d.text)}${d.at ? ` <span class="muted">${timeEl(d.at)}</span>` : ''}</a>`).join('')}</div>` : ''}`;
-      return column(`${h(stage)}${stage === c.stage ? ' <span class="tag accent" style="text-transform:none;letter-spacing:0">here now</span>' : ''}`, open.length, body, stage === c.stage ? 'now' : '');
-    }).join('');
+      const open = steps.filter(s => at(s) === stage);
+      return column(`${h(stage)}${stage === c.stage ? ' <span class="tag accent" style="text-transform:none;letter-spacing:0">here now</span>' : ''}`, open.length, open.map(s => taskCard(c, s)).join(''), stage === c.stage ? 'now' : '');
+    }).join('') + column('Done', done.length, done.map(d => doneCard(c, d, true)).join(''), 'done');
     root.innerHTML = `<div class="ph"><div class="ph-title"><div class="small muted"><a href="/board" data-link>Board</a> / ${h(c.name)}</div><h1>${h(c.name)}</h1><div class="ph-meta">${h(c.stage)} · ${h(plural(steps.length, 'step'))} waiting on a person${t.later ? ` · ${t.later} more open up once these are done` : ''}${c.running ? ' · something is running' : ''}</div></div>
         <div class="ph-actions">${picker(c.id)}<a class="btn btn-ghost" href="/clients/${attr(c.id)}" data-link>Open the client</a></div></div>
-      <div class="board">${cols}</div>`;
+      <div class="board stages">${cols}</div>`;
   };
 
   const draw = () => {
