@@ -9,7 +9,7 @@ import { loadTeam } from './team.js';
 const NAV = [
   { path: '/dashboard', label: 'Dashboard', ico: '▦' },
   { path: '/tasks', label: 'My tasks', ico: '☑' },
-  { path: '/board', label: 'Board', ico: '▥' },
+  { path: '/board', label: 'Board', ico: '▥', match: /^\/board(\/|$)/ },
   { path: '/clients', label: 'Clients', ico: '👥', match: /^\/clients(\/|$)/ },
   { path: '/add-client', label: 'Add client', ico: '＋' },
   { path: '/niches', label: 'Niche library', ico: '▤', match: /^\/niches(\/|$)/ },
@@ -24,6 +24,7 @@ const ROUTES = [
   { re: /^\/dashboard\/?$/, load: () => import('./screens/dashboard.js') },
   { re: /^\/tasks\/?$/, load: () => import('./screens/tasks.js') },
   { re: /^\/board\/?$/, load: () => import('./screens/board.js') },
+  { re: /^\/board\/([0-9a-f-]{36})\/?$/, load: () => import('./screens/board.js'), params: m => ({ clientId: m[1] }) },
   { re: /^\/clients\/?$/, load: () => import('./screens/clients.js') },
   { re: /^\/add-client\/?$/, load: () => import('./screens/add-client.js') },
   { re: /^\/clients\/([0-9a-f-]{36})\/pages\/([a-z]+)\/(.+)$/, load: () => import('./screens/page.js'), params: m => ({ clientId: m[1], type: m[2], key: decodeURIComponent(m[3]) }) },
