@@ -11,6 +11,10 @@
 // there by hand stays.
 
 const WIDTHS = { hero: 1920, content: 1200, gallery: 1200, card: 800, owner: 800 };
+// Given's sizes for the templates (14 Nov 2026): a background is 1920 x 1080 at most and 1600 x 1000 at least; a
+// content image is 800 x 600 at least. images/pick.js holds a photo to the minimums before it can fill the slot.
+const HERO = { width: 1920, height: 1080, minWidth: 1600, minHeight: 1000 };
+const CONTENT_MIN = { width: 800, height: 600 };
 const QUALITY = 80;
 const kindOf = slot => String(slot).split(':')[0];
 const widthFor = slot => WIDTHS[kindOf(slot)] || 1200;
@@ -43,7 +47,14 @@ async function shrink(bytes, slot, crop = null, width = null) {
     const left = Math.min(Math.round(c.x * W), W - 1), top = Math.min(Math.round(c.y * H), H - 1);
     src = await sharp(up.data).extract({ left, top, width: Math.max(1, Math.min(Math.round(c.w * W), W - left)), height: Math.max(1, Math.min(Math.round(c.h * H), H - top)) }).toBuffer();
   }
-  const out = await sharp(src, { failOn: 'none' }).rotate().resize({ width: width || widthFor(slot), withoutEnlargement: true }).webp({ quality: QUALITY }).toBuffer({ resolveWithObject: true });
+  const w = width || widthFor(slot);
+  // A hero background is never over 1920 x 1080 (Given, 14 Nov 2026). With no crop from a person the photo is cut
+  // to that shape round its busiest part; with one, their box is kept whole and fitted inside it
+  const hero = kindOf(slot) === 'hero';
+  const size = hero
+    ? { width: w, height: Math.round(w * HERO.height / HERO.width), fit: c ? 'inside' : 'cover', ...(c ? {} : { position: 'attention' }) }
+    : { width: w };
+  const out = await sharp(src, { failOn: 'none' }).rotate().resize({ ...size, withoutEnlargement: true }).webp({ quality: QUALITY }).toBuffer({ resolveWithObject: true });
   return { bytes: out.data, width: out.info.width, height: out.info.height };
 }
 
@@ -107,4 +118,4 @@ function notPlaced(acf, now = {}) {
   return out;
 }
 
-module.exports = { WIDTHS, QUALITY, widthFor, kindOf, cleanCrop, cropKey, shrink, fileName, fieldsFor, notPlaced, idOf };
+module.exports = { WIDTHS, HERO, CONTENT_MIN, QUALITY, widthFor, kindOf, cleanCrop, cropKey, shrink, fileName, fieldsFor, notPlaced, idOf };

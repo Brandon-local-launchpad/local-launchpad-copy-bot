@@ -24,7 +24,8 @@ const GALLERY = 6;
 const RUNNERS = 5;
 // What sharp can read and a browser can show once it is WebP
 const WEB_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
-const MIN_WIDTH = 800, HERO_WIDTH = 1600;
+const { HERO, CONTENT_MIN } = require('./place');
+const MIN_WIDTH = 800, HERO_WIDTH = HERO.minWidth, HERO_HEIGHT = HERO.minHeight;
 const PEOPLE = new Set(['team', 'van', 'premises', 'logo']);
 
 const norm = s => String(s == null ? '' : s).trim().toLowerCase();
@@ -39,14 +40,18 @@ function describe(row, note) {
   if (!WEB_TYPES.has(String(row.mime_type || ''))) unusable = `${String(row.mime_type || 'this type').replace('image/', '').toUpperCase()} can't go on the site`;
   else if (row.width && row.width < MIN_WIDTH) unusable = `only ${row.width}px wide`;
   else if (type === 'reject') unusable = 'rejected in the photo sort';
-  const heroShape = wide === true && row.width >= HERO_WIDTH;
+  // Given's minimum for a background (14 Nov 2026): 1600 x 1000. A photo with no size on file is not held to it
+  const heroSize = (!row.width || row.width >= HERO_WIDTH) && (!row.height || row.height >= HERO_HEIGHT);
+  const heroShape = wide === true && heroSize;
   return {
     file_id: row.file_id, name: row.name, kind: row.kind, label: row.label, width: row.width || null, height: row.height || null, web_link: row.web_link || '',
     // A photo a person added by hand (images/uploads.js) carries its own alt text and where it came from
     noted: !!note, type, score: note && note.score != null ? note.score : null, shows: note ? note.shows : (row.kind === 'upload' ? row.alt || '' : ''), staff_face: !!(note && note.staff_face),
     source: row.kind === 'upload' ? row.source || 'stock' : '',
     // The notes decide when there are any, but never past the shape: a tall or small photo can't fill a banner
-    hero: note ? note.hero && wide !== false && (!row.width || row.width >= 1200) : heroShape,
+    hero: note ? note.hero && wide !== false && heroSize : heroShape,
+    // and for a content image: 800 x 600
+    content_ok: (!row.width || row.width >= CONTENT_MIN.width) && (!row.height || row.height >= CONTENT_MIN.height),
     service: '', note_service: note ? note.service : '', unusable,
     rank: (note && note.score != null ? note.score : 0) * 1e9 + (row.width || 0) * (row.height || 0),
   };
@@ -146,14 +151,14 @@ function pickImages({ rows = [], photos = [], notes = null, groups = null, cards
     // one of theirs where there is a hero quality one, else the site's graphic shows and the page is listed.
     // An illustration, or no answer: the graphic on every page, and code never fills the slot.
     const heroWhy = heroChoice === 'photo'
-      ? `The site's graphic shows here: ${pool.length ? `no photo of ${what(r)} suits a hero` : `there are no photos of ${what(r)} yet`}. Ask the client for a wide, clean shot of the finished work, at least ${HERO_WIDTH}px across.`
+      ? `The site's graphic shows here: ${pool.length ? `no photo of ${what(r)} suits a hero` : `there are no photos of ${what(r)} yet`}. Ask the client for a wide, clean shot of the finished work, at least ${HERO_WIDTH} by ${HERO_HEIGHT}px.`
       : heroChoice === 'illustration' ? 'The client chose an illustration, so the site\'s graphic shows here.'
         : 'No hero answer on the onboarding form, so the site\'s graphic shows here.';
     const heroId = put('hero', 'Hero background', work.filter(p => p.hero && (!p.type || p.type === 'finished job')), notBase('hero', base.hero), heroWhy, heroChoice === 'photo');
     const heroSlot = slots[slots.length - 1];
     // An empty hero is not a gap: the template's graphic is there. graphic: true tells the screen and the counts
     if (!heroSlot.pick && !heroSlot.chosen) heroSlot.graphic = true;
-    const contentId = put('content', 'Content image', work.filter(p => !p.type || p.type === 'finished job' || p.type === 'before-after'), notBase('content', base.content), pool.length ? `No second photo of ${what(r)}.` : `No photos of ${what(r)} yet.`);
+    const contentId = put('content', 'Content image', work.filter(p => p.content_ok && (!p.type || p.type === 'finished job' || p.type === 'before-after')), notBase('content', base.content), pool.length ? `No second photo of ${what(r)}.` : `No photos of ${what(r)} yet.`);
     if (r.type === 'service' || r.type === 'category') basePicks.set(identity, { hero: heroId, content: contentId });
     if (r.type !== 'service' && r.type !== 'town_service') {
       for (const target of cards.get(r.slug) || []) {
