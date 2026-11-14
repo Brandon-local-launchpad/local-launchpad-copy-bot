@@ -3302,6 +3302,25 @@ if (pool) require('./card-brief/routes').mount(app, require('./card-brief/servic
   baseTown: async id => (filloutService ? ((await require('./page-map/store').inputsFor(filloutService, id)) || {}).baseTown || '' : ''),
   pageRows: async id => (pageMapStore ? pageMapStore.saved(id) : []),
 }));
+// ── The hero graphic brief (hero-brief/, 14 Nov 2026) ─────────────────────────
+// The card at the top of the Images tab: the ChatGPT brief and prompt for a graphic hero, filled
+// from the record. A person copies it; Copybot makes no picture and sends nothing.
+if (pool) {
+  const HB = require('./hero-brief/service');
+  HB.mount(app, HB.createHeroBrief({
+    pool,
+    loadValues: async id => {
+      const { rows } = await pool.query(`SELECT content FROM client_assets WHERE client_id = $1 AND asset_type = 'client_values' ORDER BY uploaded_at DESC LIMIT 1`, [id]);
+      return rows.length ? require('./fillout/to-values').withoutUnconfirmed(JSON.parse(rows[0].content)) : {};
+    },
+    baseTown: async id => (filloutService ? ((await require('./page-map/store').inputsFor(filloutService, id)) || {}).baseTown || '' : ''),
+    stemFor: category => nicheStemFor(category),
+    formAnswer: async (id, key) => {
+      const { rows } = await pool.query(`SELECT value FROM client_fields WHERE client_id = $1 AND field_key = $2`, [id, key]);
+      return rows.length ? rows[0].value : '';
+    },
+  }));
+}
 async function loadV3Context(clientId, cv, niche) {
   if (!pageMapStore) return null;
   const rows = await pageMapStore.saved(clientId);

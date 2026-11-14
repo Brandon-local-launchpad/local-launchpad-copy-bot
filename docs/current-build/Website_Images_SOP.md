@@ -55,6 +55,20 @@ The top of the tab says what the customer chose on the onboarding form.
 
 ⚠️ Never put a stock photo in a hero for a customer who asked for a real photo of their work.
 
+**Make a graphic hero in ChatGPT**
+
+The Hero graphic brief card at the top of the tab writes the brief and the prompt for you. Copybot does not make the picture.
+
+1. Check the lines Copybot filled: Niche, Business location, Main scene and Specific items to include. Change any that are wrong for this customer. For a service page's own graphic, change Niche to that service.
+2. Type the three brand colours, each with its name and hex code, like Dark green #0B3D2E. The little square beside the box shows the colour.
+3. Pick the Headline position and the Lighting.
+4. The card says ready to copy when nothing is missing. Press Copy the brief and prompt.
+5. Press Open the reference image and save it.
+6. In ChatGPT, add the reference image, paste, and send.
+7. Add the picture to the hero slot: press Choose on the slot and drop the file in.
+
+Put back a line you changed with Use the usual.
+
 **Fill empty slots with stock photos**
 
 Only do this for a slot marked Empty where the customer has no photo of that service (for example the Garden Steps card when they sent no photos of steps).

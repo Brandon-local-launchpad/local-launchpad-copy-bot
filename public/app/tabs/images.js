@@ -2,6 +2,7 @@
 // person swaps and approves here; then each approved page's pictures are shrunk, uploaded and placed on the
 // staging site, one page at a time. An empty slot stays empty and is listed.
 import { h, attr, api, card, empty, failed, toast, confirm, dialog, busy, plural, fmtDate, pill } from '../ui.js';
+import { renderHeroBrief } from './hero-brief.js';
 
 const TYPE_LABEL = { homepage: 'Homepage', category: 'Category', service: 'Service', location: 'Location', location_category: 'Location category', town_service: 'Town service' };
 
@@ -11,6 +12,9 @@ export async function render(el, ctx) {
   const thumb = id => (isAdded(id) ? `/api/clients/${clientId}/images/photo/${encodeURIComponent(id)}?size=thumb` : `/api/clients/${clientId}/gbp-posts/photo/${encodeURIComponent(id)}?size=thumb`);
   // A cropped slot is shown as it will look on the site
   const slotThumb = (page, s) => (s.crop ? `/api/clients/${clientId}/images/preview?identity=${encodeURIComponent(page.identity)}&slot=${encodeURIComponent(s.slot)}&width=320&v=${encodeURIComponent([s.pick, s.crop.x, s.crop.y, s.crop.w, s.crop.h].join('_'))}` : thumb(s.pick));
+  // Two boxes that load by themselves: the hero graphic brief, then the pictures
+  el.innerHTML = '<div id="heroBrief" style="margin-bottom:16px"></div><div id="imgMain"></div>';
+  const main = el.querySelector('#imgMain');
   let S = null, filter = 'all', note = '', failedPlaces = [];
 
   const photoTip = p => [p.shows || p.name, p.score != null ? `Score ${p.score}` : 'No notes', p.width ? `${p.width} x ${p.height}` : ''].filter(Boolean).join(' · ');
@@ -43,7 +47,7 @@ export async function render(el, ctx) {
     if (!S) return;
     const m = S.summary, d = S.drive;
     if (!d.read && !S.pages.length) {
-      el.innerHTML = card({ title: 'Images', sub: 'A photo for every slot on every page.', body: empty({ title: 'Nothing to show yet', text: 'This client has no pages in the build yet. Generate the page map first.' }) });
+      main.innerHTML = card({ title: 'Images', sub: 'A photo for every slot on every page.', body: empty({ title: 'Nothing to show yet', text: 'This client has no pages in the build yet. Generate the page map first.' }) });
       return;
     }
     const shown = S.pages.filter(p => filter === 'all' || (filter === 'empty' ? p.slots.some(s => !s.pick && !s.graphic) : filter === 'todo' ? !p.approved && p.slots.some(s => s.pick) : p.approved));
@@ -60,7 +64,7 @@ export async function render(el, ctx) {
       m.services_with_no_folder.length ? `No photo folder for: ${m.services_with_no_folder.join(', ')}.` : '',
     ].filter(Boolean);
     const tabs = [['all', `All (${S.pages.length})`], ['todo', 'To approve'], ['empty', 'With an empty slot'], ['approved', `Approved (${m.approved})`]];
-    el.innerHTML = card({ title: 'Images', sub: `${d.read ? `Read from Drive ${h(fmtDate(d.last_ok_at, true))}. ` : ''}Code picks; you swap, add and crop, then approve; then the approved pages go to the site.`, body: `
+    main.innerHTML = card({ title: 'Images', sub: `${d.read ? `Read from Drive ${h(fmtDate(d.last_ok_at, true))}. ` : ''}Code picks; you swap, add and crop, then approve; then the approved pages go to the site.`, body: `
       ${lines.map(l => `<p class="small" style="margin:0 0 4px">${h(l)}</p>`).join('')}
       <div class="btn-row" style="margin-top:10px">
         ${canApproveAll ? '<button class="btn btn-ghost btn-sm" data-act="approve-all">Approve every page</button>' : ''}
@@ -75,7 +79,7 @@ export async function render(el, ctx) {
 
   const load = async () => {
     try { S = await api(`/api/clients/${clientId}/images`); draw(); }
-    catch (err) { el.innerHTML = card({ title: 'Images', body: failed({ title: 'The images could not be loaded', reason: err.message }) }); }
+    catch (err) { main.innerHTML = card({ title: 'Images', body: failed({ title: 'The images could not be loaded', reason: err.message }) }); }
   };
 
   // A photo at full size, with what the photo sort said about it (13 Nov, Brandon: the tiles are too small to judge)
@@ -241,6 +245,7 @@ export async function render(el, ctx) {
     } catch (err) { toast(err.message, 'bad'); }
   });
 
-  el.innerHTML = card({ title: 'Images', body: '<p class="small muted">Loading…</p>' });
+  main.innerHTML = card({ title: 'Images', body: '<p class="small muted">Loading…</p>' });
+  renderHeroBrief(el.querySelector('#heroBrief'), ctx).catch(err => console.error('[hero-brief]', err));
   await load();
 }
