@@ -7,7 +7,9 @@
 // the finished codes. No QR.io API, no QR.io login, no browser automation.
 // Brandon's brief: docs/current-build/QR_Codes_Subtab_Brief.md. The team's steps by hand: the
 // SOP "Client QR Codes (QR.io)".
-// Stage 1 (this file so far): the five fields at the top of the subtab.
+// Stage 1: the five fields at the top of the subtab. Stage 2, Prepare: the folder name, the three
+// QR names, the WhatsApp message and link, and whether each code's destination has passed its
+// check (code only, no model: the message is fixed text and is never reworded).
 // Pure: no database, no network. qr-codes/service.js keeps the tab's own values.
 //   nicheWord        the niche label's text before the first "/"
 //   normaliseNumber  the WhatsApp number rule: 447 and nine digits, or not valid
@@ -15,6 +17,13 @@
 //   recordValues     what the record gives each field, and where from
 //   clean            one typed value, tidied; { error } for one that is refused
 //   build            the record, the tab's saved values → every field with its notes
+//   folderName       {niche}-{business}, the business name exactly as written
+//   qrName           {niche} {business} {code} QR Code, the business name without apostrophes
+//   whatsappMessage  the fixed claim message, ending in a space for the customer's name
+//   whatsappUrl      https://wa.me/{number}?text={message, everything encoded}
+//   linkResult       what a followed link's answer means for its code
+//   prepare          the fields and the saved checks → the folder, and each code's name,
+//                    destination and state (ready, unchecked, failed or locked)
 // A saved key among AUTO is an override of the record's value (a blank one included): it is
 // never written back to the Record tab.
 
@@ -136,4 +145,61 @@ function build({ record = {}, saved = {} } = {}) {
   return { fields, website_temporary: temporary };
 }
 
-module.exports = { AUTO, KEYS, LABELS, MOBILE_NEEDED, GOOGLE_REFUSED, nicheWord, looksPlural, normaliseNumber, isGoogleLink, isHttps, isLink, recordValues, clean, build };
+// ── Stage 2: Prepare ──
+// The three codes, in the order they are made
+const CODES = [
+  { key: 'review', name: 'Review Funnel', card: 'A5 review card', field: 'review_funnel_url' },
+  { key: 'claim', name: 'Scan to Claim', card: 'Referral card back, QR 1', field: 'whatsapp_number' },
+  { key: 'services', name: 'View Our Services', card: 'Referral card back, QR 2', field: 'website_url' },
+];
+// The two destinations Copybot fetches. Scan to Claim passes on the number rule alone.
+const CHECKED = ['review', 'services'];
+
+const folderName = (niche, business) => `${line(niche)}-${line(business)}`;
+const qrName = (niche, business, codeName) => `${line(niche)} ${line(business).replace(/['’‘`]/g, '')} ${codeName} QR Code`;
+// Fixed text (Brandon). The trailing space stays: the customer types their name straight after it.
+const whatsappMessage = business => `Hey ${line(business)}, I've been given one of your referral cards and I'd like to claim the offer on it. My name is `;
+// Everything encoded, the characters encodeURIComponent leaves alone included (' ! ( ) *)
+const encodeAll = text => encodeURIComponent(text).replace(/[!'()*]/g, ch => `%${ch.charCodeAt(0).toString(16).toUpperCase()}`);
+const whatsappUrl = (number, business) => `https://wa.me/${number}?text=${encodeAll(whatsappMessage(business))}`;
+
+// What a followed link's answer means. r: qr-codes/links.js follow(); key: review or services
+function linkResult(key, r = {}) {
+  if (r.error) return { ok: false, message: `The link could not be checked: ${r.error}.` };
+  if (r.status !== 200) return { ok: false, message: `The link answered ${r.status}, not 200.` };
+  if (key === 'review' && isGoogleLink(r.finalUrl)) return { ok: false, message: 'This link forwards straight to Google. The code must go through the Review Us funnel.' };
+  return { ok: true, message: '' };
+}
+
+// fields: build().fields; temporary: the Temporary URL tick; checks: { review, services }, each
+// the last check of that destination: { url, ok, message, status, final_url, at, hand, by }.
+// A check counts only for the link it was made on: a changed link is unchecked again.
+function prepare({ fields = {}, temporary = false, checks = {} } = {}) {
+  const v = k => (fields[k] ? fields[k].value : '');
+  const niche = v('qr_niche_label'), business = v('qr_business_name');
+  const named = !!niche && !!business;
+  const number = normaliseNumber(v('whatsapp_number'));
+  const destination = { review: v('review_funnel_url'), claim: number.valid && business ? whatsappUrl(number.value, business) : '', services: v('website_url') };
+
+  const codes = CODES.map(c => {
+    const out = { key: c.key, name: c.name, card: c.card, qr_name: named ? qrName(niche, business, c.name) : '', destination: destination[c.key], state: 'ready', level: 'green', message: '', check: null };
+    const lock = message => ({ ...out, state: 'locked', level: 'grey', message });
+    if (!named) return lock('Fill in the niche and the business name first.');
+    if (c.key === 'claim') return number.valid ? { ...out, message: 'The number is a UK mobile.' } : lock(MOBILE_NEEDED);
+    if (fields[c.field].problem) return lock(fields[c.field].problem);
+    const chk = checks[c.key] && checks[c.key].url === out.destination ? checks[c.key] : null;
+    if (!chk) return { ...out, state: 'unchecked', level: 'grey', message: 'Not checked yet.' };
+    out.check = { ok: !!chk.ok, hand: !!chk.hand, by: chk.by || '', at: chk.at || null, status: chk.status || null, final_url: chk.final_url || '' };
+    if (!chk.ok) return { ...out, state: 'failed', level: 'red', message: chk.message || 'The link did not pass its check.' };
+    if (c.key === 'services' && temporary) return { ...out, level: 'amber', message: 'Temporary URL. Change the destination of the code in QR.io once the domain is live.' };
+    return { ...out, message: chk.hand ? 'Checked by hand.' : 'The link answers 200.' };
+  });
+  return {
+    folder: named ? folderName(niche, business) : '',
+    message: business ? whatsappMessage(business) : '',
+    codes,
+    ready: codes.every(c => c.state === 'ready'),
+  };
+}
+
+module.exports = { CODES, CHECKED, folderName, qrName, whatsappMessage, whatsappUrl, linkResult, prepare, AUTO, KEYS, LABELS, MOBILE_NEEDED, GOOGLE_REFUSED, nicheWord, looksPlural, normaliseNumber, isGoogleLink, isHttps, isLink, recordValues, clean, build };

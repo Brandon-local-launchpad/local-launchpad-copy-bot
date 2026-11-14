@@ -2,7 +2,10 @@
 // Fixture: the QR codes subtab (qr-codes/, 14 Nov 2026, Brandon). Stage 1, the fields: the niche
 // word, the WhatsApp number rule, a Google link refused as the review funnel, what the record
 // fills and where from, an override kept on the tab and never written to the record, the
-// Temporary URL tick. Brandon's tests 2 (the landline) and 3 (the Google link) are marked.
+// Temporary URL tick. Stage 2, Prepare: the folder name, the QR names, the fixed WhatsApp message
+// and its link, the link follower (links.js, on a fake fetch: no network), each code's state, the
+// link checks and the pass by hand. Brandon's tests 1 (the names and the link, word for word),
+// 2 (the landline), 3 (the Google link) and 5 (Smith & Son's) are marked.
 // Postgres in memory, a real express app on a local port. Nothing is sent anywhere.
 const path = require('path');
 const http = require('http');
@@ -13,13 +16,15 @@ const { newDb, DataType } = require('pg-mem');
 const R = require(path.join(root, 'qr-codes/rules.js'));
 const S = require(path.join(root, 'qr-codes/service.js'));
 const N = require(path.join(root, 'fillout/niches.js'));
+const L = require(path.join(root, 'qr-codes/links.js'));
+const CB = require(path.join(root, 'card-brief/rules.js'));
 
 let pass = 0, fail = 0;
 const chk = (label, ok, got = '', want = '') => {
   if (ok) { console.log('✓ ' + label); pass++; }
   else    { console.log('✗ ' + label + '\n  got:  ' + (typeof got === 'string' ? got : JSON.stringify(got)) + '\n  want: ' + want); fail++; }
 };
-console.log('\n=== FIXTURE: the QR codes subtab (stage 1: the fields) ===\n');
+console.log('\n=== FIXTURE: the QR codes subtab (the fields, Prepare and the link checks) ===\n');
 
 // http.request, not fetch: a fixture that fetches its own server aborts at exit on Windows
 const call = (base, method, p, body) => new Promise((resolve, reject) => {
@@ -73,6 +78,51 @@ chk('A niche word that is not a plural trade is flagged, not stopped', /plural/.
 b = R.build({ record: R.recordValues({}), saved: {} });
 chk('Nothing on the record: every field says what it is needed for', R.KEYS.every(k => b.fields[k].problem), b.fields);
 
+// ── Stage 2: Prepare ──
+const EDENS_LINK = 'https://wa.me/447700900123?text=Hey%20Eden%27s%20Edge%2C%20I%27ve%20been%20given%20one%20of%20your%20referral%20cards%20and%20I%27d%20like%20to%20claim%20the%20offer%20on%20it.%20My%20name%20is%20';
+const EDGE = "Eden's Edge", SMITH = "Smith & Son's";
+chk('[T1] The folder is Landscapers-Eden\'s Edge, the name exactly as written', R.folderName('Landscapers', EDGE) === "Landscapers-Eden's Edge");
+chk('[T1] The QR names drop the apostrophe and nothing else', R.CODES.map(c => R.qrName('Landscapers', EDGE, c.name)).join(' | ') === 'Landscapers Edens Edge Review Funnel QR Code | Landscapers Edens Edge Scan to Claim QR Code | Landscapers Edens Edge View Our Services QR Code');
+chk('The message is the fixed text and ends in a space', R.whatsappMessage(EDGE) === "Hey Eden's Edge, I've been given one of your referral cards and I'd like to claim the offer on it. My name is ");
+chk('[T1] The WhatsApp link for Eden\'s Edge on 07700 900123, character for character', R.whatsappUrl(R.normaliseNumber('07700 900123').value, EDGE) === EDENS_LINK, R.whatsappUrl('447700900123', EDGE), EDENS_LINK);
+chk('The link decodes back to the message, trailing space and all', decodeURIComponent(EDENS_LINK.split('?text=')[1]) === R.whatsappMessage(EDGE));
+chk('[T5] Smith & Son\'s: folder Builders-Smith & Son\'s, names Builders Smith & Sons …, and & is %26', R.folderName('Builders', SMITH) === "Builders-Smith & Son's" && R.qrName('Builders', SMITH, 'Scan to Claim') === 'Builders Smith & Sons Scan to Claim QR Code' && R.whatsappUrl('447700900123', SMITH).includes('Hey%20Smith%20%26%20Son%27s%2C%20') && !/[&'!()*]/.test(R.whatsappUrl('447700900123', "Smith & (Son's)!*").split('?text=')[1]));
+chk('A curly apostrophe is dropped from a QR name too', R.qrName('Roofers', 'O’Neill Roofing', 'Review Funnel') === 'Roofers ONeill Roofing Review Funnel QR Code');
+chk('The Cards tab\'s WhatsApp button follows the same rule: a mobile only', CB.whatsappLink('07700 900123') === 'https://wa.me/447700900123' && CB.whatsappLink('023 8000 0000') === '' && CB.whatsappLink('+44 7700 900123') === 'https://wa.me/447700900123');
+
+const withFunnel = saved => R.build({ record: rec, saved: { review_funnel_url: 'https://edensedge.example/review-us/', ...saved } });
+const okCheck = url => ({ url, ok: true, status: 200, final_url: url, at: '2026-11-14T10:00:00.000Z' });
+const st = p => p.codes.map(c => `${c.key}:${c.state}`).join(' ');
+let pr = R.prepare({ fields: withFunnel({}).fields });
+chk('Before any check: the two links are unchecked, Scan to Claim is ready on the number alone', st(pr) === 'review:unchecked claim:ready services:unchecked' && pr.ready === false && pr.folder === "Landscapers-Eden's Edge" && pr.codes[1].destination === EDENS_LINK, pr.codes);
+pr = R.prepare({ fields: withFunnel({}).fields, checks: { review: okCheck('https://edensedge.example/review-us/'), services: okCheck('https://edensedge.example') } });
+chk('Both links answered 200: all three ready', st(pr) === 'review:ready claim:ready services:ready' && pr.ready === true && pr.codes.every(c => c.level === 'green'));
+pr = R.prepare({ fields: withFunnel({ website_url: 'https://new.example' }).fields, checks: { review: okCheck('https://edensedge.example/review-us/'), services: okCheck('https://edensedge.example') } });
+chk('A check counts only for the link it was made on: a changed link is unchecked again', st(pr) === 'review:ready claim:ready services:unchecked');
+pr = R.prepare({ fields: withFunnel({}).fields, temporary: true, checks: { services: okCheck('https://edensedge.example') } });
+chk('Temporary URL: ready, but amber', pr.codes[2].state === 'ready' && pr.codes[2].level === 'amber' && /Temporary URL/.test(pr.codes[2].message));
+pr = R.prepare({ fields: R.build({ record: land, saved: { review_funnel_url: 'https://edensedge.example/review-us/' } }).fields, checks: { review: okCheck('https://edensedge.example/review-us/'), services: okCheck('https://edensedge.example') } });
+chk('[T2] A landline: Scan to Claim is locked with the mobile message and has no link; the other two carry on', st(pr) === 'review:ready claim:locked services:ready' && pr.codes[1].message === 'Needs a UK mobile number with WhatsApp on it' && pr.codes[1].destination === '' && pr.ready === false);
+pr = R.prepare({ fields: R.build({ record: rec, saved: { qr_niche_label: '' } }).fields });
+chk('No niche: no folder, no names, every code locked', pr.folder === '' && pr.codes.every(c => c.state === 'locked' && c.qr_name === ''));
+chk('A link\'s answer: 200 passes; 404, an error, and a funnel that forwards to Google do not', R.linkResult('review', { status: 200, finalUrl: 'https://x.example/r' }).ok && /404, not 200/.test(R.linkResult('services', { status: 404, finalUrl: 'https://x.example' }).message) && /could not be checked: no answer in 10 seconds/.test(R.linkResult('services', { status: null, error: 'no answer in 10 seconds' }).message) && /straight to Google/.test(R.linkResult('review', { status: 200, finalUrl: 'https://g.page/r/Cx/review' }).message) && R.linkResult('services', { status: 200, finalUrl: 'https://www.google.com/' }).ok);
+
+// ── Following a link (a fake fetch: nothing leaves this machine) ──
+const fakeFetch = map => async (url, opts) => {
+  const r = map[url];
+  if (r === 'hang') return new Promise((_, reject) => { opts.signal.addEventListener('abort', () => reject(Object.assign(new Error('aborted'), { name: 'AbortError' }))); });
+  if (!r) throw Object.assign(new Error('fetch failed'), { cause: { code: 'ENOTFOUND' } });
+  return { status: r.status, headers: { get: k => (k.toLowerCase() === 'location' ? r.location || null : null) }, body: { cancel: async () => {} } };
+};
+const WEB = {
+  'https://a.example/': { status: 200 },
+  'https://b.example/old': { status: 301, location: '/new' },
+  'https://b.example/new': { status: 302, location: 'https://a.example/' },
+  'https://c.example/': { status: 404 },
+  'https://loop.example/': { status: 302, location: 'https://loop.example/' },
+  'https://slow.example/': 'hang',
+};
+
 // ── The service and the routes ──
 (async () => {
   const mem = newDb();
@@ -83,7 +133,11 @@ chk('Nothing on the record: every field says what it is needed for', R.KEYS.ever
   const add = async name => (await pool.query(`INSERT INTO clients (name, trade) VALUES ($1, 'x') RETURNING id`, [name])).rows[0].id;
   const edens = await add('ednes edge testing'), other = await add('Kestrel Ridge Roofing');
   const VALUES = { [edens]: { ...FULL }, [other]: { phone: '023 8000 0000' } };
-  const svc = S.createQrCodes({ pool, loadValues: async id => VALUES[id], nicheLabel: async id => { if (id === other) throw new Error('the niche is down'); return 'Landscapers/Gardeners'; }, log: { error: () => {} } });
+  const fetched = [];
+  let ANSWERS = {};
+  const follow = async u => { fetched.push(u); return ANSWERS[u] || { status: 200, finalUrl: u, hops: [] }; };
+  let clock = new Date('2026-11-14T10:00:00Z');
+  const svc = S.createQrCodes({ pool, follow, now: () => clock, loadValues: async id => VALUES[id], nicheLabel: async id => { if (id === other) throw new Error('the niche is down'); return 'Landscapers/Gardeners'; }, log: { error: () => {} } });
   const app = express(); app.use(express.json());
   S.mount(app, svc, { log: { error: () => {} } });
   const server = await new Promise(r => { const s = app.listen(0, '127.0.0.1', () => r(s)); });
@@ -95,6 +149,22 @@ chk('Nothing on the record: every field says what it is needed for', R.KEYS.ever
   const before = JSON.stringify(VALUES);
 
   try {
+    // The follower
+    let f = await L.follow('https://a.example/', { fetchImpl: fakeFetch(WEB) });
+    chk('A link that answers 200', f.status === 200 && f.finalUrl === 'https://a.example/' && !f.error && f.hops.length === 1, f);
+    f = await L.follow('https://b.example/old', { fetchImpl: fakeFetch(WEB) });
+    chk('Redirects are followed hop by hop, a relative one too', f.status === 200 && f.finalUrl === 'https://a.example/' && f.hops.map(x => x.status).join() === '301,302,200', f);
+    f = await L.follow('https://c.example/', { fetchImpl: fakeFetch(WEB) });
+    chk('A 404 is reported as 404', f.status === 404 && !f.error);
+    f = await L.follow('https://loop.example/', { fetchImpl: fakeFetch(WEB) });
+    chk('More than 10 redirects stops', /more than 10 redirects/.test(f.error) && f.hops.length === 11, f);
+    f = await L.follow('https://slow.example/', { fetchImpl: fakeFetch(WEB), timeoutMs: 40 });
+    chk('No answer in time stops with the reason', /no answer in/.test(f.error) && f.status === null, f);
+    f = await L.follow('https://nowhere.example/', { fetchImpl: fakeFetch(WEB) });
+    chk('A host that does not exist is an error, not a crash', f.status === null && f.error === 'ENOTFOUND', f);
+    const never = async () => { throw new Error('this must not be fetched'); };
+    chk('This machine and private networks are never fetched', (await Promise.all(['http://localhost:3000/', 'http://127.0.0.1/', 'http://10.0.0.5/x', 'http://192.168.1.1/', 'http://169.254.169.254/latest', 'http://[::1]/', 'http://db.railway.internal/'].map(u => L.follow(u, { fetchImpl: never })))).every(r => /private address/.test(r.error)) && /not a web link/.test((await L.follow('ftp://a.example/', { fetchImpl: never })).error) && !L.isPrivateHost('edensedge.example') && !L.isPrivateHost('172.32.0.1'));
+
     let v = await get(edens);
     chk('The tab opens filled from the record, and nothing is stored yet', v.fields.qr_niche_label.value === 'Landscapers' && v.fields.qr_business_name.value === 'Eden\'s Edge' && v.fields.whatsapp_number.value === '447700900123' && v.fields.website_url.value === 'https://edensedge.example' && (await stored(edens)) === null, v.fields);
 
@@ -124,6 +194,41 @@ chk('Nothing on the record: every field says what it is needed for', R.KEYS.ever
     v = (await put(edens, { set: { website_temporary: false } })).json;
     chk('Unticked: the flag goes', v.website_temporary === false && !v.fields.website_url.warn && !('website_temporary' in (await stored(edens))));
     chk('reset cannot remove the funnel link (it has no record value)', (await put(edens, { reset: ['review_funnel_url'] })).json.fields.review_funnel_url.value === 'https://edensedge.example/review-us/');
+
+    // Stage 2 through the routes: the link checks
+    const post = async (id, p, body) => call(base, 'POST', `${url(id)}/${p}`, body || {});
+    await put(edens, { set: { website_temporary: false }, reset: ['website_url'] });
+    v = await get(edens);
+    chk('[T1] The tab gives the folder, the three names and the WhatsApp link', v.prepare.folder === "Landscapers-Eden's Edge" && v.prepare.codes.map(c => c.qr_name).join('|') === 'Landscapers Edens Edge Review Funnel QR Code|Landscapers Edens Edge Scan to Claim QR Code|Landscapers Edens Edge View Our Services QR Code' && v.prepare.codes[1].destination === EDENS_LINK && v.prepare.message.endsWith('My name is '), v.prepare);
+    chk('Opening the tab fetches nothing', fetched.length === 0 && st(v.prepare) === 'review:unchecked claim:ready services:unchecked');
+    ANSWERS = { 'https://edensedge.example': { status: 503, finalUrl: 'https://edensedge.example/', hops: [] } };
+    v = (await post(edens, 'check')).json;
+    chk('Check: both links are fetched; the funnel passes, the website that answers 503 fails with the reason', fetched.join(' ') === 'https://edensedge.example/review-us/ https://edensedge.example' && st(v.prepare) === 'review:ready claim:ready services:failed' && /503, not 200/.test(v.prepare.codes[2].message) && v.prepare.codes[0].check.at === '2026-11-14T10:00:00.000Z', v.prepare.codes);
+    v = (await post(edens, 'check')).json;
+    chk('A link that already has an answer is not fetched again by itself', fetched.length === 2 && st(v.prepare) === 'review:ready claim:ready services:failed');
+    chk('A link that passed cannot be passed by hand, nor can Scan to Claim', (await post(edens, 'checked-by-hand', { key: 'review', by: 'Ray' })).status === 409 && (await post(edens, 'checked-by-hand', { key: 'claim', by: 'Ray' })).status === 400);
+    clock = new Date('2026-11-14T11:00:00Z');
+    v = (await post(edens, 'checked-by-hand', { key: 'services', by: 'Ray' })).json;
+    chk('A failed link a person opened and saw working: passed by hand, with who and when', st(v.prepare) === 'review:ready claim:ready services:ready' && v.prepare.ready && v.prepare.codes[2].check.hand && v.prepare.codes[2].check.by === 'Ray' && v.prepare.codes[2].check.at === '2026-11-14T11:00:00.000Z' && v.prepare.codes[2].message === 'Checked by hand.', v.prepare.codes[2]);
+    ANSWERS = {};
+    v = (await post(edens, 'check', { keys: ['services'], all: true })).json;
+    chk('Check again fetches that one link afresh, and the fresh answer replaces the pass by hand', fetched.length === 3 && fetched[2] === 'https://edensedge.example' && v.prepare.codes[2].state === 'ready' && !v.prepare.codes[2].check.hand);
+    v = (await put(edens, { set: { website_url: 'https://temp.host.example/edens', website_temporary: true } })).json;
+    chk('The website link changed: unchecked again, the funnel\'s check kept', st(v.prepare) === 'review:ready claim:ready services:unchecked');
+    v = (await post(edens, 'check')).json;
+    chk('Checked with Temporary URL ticked: ready and amber', fetched[3] === 'https://temp.host.example/edens' && v.prepare.codes[2].state === 'ready' && v.prepare.codes[2].level === 'amber');
+    ANSWERS = { 'https://edensedge.example/review-us/': { status: 200, finalUrl: 'https://g.page/r/CedensEDGE/review', hops: [] } };
+    v = (await post(edens, 'check', { keys: ['review'], all: true })).json;
+    chk('A funnel link that forwards straight to Google fails, and cannot be passed by hand', v.prepare.codes[0].state === 'failed' && /straight to Google/.test(v.prepare.codes[0].message) && (await post(edens, 'checked-by-hand', { key: 'review', by: 'Ray' })).status === 409);
+    ANSWERS = {};
+    await post(edens, 'check', { keys: ['review'], all: true });
+    await put(edens, { set: { website_temporary: false }, reset: ['website_url'] });
+    v = (await put(edens, { set: { whatsapp_number: '023 8000 0000' } })).json;
+    chk('[T2] A landline through the routes: Scan to Claim locked, no link; the funnel carries on', v.prepare.codes[1].state === 'locked' && v.prepare.codes[1].destination === '' && v.prepare.codes[0].state === 'ready');
+    await put(edens, { reset: ['whatsapp_number'] });
+    const n = fetched.length;
+    v = (await post(other, 'check')).json;
+    chk('A client with nothing to check: nothing is fetched', fetched.length === n && v.prepare.codes.every(c => c.state === 'locked'));
 
     chk('A key that is not a field is refused', (await put(edens, { set: { company_name: 'X' } })).status === 400);
     chk('Nothing the tab did touched Client Values', JSON.stringify(VALUES) === before);

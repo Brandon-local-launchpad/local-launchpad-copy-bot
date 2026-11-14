@@ -101,7 +101,8 @@ function formatMobile(v) {
 }
 function whatsappLink(mobile) {
   const d = ukDigits(mobile);
-  return /^0\d{9,10}$/.test(d) ? `https://wa.me/44${d.slice(1)}` : '';
+  // A UK mobile only (14 Nov 2026, the QR codes rule): WhatsApp is not on a landline
+  return /^07\d{9}$/.test(d) ? `https://wa.me/44${d.slice(1)}` : '';
 }
 const looksLikeReviewLink = url => /(^|\/\/)g\.page\/r\/[^/\s]+\/review\b/i.test(str(url)) || /search\.google\.com\/local\/writereview\?placeid=[^&\s]+/i.test(str(url));
 const isHex = v => /^#[0-9a-f]{6}$/i.test(str(v));
