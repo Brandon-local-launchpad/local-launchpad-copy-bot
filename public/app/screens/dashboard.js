@@ -40,7 +40,7 @@ export async function render(root, params, ctx) {
       </div>
       <div class="stack" style="margin-top:16px">
         ${card({ title: 'Rankings', sub: 'Top 3% per client, the primary keyword, last 6 months, from the stored rank scans (one source per client)', actions: '<button class="btn btn-ghost btn-sm" id="exportPng">Export PNG</button>', body: '<div id="chart"></div>' })}
-        ${card({ title: 'Needs a person', sub: 'Every client with something to do now, the longest quiet first. Each line opens the place to do it and says who does it; My tasks has one person's list.', body: queueBody(data.clients) })}
+        ${card({ title: 'Needs a person', sub: 'Every client with something to do now, the longest quiet first. Each line opens the place to do it and says who does it; My tasks has the list for one person.', body: queueBody(data.clients) })}
         ${card({ flat: true, title: '', body: '<div id="clientsTable"></div>' })}
       </div>`;
     drawChart();
