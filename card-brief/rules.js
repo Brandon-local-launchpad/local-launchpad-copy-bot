@@ -14,8 +14,11 @@
 //   clean          one saved field, tidied; undefined for a key or value that is not one
 // A saved key among AUTO is an override of the record's value (a blank one included): it is
 // never written back to the Record tab.
-
-const R = require('../review-funnel/rules');
+// The QR codes subtab (qr-codes/, 14 Nov 2026) feeds section 3. qr is its handoff(): the review
+// card's link is the Review Us funnel typed there, never the Google review link, so 1 to 3 star
+// customers stay private. Once all three codes are checked (qr.ready) the three links are the
+// checked codes' destinations and cannot be changed here, and the brief says the QR files are
+// supplied: the skill must place them and never generate a QR from a link.
 
 const str = v => (v == null ? '' : String(v)).trim();
 const line = v => str(v).replace(/[\u0000-\u001f\u007f]+/g, ' ').replace(/\s+/g, ' ').trim();
@@ -75,7 +78,7 @@ const DEFAULTS = {
 const PLACEHOLDERS = [
   ['contact_first_name', 'Contact first name'],
   ['mobile', 'Mobile number'],
-  ['review_link', 'Google review link'],
+  ['review_link', 'Review Us funnel link'],
   ['claim_link', 'Scan-to-claim link'],
   ['services_link', 'View our services link'],
 ];
@@ -101,8 +104,13 @@ function formatMobile(v) {
 }
 function whatsappLink(mobile) {
   const d = ukDigits(mobile);
-  return /^0\d{9,10}$/.test(d) ? `https://wa.me/44${d.slice(1)}` : '';
+  // A UK mobile only (14 Nov 2026, the QR codes rule): WhatsApp is not on a landline
+  return /^07\d{9}$/.test(d) ? `https://wa.me/44${d.slice(1)}` : '';
 }
+// The three section 3 lines the checked QR codes fill
+const QR_LINES = ['review_link', 'claim_link', 'services_link'];
+const QR_SOURCE = 'from the QR codes tab: where the checked code goes';
+const looksLikeGoogle = url => /^(https?:\/\/)?([a-z0-9-]+\.)*(g\.page|goo\.gl|google\.[a-z.]{2,6})(\/|$)/i.test(str(url));
 const looksLikeReviewLink = url => /(^|\/\/)g\.page\/r\/[^/\s]+\/review\b/i.test(str(url)) || /search\.google\.com\/local\/writereview\?placeid=[^&\s]+/i.test(str(url));
 const isHex = v => /^#[0-9a-f]{6}$/i.test(str(v));
 const isLink = v => /^https?:\/\/\S+$/i.test(str(v));
@@ -131,8 +139,9 @@ const slugOf = name => line(name).toLowerCase().replace(/&/g, ' and ').replace(/
 
 // What the record gives each AUTO line, and the grey tag that says where from.
 // cv: Client Values (unconfirmed form values already blanked); clientName: the client's name in
-// Copybot; baseTown: the onboarding form's base town; pageRows: the page map's rows
-function recordValues({ cv = {}, clientName = '', baseTown = '', pageRows = [] } = {}) {
+// Copybot; baseTown: the onboarding form's base town; pageRows: the page map's rows; qr: the QR
+// codes subtab's handoff(), or null
+function recordValues({ cv = {}, clientName = '', baseTown = '', pageRows = [], qr = null } = {}) {
   const out = {};
   const company = line(cv.company_name);
   if (company) out.business_name = { value: company, source: 'from Record → Company name', note: yes(cv.company_name_gbp_checked) ? '' : 'Check this matches GBP exactly: "Checked against GBP" is not ticked on the Record tab.' };
@@ -150,8 +159,8 @@ function recordValues({ cv = {}, clientName = '', baseTown = '', pageRows = [] }
   const m = formatMobile(cv.phone);
   out.mobile = { value: m.value, source: m.value ? 'from Record → Phone' : '' };
 
-  const link = R.reviewLink(cv);
-  out.review_link = { value: link.url, source: link.source === 'typed' ? 'from Record → Google review link' : link.source === 'listing' ? 'built from the confirmed Google listing' : '' };
+  const funnel = str(qr && qr.funnel);
+  out.review_link = { value: funnel, source: funnel ? 'from the QR codes tab → Review Us funnel link' : '' };
 
   const site = siteOf(cv.live_domain);
   const hub = site && (pageRows || []).some(r => r && r.applies !== false && !r.retired_at && str(r.slug).replace(/^\/+|\/+$/g, '') === 'services');
@@ -179,8 +188,9 @@ function clean(key, value) {
   }
 }
 
-// record: recordValues(); saved: the tab's stored fields; now: for the generated line
-function build({ record = {}, saved = {}, now = new Date() } = {}) {
+// record: recordValues(); saved: the tab's stored fields; now: for the generated line; qr: the
+// QR codes subtab's handoff(), or null
+function build({ record = {}, saved = {}, now = new Date(), qr = null } = {}) {
   const has = k => Object.prototype.hasOwnProperty.call(saved, k);
   const fields = {};
   for (const k of AUTO) {
@@ -189,11 +199,17 @@ function build({ record = {}, saved = {}, now = new Date() } = {}) {
     fields[k] = { value: has(k) ? saved[k] : rec.value, record: rec.value, source: rec.source || '', overridden, note: overridden ? '' : rec.note || '', warn: '' };
   }
   for (const k of Object.keys(DEFAULTS)) fields[k] = { value: has(k) ? saved[k] : DEFAULTS[k], warn: '' };
+  // All three QR codes checked: the links are the checked codes' destinations, whatever was typed here
+  const supplied = !!(qr && qr.ready);
+  if (supplied) {
+    const from = { review_link: qr.funnel, claim_link: qr.claim_link, services_link: qr.services_link };
+    for (const k of QR_LINES) fields[k] = { value: from[k] || '', record: from[k] || '', source: QR_SOURCE, overridden: false, note: '', warn: '', locked: true };
+  }
   const v = k => fields[k].value;
 
   // Warnings: none of them stops the copy
   if (v('mobile') && !formatMobile(v('mobile')).mobile) fields.mobile.warn = 'This is not a UK mobile starting 07.';
-  if (v('review_link') && !looksLikeReviewLink(v('review_link'))) fields.review_link.warn = 'This does not look like a Google review link (g.page/r/…/review, or search.google.com/local/writereview?placeid=…).';
+  if (v('review_link') && looksLikeGoogle(v('review_link'))) fields.review_link.warn = 'This is a Google link. The review card QR must go to the Review Us funnel, so 1 to 3 star customers stay private.';
   for (const k of ['claim_link', 'services_link']) if (v(k) && !isLink(v(k))) fields[k].warn = 'This is not a full link (https://…).';
   for (const k of ['colour_main', 'colour_dark']) if (v(k) && !isHex(v(k))) fields[k].warn = 'Not a hex colour like #1A2B3C: left out of the brief until it is.';
   if (v('template') === '3d' && v('job_photo') !== 'yes') fields.job_photo.warn = 'Needed for 3d Job Photo.';
@@ -230,10 +246,13 @@ function build({ record = {}, saved = {}, now = new Date() } = {}) {
     `- Mobile number: ${v('mobile')}`,
     '',
     '## 3. Links & QR codes',
-    `- Google review link (review card QR): ${v('review_link')}`,
+    `- Review Us funnel link (review card QR): ${v('review_link')}`,
     `- "Scan to claim" link (referral QR 1): ${v('claim_link')}`,
     `- "View our services" link (referral QR 2): ${v('services_link')}`,
-    '- QR files supplied? no — generate black-on-white SVG from the links and test-scan',
+    ...(supplied ? [
+      '- QR files supplied? yes — 3 files attached. Place these files exactly as they are. Never generate a QR from a link: a generated code is static, bypasses QR.io, cannot be redirected later and its scans are not tracked',
+      ...qr.files.map(f => `  - ${f.use}: ${f.name}`),
+    ] : ['- QR files supplied? no — generate black-on-white SVG from the links and test-scan']),
     '',
     '## 4. Brand',
     `- Logo supplied? ${logo}`,
@@ -264,11 +283,12 @@ function build({ record = {}, saved = {}, now = new Date() } = {}) {
   return {
     fields, readiness, brief,
     attach: v('logo_supplied') === 'yes' || v('job_photo') === 'yes',
+    qr: { ready: supplied, dot: (qr && qr.dot) || 'none', files: supplied ? qr.files : [] },
     whatsapp: whatsappLink(v('mobile')),
   };
 }
 
 module.exports = {
   TRADES, TRADE_MAP, TEMPLATES, IMAGE_SLOTS, FEELS, SOLE, LOGO_TYPES, SIGNOFF, AUTO, DEFAULTS, PLACEHOLDERS,
-  tradeOf, formatMobile, whatsappLink, looksLikeReviewLink, isHex, siteOf, dayOf, ukToday, slugOf, recordValues, clean, build,
+  QR_LINES, tradeOf, formatMobile, whatsappLink, looksLikeGoogle, looksLikeReviewLink, isHex, siteOf, dayOf, ukToday, slugOf, recordValues, clean, build,
 };

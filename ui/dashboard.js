@@ -228,6 +228,9 @@ async function loadDashboard({ pool, tradeFacts = null, runners = {}, homepageRu
   if (teamFacts) for (const r of await soft(`SELECT client_id, block FROM site_redirect_checks WHERE kind = 'pre_launch' ORDER BY created_at`)) preLaunch.set(r.client_id, Number(r.block) > 0 ? 'block' : 'ok');
   const launchBy = new Map(teamFacts ? (await soft(`SELECT client_id, launched_at, day7_at FROM site_launches`)).map(r => [r.client_id, r]) : []);
   const cardsBy = new Map(teamFacts ? (await soft(`SELECT client_id, signoff, last_copied_at FROM client_card_briefs`)).map(r => [r.client_id, { copied_at: r.last_copied_at || null, signoff: parse(r.signoff) || {} }]) : []);
+  // The QR codes subtab (qr-codes/): each client's saved row, turned into the Tracker's facts below
+  const qrBy = new Map(teamFacts ? (await soft(`SELECT client_id, fields, checks, ticks, uploads FROM client_qr_codes`)).map(r => [r.client_id, { fields: parse(r.fields) || {}, checks: parse(r.checks) || {}, ticks: parse(r.ticks) || {}, uploads: parse(r.uploads) || {} }]) : []);
+  const qrFacts = (c, cv) => { try { return require('../qr-codes/service').factsFor({ client: c, cv: cv || {}, row: qrBy.get(c.id) || null }); } catch (err) { console.error(`[dashboard] the QR codes could not be read (${c.name}):`, err.message); return null; } };
   // Tell Brandon (brandon/service.js): what people have sent him that he has not marked done
   const brandonBy = new Map();
   for (const r of await soft(`SELECT id, client_id, reason, note, asked_by, created_at, emailed FROM brandon_asks WHERE done_at IS NULL ORDER BY created_at`)) { if (!brandonBy.has(r.client_id)) brandonBy.set(r.client_id, []); brandonBy.get(r.client_id).push({ id: r.id, reason: r.reason, note: r.note || '', by: r.asked_by || '', at: r.created_at, emailed: !!r.emailed }); }
@@ -343,6 +346,7 @@ async function loadDashboard({ pool, tradeFacts = null, runners = {}, homepageRu
         to_push: Math.max(0, pages.filter(p => p.good && p.approved).length - sizeOf(copyPushed, c.id)), images_approved: sizeOf(imagesApproved, c.id), images_placed: sizeOf(imagesPlaced, c.id), legal_pushed: sizeOf(legalPushed, c.id) } : null,
       migration: teamFacts ? { redirects_pushed: sizeOf(redirectsPushed, c.id) > 0, pre_launch: preLaunch.get(c.id) || 'none', launched_at: (launchBy.get(c.id) || {}).launched_at || null, day7_at: (launchBy.get(c.id) || {}).day7_at || null } : null,
       cards: teamFacts ? cardsBy.get(c.id) || { copied_at: null, signoff: {} } : null,
+      qr: teamFacts ? qrFacts(c, cv) : null,
     });
     { const opened = sinceBy.get(c.id) || {}; for (const n of tracker.needs) if (opened[n.key]) n.since = opened[n.key]; }
     const firstAt = c.source === 'fillout' ? firstSubmission.get(c.id) || c.created_at : null;

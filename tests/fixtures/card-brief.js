@@ -53,13 +53,17 @@ chk('The file name is the business name as a slug', R.slugOf('Eden\'s Edge Lands
 
 // ── What the record gives ──
 const FULL = { company_name: 'Edens Edge Landscaping', company_name_gbp_checked: 'yes', primary_category: 'Landscaper', owner_name: 'Ethan Hall', phone: '07580412717', email: 'ethan@edensedge.example', review_url: 'https://g.page/r/CedensEDGE/review', live_domain: 'edensedge.example/', gbp_place_id: 'ChIJ_edens_edge_own' };
-const rec = R.recordValues({ cv: FULL, clientName: 'ednes edge testing', baseTown: 'Southampton', pageRows: [] });
-chk('The record fills: name, trade, town, first name only, the mobile formatted, the review link, the site', rec.business_name.value === 'Edens Edge Landscaping' && rec.trade.value === 'landscaper' && rec.area.value === 'Southampton' && rec.contact_first_name.value === 'Ethan' && rec.mobile.value === '07580 412717' && rec.review_link.value === 'https://g.page/r/CedensEDGE/review' && rec.services_link.value === 'https://edensedge.example', rec);
-chk('Each value says where it came from', rec.business_name.source === 'from Record → Company name' && rec.mobile.source === 'from Record → Phone' && rec.contact_first_name.source === 'from Record → Owner name' && rec.trade.source === 'from Record → Primary category' && rec.review_link.source === 'from Record → Google review link' && rec.services_link.source === 'from Record → Live domain' && /Base town/.test(rec.area.source));
+// What the QR codes subtab hands over (qr-codes/rules.js handoff): the funnel link typed there; nothing else until all three codes are checked
+const QRH = { funnel: 'https://edensedge.example/review-us/', ready: false, dot: 'wait', claim_link: '', services_link: '', files: [] };
+const QR_READY = { funnel: 'https://edensedge.example/review-us/', ready: true, dot: 'ok', claim_link: 'https://wa.me/447580412717?text=Hey%20Edens%20Edge%2C%20', services_link: 'https://edensedge.example',
+  files: [{ key: 'review', use: 'Review card QR', name: 'Landscapers Edens Edge Review Funnel QR Code.png' }, { key: 'claim', use: 'Referral QR 1 (Scan to claim)', name: 'Landscapers Edens Edge Scan to Claim QR Code.svg' }, { key: 'services', use: 'Referral QR 2 (View our services)', name: 'Landscapers Edens Edge View Our Services QR Code.png' }] };
+const rec = R.recordValues({ cv: FULL, clientName: 'ednes edge testing', baseTown: 'Southampton', pageRows: [], qr: QRH });
+chk('The record fills: name, trade, town, first name only, the mobile formatted, the review link, the site', rec.business_name.value === 'Edens Edge Landscaping' && rec.trade.value === 'landscaper' && rec.area.value === 'Southampton' && rec.contact_first_name.value === 'Ethan' && rec.mobile.value === '07580 412717' && rec.review_link.value === 'https://edensedge.example/review-us/' && rec.services_link.value === 'https://edensedge.example', rec);
+chk('Each value says where it came from', rec.business_name.source === 'from Record → Company name' && rec.mobile.source === 'from Record → Phone' && rec.contact_first_name.source === 'from Record → Owner name' && rec.trade.source === 'from Record → Primary category' && rec.review_link.source === 'from the QR codes tab → Review Us funnel link' && rec.services_link.source === 'from Record → Live domain' && /Base town/.test(rec.area.source));
 chk('A company name checked against GBP carries no note; one not checked says to check it', rec.business_name.note === '' && /Check this matches GBP exactly/.test(R.recordValues({ cv: { company_name: 'X Ltd' } }).business_name.note));
 const fallback = R.recordValues({ cv: {}, clientName: 'Kestrel Ridge Roofing' });
 chk('No company name: the client\'s name, with "check this matches GBP exactly"', fallback.business_name.value === 'Kestrel Ridge Roofing' && /Check this matches GBP exactly/.test(fallback.business_name.note));
-chk('No typed review link: built from the confirmed Google listing, and says so', R.recordValues({ cv: { gbp_place_id: 'ChIJ_x' } }).review_link.value === 'https://search.google.com/local/writereview?placeid=ChIJ_x' && R.recordValues({ cv: { gbp_place_id: 'ChIJ_x' } }).review_link.source === 'built from the confirmed Google listing');
+chk('The review card\'s link is the funnel from the QR codes tab, never the record\'s Google review link: no funnel typed, nothing filled', R.recordValues({ cv: FULL }).review_link.value === '' && R.recordValues({ cv: { gbp_place_id: 'ChIJ_x' }, qr: { funnel: '' } }).review_link.value === '' && R.recordValues({ cv: FULL }).review_link.source === '');
 const hub = R.recordValues({ cv: FULL, pageRows: [{ slug: 'services', applies: true }, { slug: 'patios' }] });
 chk('The page map has a services page: the link goes to it; a row that does not apply does not count', hub.services_link.value === 'https://edensedge.example/services/' && /page map/.test(hub.services_link.source) && R.recordValues({ cv: FULL, pageRows: [{ slug: 'services', applies: false }] }).services_link.value === 'https://edensedge.example');
 chk('No email, login or ID from the record is among the values', !JSON.stringify(rec).includes('ethan@') && !JSON.stringify(rec).includes('ChIJ'));
@@ -67,7 +71,7 @@ chk('No email, login or ID from the record is among the values', !JSON.stringify
 // ── The brief, line for line ──
 const NOW = new Date('2026-11-13T10:00:00Z');
 const chosen = { claim_link: 'https://wa.me/447580412717', short_name: 'Edens Edge', sole_or_team: 'Sole trader (he)', logo_supplied: 'yes', logo_type: 'PNG transparent', logo_on_dark: 'no', colour_main: '#2f6b3a', colour_dark: '#12261a', colour_avoid: 'red', template: '3c', feel: ['premium', 'friendly'], job_photo: 'yes', example_job: 'laid our new patio', pun: 'evergreen.', must_say: 'Fully insured (small, footer)', qty_review: '250', qty_referral: '500', deadline: '2026-12-01', test_client: true };
-const full = R.build({ record: rec, saved: chosen, now: NOW });
+const full = R.build({ record: rec, saved: chosen, now: NOW, qr: QRH });
 const WANT = `/customer-revref-cards
 
 # Customer Review & Referral Cards — Client Brief
@@ -86,7 +90,7 @@ Generated by CopyBot on 13 Nov 2026 for Edens Edge Landscaping.
 - Mobile number: 07580 412717
 
 ## 3. Links & QR codes
-- Google review link (review card QR): https://g.page/r/CedensEDGE/review
+- Review Us funnel link (review card QR): https://edensedge.example/review-us/
 - "Scan to claim" link (referral QR 1): https://wa.me/447580412717
 - "View our services" link (referral QR 2): https://edensedge.example
 - QR files supplied? no — generate black-on-white SVG from the links and test-scan
@@ -120,15 +124,23 @@ chk('[T1] Everything filled: green, "Ready. Everything filled."', full.readiness
 chk('[T7] Test client ticked: the warning line sits straight under the generated line; not ticked: no such line', full.brief.split('\n')[4].startsWith('> ⚠️ **TEST CLIENT') && !R.build({ record: rec, saved: { ...chosen, test_client: false }, now: NOW }).brief.includes('TEST CLIENT'));
 chk('[T8] A logo or a job photo supplied: the attach reminder is on; neither: off', full.attach && R.build({ record: rec, saved: { job_photo: 'yes' } }).attach && !R.build({ record: rec, saved: {} }).attach);
 
+// The QR codes hand-off (14 Nov 2026): all three codes checked
+const handed = R.build({ record: R.recordValues({ cv: FULL, clientName: 'ednes edge testing', baseTown: 'Southampton', qr: QR_READY }), saved: { ...chosen, claim_link: 'https://typed.example/old', services_link: 'https://typed.example/services', review_link: 'https://typed.example/review' }, now: NOW, qr: QR_READY });
+chk('All three QR codes checked: the three links are the checked codes\' destinations, whatever was typed on this tab', handed.fields.review_link.value === QR_READY.funnel && handed.fields.claim_link.value === QR_READY.claim_link && handed.fields.services_link.value === QR_READY.services_link && R.QR_LINES.every(k => handed.fields[k].locked && !handed.fields[k].overridden && /QR codes tab/.test(handed.fields[k].source)), handed.fields);
+chk('The brief says the QR files are supplied, names the three, and tells the skill never to generate a QR from a link', handed.brief.includes('- QR files supplied? yes — 3 files attached. Place these files exactly as they are. Never generate a QR from a link: a generated code is static, bypasses QR.io, cannot be redirected later and its scans are not tracked\n  - Review card QR: Landscapers Edens Edge Review Funnel QR Code.png\n  - Referral QR 1 (Scan to claim): Landscapers Edens Edge Scan to Claim QR Code.svg\n  - Referral QR 2 (View our services): Landscapers Edens Edge View Our Services QR Code.png\n\n## 4. Brand') && !handed.brief.includes('generate black-on-white') && handed.brief.includes(`- "Scan to claim" link (referral QR 1): ${QR_READY.claim_link}\n`), handed.brief);
+chk('The placeholder bar clears: green, nothing missing, and the three files are listed for the tab', handed.readiness.level === 'green' && handed.readiness.missing.length === 0 && handed.qr.ready && handed.qr.files.length === 3 && handed.qr.dot === 'ok');
+chk('Not all checked yet: the brief still says no QR files, the links stay as they were, and nothing is locked', full.brief.includes('- QR files supplied? no — generate black-on-white SVG from the links and test-scan\n') && !full.qr.ready && full.qr.files.length === 0 && !full.fields.claim_link.locked && full.fields.claim_link.value === 'https://wa.me/447580412717');
+chk('No QR hand-off at all: the review card link is a placeholder, amber', (() => { const b = R.build({ record: R.recordValues({ cv: FULL, baseTown: 'Southampton' }), saved: chosen, now: NOW }); return b.readiness.level === 'amber' && b.readiness.text === 'Ready, with 1 placeholder: Review Us funnel link' && b.qr.dot === 'none'; })());
+
 const bare = R.build({ record: rec, saved: {}, now: NOW });
 chk('The defaults: Team, designer\'s choice, a text wordmark, the printer and paper lines, the must not say line', bare.brief.includes('- Sole trader or team? Team\n') && bare.brief.includes('- Template: designer\'s choice\n') && bare.brief.includes('- Logo supplied? no — use a text wordmark\n') && bare.brief.includes('- Printer / CMYK needed? Solopress — CMYK PDF, 3 mm bleed, crop marks on\n') && bare.brief.includes('- Must not say: Any discount or reward for leaving a review (against Google policy)\n'));
 chk('An empty value is left blank: no N/A, and no space left on the end of a line', bare.brief.includes('- Short name for the wordmark (if different):\n') && bare.brief.includes('- Feel:\n') && bare.brief.includes('- Deadline:\n') && bare.brief.includes('- Quantities: review  · referral\n') && !/N\/A/.test(bare.brief) && !/[ \t]\n/.test(bare.brief), bare.brief);
 chk('Amber: one placeholder, named, and it is in Missing details', bare.readiness.level === 'amber' && bare.readiness.text === 'Ready, with 1 placeholder: Scan-to-claim link' && bare.brief.endsWith('## Missing details\n- Scan-to-claim link — use TEST placeholder and flag\n'), bare.readiness);
 const thin = R.build({ record: R.recordValues({ cv: { company_name: 'Thin Ltd' } }), saved: {}, now: NOW });
-chk('All five amber items, in the brief\'s order', thin.readiness.text === 'Ready, with 5 placeholders: Contact first name, Mobile number, Google review link, Scan-to-claim link, View our services link' && thin.readiness.missing.map(m => m.key).join() === 'contact_first_name,mobile,review_link,claim_link,services_link');
+chk('All five amber items, in the brief\'s order', thin.readiness.text === 'Ready, with 5 placeholders: Contact first name, Mobile number, Review Us funnel link, Scan-to-claim link, View our services link' && thin.readiness.missing.map(m => m.key).join() === 'contact_first_name,mobile,review_link,claim_link,services_link');
 chk('An unmapped category goes in as "other: [category]"', R.build({ record: R.recordValues({ cv: { company_name: 'X', primary_category: 'Pressure washing service' } }) }).brief.includes('- Trade: other: Pressure washing service\n'));
 chk('A colour that is not #RRGGBB warns and is left out of the brief', (() => { const b = R.build({ record: rec, saved: { colour_main: 'green', colour_dark: '#12261a' } }); return /Not a hex colour/.test(b.fields.colour_main.warn) && b.brief.includes('- Brand colours (hex): main/accent  · dark #12261A · avoid\n'); })());
-chk('Warnings never block: a landline, a link that is not a review link, 3d with no job photo', (() => { const b = R.build({ record: rec, saved: { mobile: '023 8000 0000', review_link: 'https://edensedge.example/reviews', claim_link: 'https://x.example', template: '3d' } }); return b.readiness.level === 'green' && /not a UK mobile/.test(b.fields.mobile.warn) && /does not look like a Google review link/.test(b.fields.review_link.warn) && /Needed for 3d Job Photo/.test(b.fields.job_photo.warn); })());
+chk('Warnings never block: a landline, a Google link as the review card link, 3d with no job photo', (() => { const b = R.build({ record: rec, saved: { mobile: '023 8000 0000', review_link: 'https://g.page/r/CedensEDGE/review', claim_link: 'https://x.example', template: '3d' } }); return b.readiness.level === 'green' && /not a UK mobile/.test(b.fields.mobile.warn) && /This is a Google link/.test(b.fields.review_link.warn) && !R.build({ record: rec, saved: { claim_link: 'https://x.example' } }).fields.review_link.warn && /Needed for 3d Job Photo/.test(b.fields.job_photo.warn); })());
 chk('Nothing but the format\'s lines is in the brief: no email, no place ID', !full.brief.includes('ethan@') && !full.brief.includes('ChIJ'));
 
 chk('A saved field is tidied; one that is not a field, or not a value it can hold, is refused', R.clean('mobile', '+447700900123') === '07700 900123' && R.clean('template', '3z') === undefined && R.clean('template', '') === '' && R.clean('sole_or_team', 'Family') === undefined && R.clean('nope', 'x') === undefined && R.clean('qty_review', '1,000') === '1000' && R.clean('qty_review', 'lots') === undefined && R.clean('deadline', '1 Dec') === undefined);
@@ -155,7 +167,8 @@ chk('A card found in the wrong place takes the place the other pages share', (()
   const imageRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'card-templates-'));
   for (const t of R.TEMPLATES) for (const [kind, side] of R.IMAGE_SLOTS) { fs.mkdirSync(path.join(imageRoot, kind), { recursive: true }); fs.writeFileSync(path.join(imageRoot, kind, `${t.stem}-${side}.webp`), 'x'); }
 
-  const svc = S.createCardBrief({ pool, loadValues: async id => VALUES[id], baseTown: async id => (id === edens ? 'Southampton' : ''), pageRows: async () => { throw new Error('the page map is down'); }, imageRoot, now: () => clock, log: { error: () => {} } });
+  let QR_NOW = QRH;
+  const svc = S.createCardBrief({ pool, qrHandoff: async id => { if (id !== edens) throw new Error('the QR codes are down'); return QR_NOW; }, loadValues: async id => VALUES[id], baseTown: async id => (id === edens ? 'Southampton' : ''), pageRows: async () => { throw new Error('the page map is down'); }, imageRoot, now: () => clock, log: { error: () => {} } });
   const app = express();
   app.use(express.json());
   RT.mount(app, svc, { log: { error: () => {} } });
@@ -210,6 +223,16 @@ chk('A card found in the wrong place takes the place the other pages share', (()
     chk('[T8] Logo supplied = Yes: the attach reminder is on', v.attach === true && v.brief.includes('- Logo supplied? yes — SVG · works on dark? yes\n'));
     chk('[T11] Use this template on 3c: the preview shows "Template: 3c Deep Colour"', v.fields.template.value === '3c' && v.brief.includes('- Template: 3c Deep Colour\n'));
     chk('A value a field cannot hold is refused with the reason, and nothing is saved', await (async () => { const r = await put(edens, { set: { template: '9z', short_name: 'Should not save' } }); return r.status === 400 && /"template" cannot be saved/.test(r.json.error) && (await get(edens)).fields.short_name.value === ''; })());
+
+    // The QR codes hand-off through the service
+    QR_NOW = QR_READY;
+    v = await get(edens);
+    chk('All three QR codes checked: the tab shows the checked links, locked, and the brief lists the files', v.fields.claim_link.value === QR_READY.claim_link && v.fields.claim_link.locked && v.qr.ready && v.qr.files.length === 3 && v.brief.includes('- QR files supplied? yes — 3 files attached.'), v.fields.claim_link);
+    chk('A link typed over a locked line changes nothing in the brief', (await put(edens, { set: { claim_link: 'https://typed.example/x' } })).json.fields.claim_link.value === QR_READY.claim_link);
+    QR_NOW = QRH;
+    chk('A code no longer checked: the hand-off is withdrawn and the typed link is back', await (async () => { const x = await get(edens); return !x.qr.ready && x.fields.claim_link.value === 'https://typed.example/x' && x.brief.includes('- QR files supplied? no'); })());
+    await put(edens, { set: { claim_link: 'https://wa.me/447580412717' } });
+    chk('The QR codes cannot be read: the tab still opens, with the review card link a placeholder', await (async () => { const x = await get(blank); return x.qr.ready === false && x.fields.review_link.value === ''; })());
 
     // Last copied
     clock = new Date('2026-11-13T15:30:00Z');

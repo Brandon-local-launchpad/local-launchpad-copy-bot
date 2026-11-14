@@ -47,7 +47,8 @@ function templates(imageRoot = IMAGE_ROOT) {
 // loadValues: clientId → Client Values (unconfirmed form values already blanked)
 // baseTown:   clientId → the onboarding form's base town, or ''
 // pageRows:   clientId → the page map's rows
-function createCardBrief({ pool, loadValues, baseTown = async () => '', pageRows = async () => [], imageRoot = IMAGE_ROOT, now = () => new Date(), log = console }) {
+// qrHandoff:  clientId → the QR codes subtab's handoff() (qr-codes/service.js), or null
+function createCardBrief({ pool, loadValues, baseTown = async () => '', pageRows = async () => [], qrHandoff = async () => null, imageRoot = IMAGE_ROOT, now = () => new Date(), log = console }) {
   let ready = null;
   const q = async (sql, params) => {
     if (!ready) ready = ensureCardBriefTables(pool).catch(err => { ready = null; throw err; });
@@ -75,18 +76,20 @@ function createCardBrief({ pool, loadValues, baseTown = async () => '', pageRows
   }
 
   // What the record gives today. A part that cannot be read is left blank, never a failure of the tab.
+  // Returns { record, qr }: qr is what the QR codes subtab hands over, null when it cannot be read
   async function recordOf(client) {
     const soft = async (what, fn, empty) => { try { return await fn(); } catch (err) { log.error(`[card-brief] ${what} could not be read (${client.name}):`, err.message); return empty; } };
     const cv = (await loadValues(client.id)) || {};
     const town = await soft('the base town', () => baseTown(client.id), '');
     const rows = await soft('the page map', () => pageRows(client.id), []);
-    return R.recordValues({ cv, clientName: client.name, baseTown: town, pageRows: rows });
+    const qr = await soft('the QR codes', () => qrHandoff(client.id), null);
+    return { record: R.recordValues({ cv, clientName: client.name, baseTown: town, pageRows: rows, qr }), qr };
   }
 
   async function view(clientId) {
     const client = await clientOf(clientId);
-    const [record, row] = [await recordOf(client), await rowOf(clientId)];
-    const built = R.build({ record, saved: row.fields, now: now() });
+    const [{ record, qr }, row] = [await recordOf(client), await rowOf(clientId)];
+    const built = R.build({ record, saved: row.fields, now: now(), qr });
     return {
       client: { id: client.id, name: client.name },
       ...built,
@@ -101,7 +104,7 @@ function createCardBrief({ pool, loadValues, baseTown = async () => '', pageRows
   // set: { key: value } typed on the tab; reset: [key] back to the record's value (or the default)
   async function save(clientId, { set = {}, reset = [] } = {}) {
     const client = await clientOf(clientId);
-    const record = await recordOf(client);
+    const { record } = await recordOf(client);
     const fields = { ...(await rowOf(clientId)).fields };
     for (const [key, value] of Object.entries(set && typeof set === 'object' ? set : {})) {
       const v = R.clean(key, value);

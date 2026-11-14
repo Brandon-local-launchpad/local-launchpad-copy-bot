@@ -3,18 +3,20 @@
 // skill from a client brief. This tab builds that brief from the client record (card-brief/), lets a
 // person fill the gaps and pick the design, shows what is still missing, and has Copy brief: the
 // text is pasted into a new Claude chat. Copybot does not make the cards and sends nothing to Claude.
-// Two sub-tabs: Brief (the readiness bar, the form, the preview and Copy, the sign-off) and
+// Three sub-tabs: Brief (the readiness bar, the form, the preview and Copy, the sign-off), QR codes
+// (cards-qr.js: what a person needs to make the three codes in QR.io) and
 // Templates (the five designs with their example images, the same for every client).
 // A value typed over one the record filled is kept on this tab only, never written to the Record tab.
 
-import { h, attr, api, card, toast, failed, pill, fmtDate, copyText } from '../ui.js';
+import { h, attr, api, card, toast, failed, pill, dot, fmtDate, copyText } from '../ui.js';
+import { mount as mountQr } from './cards-qr.js';
 
 const BOX = { review: [168, 230], referral: [215, 150] };   // the example images' sizes on the gallery, each at its real proportions
 
 export async function render(el, ctx) {
   const url = `/api/clients/${ctx.clientId}/card-brief`;
   const by = () => { try { return localStorage.getItem('ll_user') || ''; } catch (_) { return ''; } };   // the name the shell keeps (shell.js userName)
-  let V = null, sub = ctx.query && ctx.query.view === 'templates' ? 'templates' : 'brief', copiedNote = false;
+  let V = null, sub = ctx.query && ['templates', 'qr'].includes(ctx.query.view) ? ctx.query.view : 'brief', copiedNote = false;
   let pending = {}, timer = null, chain = Promise.resolve();
   let box = null;   // the lightbox, when open
 
@@ -59,7 +61,7 @@ export async function render(el, ctx) {
   };
   const help = t => (t ? `<div class="small muted" style="margin-top:4px">${t}</div>` : '');
   const text = (key, label, { placeholder = '', hint = '', type = 'text', extra = '' } = {}) => `<div class="field"><label>${h(label)}</label>
-    <input class="input" type="${type}" data-f="${attr(key)}" value="${attr(val(key))}" placeholder="${attr(placeholder)}"${type === 'number' ? ' min="0" step="1"' : ''}>${extra}${meta(key)}${help(hint)}</div>`;
+    <input class="input" type="${type}" data-f="${attr(key)}" value="${attr(val(key))}" placeholder="${attr(placeholder)}"${type === 'number' ? ' min="0" step="1"' : ''}${V.fields[key].locked ? ' disabled' : ''}>${V.fields[key].locked ? '' : extra}${meta(key)}${help(hint)}</div>`;
   const select = (key, label, options, { hint = '' } = {}) => `<div class="field"><label>${h(label)}</label>
     <select class="input" data-f="${attr(key)}">${options.map(o => { const [v, l] = Array.isArray(o) ? o : [o, o]; return `<option value="${attr(v)}"${v === val(key) ? ' selected' : ''}>${h(l)}</option>`; }).join('')}</select>${meta(key)}${help(hint)}</div>`;
   const grid = (...cells) => `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:0 16px">${cells.join('')}</div>`;
@@ -98,10 +100,12 @@ export async function render(el, ctx) {
           text('contact_first_name', 'First name to call/text'),
           text('mobile', 'Mobile number', { placeholder: '07xxx xxxxxx' })))}
         ${section('3. Links & QR codes', `
-          ${text('review_link', 'Google review link (review card QR)', { hint: 'GBP → Ask for reviews → copy link' })}
+          ${text('review_link', 'Review Us funnel link (review card QR)', { hint: V.qr.ready ? '' : 'Typed on the QR codes subtab. Never the Google review link: 1 to 3 star customers must stay private.' })}
           ${text('claim_link', '"Scan to claim" link (referral QR 1)', { hint: 'WhatsApp chat link, booking or contact page', extra: wa })}
           ${text('services_link', '"View our services" link (referral QR 2)')}
-          <div class="field"><label>QR files supplied?</label><div class="small">no — generate from the links <span class="muted">(the skill makes the QR codes and test-scans them)</span></div></div>`)}
+          <div class="field" data-cb-part="qr-files"><label>QR files supplied?</label>${V.qr.ready
+            ? `<div class="small"><strong>yes</strong> — the 3 codes checked on the QR codes subtab. Download each one and attach it to the Claude chat:</div>${qrFiles()}`
+            : '<div class="small">no — generate from the links <span class="muted">(until all three codes are made and checked on the</span> <a href="#" data-cb="sub" data-sub="qr">QR codes subtab</a><span class="muted">)</span></div>'}</div>`)}
         ${section('4. Brand', `
           ${grid(select('logo_supplied', 'Logo supplied?', [['no', 'No: use a text wordmark'], ['yes', 'Yes']]),
             logoOn ? select('logo_type', 'Logo file type', V.options.logo_types) : '',
@@ -123,6 +127,9 @@ export async function render(el, ctx) {
     });
   };
 
+  // The three checked QR files, each a download named by its QR name
+  const qrFiles = () => `<div class="btn-row" style="margin-top:6px;flex-wrap:wrap">${V.qr.files.map(f => `<a class="btn btn-ghost" href="/api/clients/${ctx.clientId}/qr-codes/file/${attr(f.key)}?download=1" title="${attr(f.name)}">${h(f.use)}</a>`).join('')}</div>`;
+
   const bar = () => {
     const r = V.readiness;
     return `<div class="notice ${r.level === 'red' ? 'bad' : r.level === 'amber' ? 'warn' : 'good'}" role="status" data-level="${attr(r.level)}" style="font-weight:600;margin-bottom:16px">${h(r.text)}${r.level === 'amber' ? '<div class="small" style="font-weight:400;margin-top:2px">The skill fills these with marked TEST placeholders and lists them to swap before print. You can still copy.</div>' : ''}</div>`;
@@ -137,6 +144,7 @@ export async function render(el, ctx) {
         <div class="btn-row"><button class="btn btn-primary" data-cb="copy"${red ? ' disabled' : ''}>Copy brief</button><button class="btn btn-ghost" data-cb="download"${red ? ' disabled' : ''}>Download .md</button>
           ${copiedNote ? '<span class="small" style="color:#166534;font-weight:600">Copied. Open a new Claude chat and paste.</span>' : unsaved ? '<span class="small muted">Saving…</span>' : ''}</div>
         ${V.attach ? '<div class="small" style="margin-top:10px"><strong>Attach the logo / job photo files to the Claude chat as well. They can\'t be pasted as text.</strong></div>' : ''}
+        ${V.qr.ready ? `<div class="small" style="margin-top:10px"><strong>Attach the three QR files to the Claude chat too. The cards must use these files, never a QR made from a link.</strong></div>${qrFiles()}` : ''}
         <div class="small muted" style="margin-top:10px">${V.last_copied ? `Last copied: ${h(fmtDate(V.last_copied.at, true))}${V.last_copied.by ? ` by ${h(V.last_copied.by)}` : ''}` : 'Not copied yet'}</div>`,
     });
   };
@@ -204,9 +212,12 @@ export async function render(el, ctx) {
   function draw(after) {
     const a = document.activeElement, key = a && el.contains(a) && a.dataset ? a.dataset.f : null;
     const typed = key && a.type !== 'radio' && a.type !== 'checkbox' ? { value: a.value, start: a.selectionStart, end: a.selectionEnd } : null;
-    const tab = (k, l) => `<button type="button" class="tab${sub === k ? ' active' : ''}" data-cb="sub" data-sub="${k}">${l}</button>`;
-    el.innerHTML = `<div class="tabs" style="margin-bottom:16px">${tab('brief', 'Brief')}${tab('templates', 'Templates')}</div>
-      ${sub === 'brief' ? `${bar()}<div class="stack">${form()}${preview()}${signoff()}</div>` : gallery()}`;
+    const tab = (k, l) => `<button type="button" class="tab${sub === k ? ' active' : ''}" data-cb="sub" data-sub="${k}">${k === 'qr' ? dot(V.qr.dot) : ''}${l}</button>`;
+    el.innerHTML = `<div class="tabs" style="margin-bottom:16px">${tab('brief', 'Brief')}${tab('templates', 'Templates')}${tab('qr', 'QR codes')}</div>
+      ${sub === 'brief' ? `${bar()}<div class="stack">${form()}${preview()}${signoff()}</div>` : sub === 'templates' ? gallery() : '<div data-qr-root></div>'}`;
+    // The QR codes subtab draws itself (cards-qr.js) and keeps its own values
+    const qr = el.querySelector('[data-qr-root]');
+    if (qr) mountQr(qr, ctx, { onStatus: s => { V.qr.dot = s.dot; const d = el.querySelector('.tab[data-sub="qr"] .dot'); if (d) d.className = `dot ${s.dot || 'none'}`; } }).catch(err => { console.error('[cards]', err); toast(err.message, 'bad'); });
     // An image that will not load is shown as not added, at the same size
     el.querySelectorAll('img[data-kind]').forEach(i => i.addEventListener('error', () => { const d = document.createElement('div'); d.innerHTML = i.dataset.small ? '<div class="small muted" style="padding:6px">Example not added yet</div>' : missingBox(i.dataset.kind); i.replaceWith(d.firstElementChild); }, { once: true }));
     if (typed) {
@@ -246,7 +257,13 @@ export async function render(el, ctx) {
     const act = b.dataset.cb;
     if (b.tagName === 'A') e.preventDefault();
     if (act === 'reload') return load();
-    if (act === 'sub') { sub = b.dataset.sub; return draw(() => window.scrollTo({ top: 0 })); }
+    if (act === 'sub') {
+      // Coming back from the QR codes subtab: the Brief is read again, so it has the checked links and files
+      const leftQr = sub === 'qr' && b.dataset.sub !== 'qr';
+      sub = b.dataset.sub;
+      if (leftQr) { try { V = await api(url); } catch (err) { console.error('[cards]', err); toast(err.message, 'bad'); } }
+      return draw(() => window.scrollTo({ top: 0 }));
+    }
     if (act === 'reset') return reset(b.dataset.key);
     if (act === 'template') return put('template', b.dataset.id, true);
     if (act === 'feel') {

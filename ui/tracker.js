@@ -152,6 +152,14 @@ function trackerOf(f) {
 
   // The review and referral cards (stage 3): the brief copied, then the four sign off ticks on the Cards tab, in order.
   // Given makes the files; Brandon gets the client's approval and places the order (team/owners.json).
+  // The three QR codes (the QR codes subtab of the Cards tab, qr-codes/): made by a person in QR.io once Prepare
+  // has passed every destination, done when all three uploaded codes are checked. A temporary website link keeps
+  // its own line until Temporary URL is unticked on the subtab.
+  if (f.qr) {
+    if (f.qr.upload_ready) did('qr_codes_done', 'The 3 QR codes made in QR.io and checked', 'cards', f.qr.checked_at);
+    else if (f.qr.prepare_ready) need('qr_codes', 'Make the 3 QR codes in QR.io', 'cards', 'Follow the tick list on the QR codes subtab, then upload each code to be checked.');
+    if (f.qr.temporary) need('qr_services_url', 'Update the View Our Services QR destination once the domain is live', 'cards', 'Change the destination in QR.io, put the live link on the QR codes subtab, untick Temporary URL and press Re-check.');
+  }
   if (f.cards) {
     const so = f.cards.signoff || {}, at = k => (so[k] && so[k].at) || null;
     let open = recordReady && !!f.place_id;
