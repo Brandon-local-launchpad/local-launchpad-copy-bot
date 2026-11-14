@@ -4,9 +4,11 @@
 // server.js serves /app/index.html for every app path.
 
 import { h, api, toast } from './ui.js';
+import { loadTeam } from './team.js';
 
 const NAV = [
   { path: '/dashboard', label: 'Dashboard', ico: '▦' },
+  { path: '/tasks', label: 'My tasks', ico: '☑' },
   { path: '/clients', label: 'Clients', ico: '👥', match: /^\/clients(\/|$)/ },
   { path: '/add-client', label: 'Add client', ico: '＋' },
   { path: '/niches', label: 'Niche library', ico: '▤', match: /^\/niches(\/|$)/ },
@@ -19,6 +21,7 @@ const NAV = [
 
 const ROUTES = [
   { re: /^\/dashboard\/?$/, load: () => import('./screens/dashboard.js') },
+  { re: /^\/tasks\/?$/, load: () => import('./screens/tasks.js') },
   { re: /^\/clients\/?$/, load: () => import('./screens/clients.js') },
   { re: /^\/add-client\/?$/, load: () => import('./screens/add-client.js') },
   { re: /^\/clients\/([0-9a-f-]{36})\/pages\/([a-z]+)\/(.+)$/, load: () => import('./screens/page.js'), params: m => ({ clientId: m[1], type: m[2], key: decodeURIComponent(m[3]) }) },
@@ -103,6 +106,7 @@ document.addEventListener('click', e => {
 window.addEventListener('app:navigate', e => navigate(e.detail));
 window.addEventListener('popstate', route);
 
-// Sign out posts the form (the cookie is cleared server side); nothing else to do here
-route();
+// Sign out posts the form (the cookie is cleared server side); nothing else to do here.
+// The People list is read once before the first screen, so every step can show who does it (team.js)
+loadTeam().catch(() => {}).then(route);
 export { api, toast };
