@@ -3,18 +3,20 @@
 // skill from a client brief. This tab builds that brief from the client record (card-brief/), lets a
 // person fill the gaps and pick the design, shows what is still missing, and has Copy brief: the
 // text is pasted into a new Claude chat. Copybot does not make the cards and sends nothing to Claude.
-// Two sub-tabs: Brief (the readiness bar, the form, the preview and Copy, the sign-off) and
+// Three sub-tabs: Brief (the readiness bar, the form, the preview and Copy, the sign-off), QR codes
+// (cards-qr.js: what a person needs to make the three codes in QR.io) and
 // Templates (the five designs with their example images, the same for every client).
 // A value typed over one the record filled is kept on this tab only, never written to the Record tab.
 
 import { h, attr, api, card, toast, failed, pill, fmtDate, copyText } from '../ui.js';
+import { mount as mountQr } from './cards-qr.js';
 
 const BOX = { review: [168, 230], referral: [215, 150] };   // the example images' sizes on the gallery, each at its real proportions
 
 export async function render(el, ctx) {
   const url = `/api/clients/${ctx.clientId}/card-brief`;
   const by = () => { try { return localStorage.getItem('ll_user') || ''; } catch (_) { return ''; } };   // the name the shell keeps (shell.js userName)
-  let V = null, sub = ctx.query && ctx.query.view === 'templates' ? 'templates' : 'brief', copiedNote = false;
+  let V = null, sub = ctx.query && ['templates', 'qr'].includes(ctx.query.view) ? ctx.query.view : 'brief', copiedNote = false;
   let pending = {}, timer = null, chain = Promise.resolve();
   let box = null;   // the lightbox, when open
 
@@ -205,8 +207,11 @@ export async function render(el, ctx) {
     const a = document.activeElement, key = a && el.contains(a) && a.dataset ? a.dataset.f : null;
     const typed = key && a.type !== 'radio' && a.type !== 'checkbox' ? { value: a.value, start: a.selectionStart, end: a.selectionEnd } : null;
     const tab = (k, l) => `<button type="button" class="tab${sub === k ? ' active' : ''}" data-cb="sub" data-sub="${k}">${l}</button>`;
-    el.innerHTML = `<div class="tabs" style="margin-bottom:16px">${tab('brief', 'Brief')}${tab('templates', 'Templates')}</div>
-      ${sub === 'brief' ? `${bar()}<div class="stack">${form()}${preview()}${signoff()}</div>` : gallery()}`;
+    el.innerHTML = `<div class="tabs" style="margin-bottom:16px">${tab('brief', 'Brief')}${tab('templates', 'Templates')}${tab('qr', 'QR codes')}</div>
+      ${sub === 'brief' ? `${bar()}<div class="stack">${form()}${preview()}${signoff()}</div>` : sub === 'templates' ? gallery() : '<div data-qr-root></div>'}`;
+    // The QR codes subtab draws itself (cards-qr.js) and keeps its own values
+    const qr = el.querySelector('[data-qr-root]');
+    if (qr) mountQr(qr, ctx).catch(err => { console.error('[cards]', err); toast(err.message, 'bad'); });
     // An image that will not load is shown as not added, at the same size
     el.querySelectorAll('img[data-kind]').forEach(i => i.addEventListener('error', () => { const d = document.createElement('div'); d.innerHTML = i.dataset.small ? '<div class="small muted" style="padding:6px">Example not added yet</div>' : missingBox(i.dataset.kind); i.replaceWith(d.firstElementChild); }, { once: true }));
     if (typed) {

@@ -3302,6 +3302,26 @@ if (pool) require('./card-brief/routes').mount(app, require('./card-brief/servic
   baseTown: async id => (filloutService ? ((await require('./page-map/store').inputsFor(filloutService, id)) || {}).baseTown || '' : ''),
   pageRows: async id => (pageMapStore ? pageMapStore.saved(id) : []),
 }));
+// ── QR codes (qr-codes/, 14 Nov 2026) ─────────────────────────────────────────
+// The QR codes subtab of the Cards tab: the fields a person needs to make the client's three QR
+// codes in QR.io by hand. Its values stay in client_qr_codes; the record is never written.
+if (pool) {
+  const QR = require('./qr-codes/service');
+  QR.mount(app, QR.createQrCodes({
+    pool,
+    loadValues: async id => {
+      const { rows } = await pool.query(`SELECT content FROM client_assets WHERE client_id = $1 AND asset_type = 'client_values' ORDER BY uploaded_at DESC LIMIT 1`, [id]);
+      return rows.length ? require('./fillout/to-values').withoutUnconfirmed(JSON.parse(rows[0].content)) : {};
+    },
+    nicheLabel: async id => {
+      // The niche the client is sorted into; one not sorted yet: the niche its old trade name means
+      const N = require('./fillout/niches');
+      const { rows } = await pool.query(`SELECT niche_key, trade FROM clients WHERE id = $1`, [id]);
+      const key = rows.length ? rows[0].niche_key || N.suggestedNicheKey(rows[0].trade) : '';
+      return key && key !== 'other' ? N.nicheLabel(key) : '';
+    },
+  }));
+}
 // ── The hero graphic brief (hero-brief/, 14 Nov 2026) ─────────────────────────
 // The card at the top of the Images tab: the ChatGPT brief and prompt for a graphic hero, filled
 // from the record. A person copies it; Copybot makes no picture and sends nothing.
