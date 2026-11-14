@@ -78,8 +78,9 @@ If the customer sends one or two more photos later, add them the same way and se
 **Crop a photo**
 
 - Press Crop on any slot where the framing is off. Always check the owner photo on the homepage.
-- Pick a shape if you want one (Square, Portrait 4:5, Landscape 3:2, Wide 16:9), or leave it on Free.
+- Pick a shape, or leave it on Free. For the owner photo choose Owner photo 4:3. For a hero choose Hero 16:9.
 - Drag a box over the part to keep. For the owner photo, put the owner's face in the middle of the box.
+- The owner photo box on the website is 800 x 600, wider than it is tall. If you don't crop it, Copybot cuts the photo to that shape itself, so always look at how it came out.
 - Press Save crop. The slot now shows the cropped picture, and that is what goes on the website.
 - Remove crop puts the whole photo back.
 
@@ -117,4 +118,4 @@ If the customer sends one or two more photos later, add them the same way and se
 - Icons belong to the website design. Copybot doesn't change them.
 - Copybot only places images on a staging website. If it refuses because the site isn't marked as staging, message Brandon.
 
-⚠️ Check before the first customer: with Given, the shape of the owner photo box on the homepage, so you know which crop shape to use. With Brandon, that the Envato Elements licence covers customer websites.
+⚠️ Check before the first customer: with Brandon, that the Envato Elements licence covers customer websites.

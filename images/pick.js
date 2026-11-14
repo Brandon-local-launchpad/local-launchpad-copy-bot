@@ -168,7 +168,8 @@ function pickImages({ rows = [], photos = [], notes = null, groups = null, cards
       }
     }
     if (r.type === 'homepage') {
-      const team = brand.filter(p => p.type === 'team' || p.staff_face);
+      // Big enough for the owner photo box, 800 x 600 (Given, 14 Nov 2026)
+      const team = brand.filter(p => p.content_ok && (p.type === 'team' || p.staff_face));
       // With no notes nobody can say which Brand photo is the owner: a person chooses from them
       const got = put('owner', 'Owner photo', team, byRank, brand.length ? 'Choose the owner photo from the Brand folder.' : 'No Brand photos yet.');
       const owner = slots[slots.length - 1];
