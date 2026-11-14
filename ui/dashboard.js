@@ -210,6 +210,22 @@ async function loadDashboard({ pool, tradeFacts = null, runners = {}, homepageRu
   const onboardingBy = await require('../ghl-onboarding/service').loadOnboardingFacts(pool).catch(() => new Map());
   // The task board (team/service.js): the by hand steps a person has ticked and the open one off tasks; none where the tables are not made
   const teamFacts = await require('../team/service').loadFacts(pool).catch(() => null);
+  // The task board, stage 3: what Copybot already knows about the site build, the migration and the cards, a grouped
+  // query each (a table a fixture has not made counts as nothing). Only read when the task board's own tables are there.
+  const setsBy = rows => { const m = new Map(); for (const r of rows) { if (!m.has(r.client_id)) m.set(r.client_id, new Set()); m.get(r.client_id).add(r.v); } return m; };
+  const sizeOf = (m, id) => (m.get(id) ? m.get(id).size : 0);
+  const siteLog = teamFacts ? await soft(`SELECT client_id, action, result, entry FROM wp_push_log WHERE result LIKE 'pushed%' OR result LIKE 'placed%'`) : [];
+  const logged = (keep, value) => setsBy(siteLog.map(r => ({ client_id: r.client_id, e: parse(r.entry) || {}, action: r.action, result: r.result })).filter(keep).map(r => ({ client_id: r.client_id, v: value(r.e) })));
+  const copyPushed = logged(r => r.action === 'push' && r.result === 'pushed' && r.e.pageType !== 'legal', e => `${e.pageType || 'homepage'}:${e.page || ''}`);
+  const imagesPlaced = logged(r => r.action === 'images' && /^placed/.test(r.result), e => e.path || String(e.page || ''));
+  const redirectsPushed = logged(r => r.action === 'redirects' && /^pushed/.test(r.result), () => 'x');
+  const pagesMade = teamFacts ? setsBy((await soft(`SELECT client_id, identity AS v FROM wp_pages`))) : new Map();
+  const imagesApproved = teamFacts ? setsBy((await soft(`SELECT client_id, identity AS v FROM page_image_approvals`))) : new Map();
+  const legalPushed = teamFacts ? setsBy((await soft(`SELECT client_id, page AS v FROM legal_page_versions`))) : new Map();
+  const preLaunch = new Map();
+  if (teamFacts) for (const r of await soft(`SELECT client_id, block FROM site_redirect_checks WHERE kind = 'pre_launch' ORDER BY created_at`)) preLaunch.set(r.client_id, Number(r.block) > 0 ? 'block' : 'ok');
+  const launchBy = new Map(teamFacts ? (await soft(`SELECT client_id, launched_at, day7_at FROM site_launches`)).map(r => [r.client_id, r]) : []);
+  const cardsBy = new Map(teamFacts ? (await soft(`SELECT client_id, signoff, last_copied_at FROM client_card_briefs`)).map(r => [r.client_id, { copied_at: r.last_copied_at || null, signoff: parse(r.signoff) || {} }]) : []);
   // Tell Brandon (brandon/service.js): what people have sent him that he has not marked done
   const brandonBy = new Map();
   for (const r of await soft(`SELECT id, client_id, reason, note, asked_by, created_at, emailed FROM brandon_asks WHERE done_at IS NULL ORDER BY created_at`)) { if (!brandonBy.has(r.client_id)) brandonBy.set(r.client_id, []); brandonBy.get(r.client_id).push({ id: r.id, reason: r.reason, note: r.note || '', by: r.asked_by || '', at: r.created_at, emailed: !!r.emailed }); }
@@ -319,6 +335,12 @@ async function loadDashboard({ pool, tradeFacts = null, runners = {}, homepageRu
       citations: citeBy.get(c.id) || null, has_scans: hasScans, existing_site: existingSite, site_audit: siteAudit, running: runs,
       onboarding: onboardingBy.get(c.id) || null,
       hand: teamFacts ? { ticks: teamFacts.ticks.get(c.id) || {} } : null, tasks: teamFacts ? teamFacts.tasks.get(c.id) || [] : [],
+      // Stage 3 (ui/tracker.js): the site build, the migration's last steps and the cards. A pushed page is counted by its
+      // entry on the site, so the pages still to push are the approved ones less those (never below nothing).
+      site_build: teamFacts ? { connected: wpSites.has(c.id), inner_total: pages.filter(p => p.type !== 'homepage').length, created: sizeOf(pagesMade, c.id), pushed: sizeOf(copyPushed, c.id),
+        to_push: Math.max(0, pages.filter(p => p.good && p.approved).length - sizeOf(copyPushed, c.id)), images_approved: sizeOf(imagesApproved, c.id), images_placed: sizeOf(imagesPlaced, c.id), legal_pushed: sizeOf(legalPushed, c.id) } : null,
+      migration: teamFacts ? { redirects_pushed: sizeOf(redirectsPushed, c.id) > 0, pre_launch: preLaunch.get(c.id) || 'none', launched_at: (launchBy.get(c.id) || {}).launched_at || null, day7_at: (launchBy.get(c.id) || {}).day7_at || null } : null,
+      cards: teamFacts ? cardsBy.get(c.id) || { copied_at: null, signoff: {} } : null,
     });
     const firstAt = c.source === 'fillout' ? firstSubmission.get(c.id) || c.created_at : null;
     rows.push({

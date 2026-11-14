@@ -74,8 +74,28 @@ function trackerOf(f) {
   if (p.claims) need('claims', `Accept or reject ${plural(p.claims, 'claim')}`, 'pages', 'Each claim is something the copy says that is not on the record.');
   if (p.written > p.approved) need('approve', `Read, edit and approve ${plural(p.written - p.approved, 'page')}`, 'pages');
   const pagesDone = p.total > 0 && p.written === p.total;
-  if (f.pushed) did('pushed', `${plural(f.pushed, 'page')} pushed to WordPress`, 'pages');
-  else need('push', 'Push the homepage to WordPress', 'pages', 'Only the homepage and the legal pages can be pushed so far.', !!f.homepage_good);
+  // ── The site build (the task board, stage 3; 14 Nov 2026): the staging site, its pages, the copy, the images, the
+  // legal pages. Only for a client loaded with these facts (f.site_build); without them, the one push line as before. ──
+  const sb = f.site_build || null;
+  if (!sb) {
+    if (f.pushed) did('pushed', `${plural(f.pushed, 'page')} pushed to WordPress`, 'pages');
+    else need('push', 'Push the homepage to WordPress', 'pages', 'Only the homepage and the legal pages can be pushed so far.', !!f.homepage_good);
+  } else {
+    if (sb.connected) did('site_connect', 'Staging site connected to Copybot', 'pages');
+    else need('site_connect', 'Build the staging site from the template and connect it to Copybot', 'pages', 'The plugin installed, the field groups in, the site saved on the Pages tab.', !!f.map_pages);
+    const made = Math.min(sb.created, sb.inner_total);
+    if (made) did('site_pages', `${made} of ${plural(sb.inner_total, 'page')} made on the staging site`, 'pages');
+    if (made < sb.inner_total) need('site_pages', `Create ${plural(sb.inner_total - made, 'page')} on the staging site`, 'pages', 'Pages on the site, on the Pages tab: Check the site, then Create.', sb.connected);
+    if (sb.pushed) did('pushed', `The copy of ${plural(sb.pushed, 'page')} pushed to the staging site`, 'pages');
+    if (sb.to_push) need('push', `Push the copy of ${plural(sb.to_push, 'approved page')} to the staging site`, 'pages', 'Pages on the site, on the Pages tab: Check the copy, then Push the copy.', sb.connected);
+    const imgLeft = Math.max(0, p.total - sb.images_approved), toPlace = Math.max(0, sb.images_approved - sb.images_placed);
+    if (sb.images_approved) did('images', `Images approved for ${plural(sb.images_approved, 'page')}`, 'images');
+    if (p.total && imgLeft) need('images_approve', `Pick and approve the images for ${plural(imgLeft, 'page')}`, 'images', 'Check the picks, fill the gaps, then approve each page.', sb.pushed > 0);
+    if (sb.images_placed) did('images_placed', `Images placed on ${plural(sb.images_placed, 'page')}`, 'images');
+    if (toPlace) need('images_place', `Place the images of ${plural(toPlace, 'approved page')} on the staging site`, 'images', 'Staging only, behind a confirm.');
+    if (sb.legal_pushed >= 3) did('legal', 'The three legal pages pushed', 'record');
+    else need('legal', 'Push the three legal pages', 'record', 'Record tab, Legal pages: all three or none. A hold there says what is missing.', sb.connected && recordReady);
+  }
 
   // ── GBP, posts, reviews ──
   if (f.gbp_done) did('gbp', 'GBP description, services and products written', 'gbp');
@@ -119,6 +139,30 @@ function trackerOf(f) {
     else if (f.existing_site === true && f.site_audit !== 'run') need('audit_scan', 'Scan the old site', 'site-audit', '', recordReady);
   }
 
+  // The migration's last steps (stage 3): the redirects, the pre launch check, the launch. Copybot runs the day 7 check itself.
+  const mg = f.migration || null;
+  if (mg && f.existing_site !== false && f.site_audit === 'ok') {
+    if (mg.redirects_pushed) did('redirects', 'Redirects pushed to the staging site', 'site-audit');
+    else need('redirects', 'Push the redirects to the staging site', 'site-audit', 'Dry run first: they go into Rank Math.', !!(sb && sb.connected));
+    if (mg.pre_launch === 'ok') did('pre_launch', 'Pre launch check passed', 'site-audit');
+    else need('pre_launch', mg.pre_launch === 'block' ? 'Fix what the pre launch check blocked, then run it again' : 'Run the pre launch check and the staging test', 'site-audit', 'Nothing launches with a block.', mg.redirects_pushed);
+  }
+  if (mg && mg.launched_at) did('launched', 'Site launched: every old URL checked on the live domain', 'site-audit', mg.launched_at);
+  if (mg && mg.day7_at) did('day7', 'Day 7 check run', 'site-audit', mg.day7_at);
+
+  // The review and referral cards (stage 3): the brief copied, then the four sign off ticks on the Cards tab, in order.
+  // Given makes the files; Brandon gets the client's approval and places the order (team/owners.json).
+  if (f.cards) {
+    const so = f.cards.signoff || {}, at = k => (so[k] && so[k].at) || null;
+    let open = recordReady && !!f.place_id;
+    const step = (doneNow, doneKey, doneText, when, needIt) => { if (doneNow) did(doneKey, doneText, 'cards', when); else { needIt(open); open = false; } };
+    step(!!f.cards.copied_at || !!so.proofs_sent, 'cards_brief_done', 'Cards brief copied for Claude', f.cards.copied_at, ok => need('cards_brief', 'Fill in the cards brief, copy it and make the cards in Claude', 'cards', 'The brief is built from the record: fill what the bar lists.', ok));
+    step(!!so.proofs_sent, 'cards_proofs_done', 'Card proofs sent', at('proofs_sent'), ok => need('cards_proofs', 'Check the card proofs and send them to Brandon', 'cards', 'Scan every QR code with a phone, then tick Proofs sent to client.', ok));
+    step(!!so.client_approved, 'cards_approval_done', 'Client approved the cards', at('client_approved'), ok => need('cards_approval', 'Get the client\'s approval of the card proofs', 'cards', 'Then tick Client approved on the Cards tab.', ok));
+    step(!!so.pdfs_exported, 'cards_export_done', 'Card print files exported', at('pdfs_exported'), ok => need('cards_export', 'Export the card print files and send them to Brandon', 'cards', 'Guides off, then tick Both PDFs exported.', ok));
+    step(!!so.sent_to_printer, 'cards_order_done', 'Cards sent to the printer', at('sent_to_printer'), ok => need('cards_order', 'Order the cards from the printer', 'cards', 'Then tick Sent to printer.', ok));
+  }
+
   // ── Onboarding answers from GHL (ghl-onboarding/rules.js stepsOf): nothing for a client with none ──
   // The step's Done button ticks it (`tick`); an access request the client is waiting for goes first.
   if (f.onboarding) {
@@ -130,7 +174,7 @@ function trackerOf(f) {
   // ── The task board, stage 2 (team/): the steps done outside Copybot, each opened by what comes before it and ticked
   // Done by a person, and the one off tasks added on the client. Nothing for a client loaded without them (f.hand). ──
   if (f.hand) {
-    const hs = handStepsOf({ record: recordReady, place_id: !!f.place_id, locations: !!f.locations_approved, page_map: !!f.map_pages, pages: pagesDone, pushed: !!f.pushed, gbp: !!f.gbp_done, prompts: !!f.prompts_done }, f.hand.ticks || {});
+    const hs = handStepsOf({ record: recordReady, place_id: !!f.place_id, locations: !!f.locations_approved, page_map: !!f.map_pages, pages: pagesDone, pushed: !!(sb ? sb.pushed : f.pushed), site: !!(sb && sb.connected), gbp: !!f.gbp_done, prompts: !!f.prompts_done }, f.hand.ticks || {});
     for (const d of hs.done) done.push(d);
     for (const n of hs.needs) needs.push(n);
     later += hs.later;
